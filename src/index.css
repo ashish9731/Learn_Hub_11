@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background-primary: #121212;
+  --background-secondary: #1e1e1e;
+  --background-tertiary: #252525;
+  --text-primary: #ffffff; 
+  --text-secondary: #a0a0a0;
+  --accent-primary: #a855f7;
+  --accent-secondary: #9333ea;
+  --border-color: #333333;
+  --card-background: #1e1e1e;
+  --card-hover: #252525;
+}
+
+/* Animation classes */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Custom animations for auth page */
+@keyframes tilt {
+  0%, 50%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(0.5deg);
+  }
+  75% {
+    transform: rotate(-0.5deg);
+  }
+}
+
+.animate-tilt {
+  animation: tilt 10s infinite linear;
+}
+
+/* Base styles for dark mode */
+@layer base {
+  body {
+    @apply bg-[#121212] text-white transition-colors duration-200 dark:bg-[#121212] dark:text-white;
+  }
+  
+  input, textarea, select {
+    @apply text-gray-900 dark:text-white bg-white dark:bg-[#252525];
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-gray-900 dark:text-white;
+  }
+}
+
+/* Common component styles */
+@layer components {
+  .card {
+    @apply bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333];
+  }
+  
+  .card-header {
+    @apply px-6 py-4 border-b border-[#333333];
+  }
+  
+  .card-title {
+    @apply text-lg font-medium text-gray-900 dark:text-white;
+  }
+  
+  .card-body {
+    @apply p-6;
+  }
+  
+  .btn-primary {
+    @apply px-4 py-2 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-medium rounded-md shadow-sm;
+  }
+  
+  .btn-secondary {
+    @apply px-4 py-2 bg-[#252525] hover:bg-[#333333] text-gray-200 font-medium rounded-md shadow-sm;
+  }
+  
+  .input {
+    @apply block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm 
+           bg-[#252525] text-white
+           focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] focus:border-[#8b5cf6]
+           dark:bg-[#252525] dark:text-white dark:border-[#333333];
+  }
+  
+  .select {
+    @apply block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm 
+           bg-[#252525] text-white
+           focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] focus:border-[#8b5cf6]
+           dark:bg-[#252525] dark:text-white dark:border-[#333333];
+  }
+}
