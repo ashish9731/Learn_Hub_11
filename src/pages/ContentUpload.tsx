@@ -193,16 +193,12 @@ export default function ContentUpload() {
         throw new Error('User not authenticated');
       }
 
-      const { data, error } = await supabase
-        .from('courses')
-        .insert({
-          title: newCourseTitle,
-          description: `Course: ${newCourseTitle}`,
-          company_id: null,
-          image_url: null
-        })
-        .select()
-        .single();
+      const { data, error } = await supabaseHelpers.createCourse({
+        title: newCourseTitle,
+        description: `Course: ${newCourseTitle}`,
+        company_id: null,
+        image_url: null
+      });
       
       if (error) {
         console.error('Error creating course:', error);
@@ -264,17 +260,13 @@ export default function ContentUpload() {
         console.log('File uploaded, creating podcast record...');
         
         // Create podcast record
-        const { data: podcastData, error: podcastError } = await supabase
-          .from('podcasts')
-          .insert({
-            title: contentTitle,
-            course_id: selectedCourse,
-            category: selectedCategory,
-            mp3_url: publicUrl,
-            created_by: user.id
-          })
-          .select()
-          .single();
+        const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
+          title: contentTitle,
+          course_id: selectedCourse,
+          category: selectedCategory,
+          mp3_url: publicUrl,
+          created_by: user.id
+        });
 
         if (podcastError) {
           console.error('Podcast creation error:', podcastError);
@@ -306,16 +298,12 @@ export default function ContentUpload() {
         console.log('File uploaded, creating PDF record...');
         
         // Create PDF record
-        const { data: pdfData, error: pdfError } = await supabase
-          .from('pdfs')
-          .insert({
-            title: contentTitle,
-            course_id: selectedCourse,
-            pdf_url: publicUrl,
-            created_by: user.id
-          })
-          .select()
-          .single();
+        const { data: pdfData, error: pdfError } = await supabaseHelpers.createPDF({
+          title: contentTitle,
+          course_id: selectedCourse,
+          pdf_url: publicUrl,
+          created_by: user.id
+        });
 
         if (pdfError) {
           console.error('PDF creation error:', pdfError);

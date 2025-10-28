@@ -52,8 +52,12 @@ export const supabaseHelpers = {
 
   // User operations
   getUsers: async () => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
     console.log('Fetching users with RLS policies');
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('users')
       .select(`
         *,
@@ -74,7 +78,11 @@ export const supabaseHelpers = {
   },
 
   getUsersByCompany: async (companyId: string) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('users')
       .select('*')
       .eq('company_id', companyId)
@@ -85,7 +93,11 @@ export const supabaseHelpers = {
   },
 
   createUser: async (userData: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('users')
       .insert(userData)
       .select()
@@ -96,7 +108,11 @@ export const supabaseHelpers = {
   },
 
   updateUser: async (userId: string, updates: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('users')
       .update(updates)
       .eq('id', userId)
@@ -176,10 +192,14 @@ export const supabaseHelpers = {
 
   // Company operations
   getCompanies: async () => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
     console.log('Fetching companies with RLS policies');
     try {
       // First, get companies
-      const { data: companies, error: companiesError } = await supabase
+      const { data: companies, error: companiesError } = await supabaseAdmin
         .from('companies')
         .select('id, name, created_at')
         .order('created_at', { ascending: false });
@@ -193,7 +213,11 @@ export const supabaseHelpers = {
       const companiesWithUserCounts = await Promise.all(
         (companies || []).map(async (company) => {
           try {
-            const { count, error: countError } = await supabase
+            if (!supabaseAdmin) {
+              throw new Error('Admin client not available');
+            }
+            
+            const { count, error: countError } = await supabaseAdmin
               .from('users')
               .select('*', { count: 'exact', head: true })
               .eq('company_id', company.id);
@@ -220,7 +244,11 @@ export const supabaseHelpers = {
   },
 
   createCompany: async (companyData: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('companies')
       .insert(companyData)
       .select()
@@ -231,7 +259,11 @@ export const supabaseHelpers = {
   },
 
   updateCompany: async (companyId: string, updates: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('companies')
       .update(updates)
       .eq('id', companyId)
@@ -243,6 +275,10 @@ export const supabaseHelpers = {
   },
 
   deleteCompany: async (companyId: string) => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
     try {
       if (!supabaseAdmin) {
         throw new Error('Admin client not available');
@@ -363,8 +399,12 @@ export const supabaseHelpers = {
 
   // Course operations
   getCourses: async () => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
     console.log('Fetching courses with RLS policies');
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('courses')
       .select(`
         *,
@@ -381,7 +421,11 @@ export const supabaseHelpers = {
   },
 
   createCourse: async (courseData: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('courses')
       .insert(courseData)
       .select()
@@ -392,7 +436,11 @@ export const supabaseHelpers = {
   },
 
   updateCourse: async (courseId: string, updates: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('courses')
       .update(updates)
       .eq('id', courseId)
@@ -404,7 +452,11 @@ export const supabaseHelpers = {
   },
 
   deleteCourse: async (courseId: string) => {
-    const { error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { error } = await supabaseAdmin
       .from('courses')
       .delete()
       .eq('id', courseId);
@@ -414,8 +466,12 @@ export const supabaseHelpers = {
 
   // Podcast operations
   getPodcasts: async () => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
     console.log('Fetching podcasts with RLS policies');
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('podcasts')
       .select('*')
       .order('created_at', { ascending: false });
@@ -429,7 +485,11 @@ export const supabaseHelpers = {
   },
 
   createPodcast: async (podcastData: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('podcasts')
       .insert(podcastData)
       .select()
@@ -454,8 +514,12 @@ export const supabaseHelpers = {
 
   // PDF operations
   getPDFs: async () => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
     console.log('Fetching PDFs with RLS policies');
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('pdfs')
       .select('*')
       .order('created_at', { ascending: false });
@@ -469,7 +533,11 @@ export const supabaseHelpers = {
   },
 
   createPDF: async (pdfData: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('pdfs')
       .insert(pdfData)
       .select()
@@ -495,7 +563,11 @@ export const supabaseHelpers = {
 
   // Content category operations
   getContentCategories: async () => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('content_categories')
       .select('*')
       .order('created_at', { ascending: false });
@@ -509,7 +581,11 @@ export const supabaseHelpers = {
   },
 
   createContentCategory: async (categoryData: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('content_categories')
       .insert(categoryData)
       .select()
@@ -521,7 +597,11 @@ export const supabaseHelpers = {
 
   // User profile operations
   getAllUserProfiles: async () => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('user_profiles')
       .select('*')
       .order('created_at', { ascending: false });
@@ -531,7 +611,11 @@ export const supabaseHelpers = {
   },
 
   getUserProfile: async (userId: string) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('user_profiles')
       .select('*')
       .eq('user_id', userId)
@@ -542,7 +626,11 @@ export const supabaseHelpers = {
   },
 
   createUserProfile: async (profileData: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('user_profiles')
       .insert(profileData)
       .select()
@@ -553,7 +641,11 @@ export const supabaseHelpers = {
   },
 
   updateUserProfile: async (userId: string, updates: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('user_profiles')
       .update(updates)
       .eq('user_id', userId)
@@ -566,8 +658,12 @@ export const supabaseHelpers = {
 
   // User course operations
   getAllUserCourses: async () => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
     console.log('Fetching user courses with RLS policies');
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('user_courses')
       .select('*')
       .order('assigned_at', { ascending: false });
@@ -582,7 +678,11 @@ export const supabaseHelpers = {
 
   // Podcast assignment operations
   getAllPodcastAssignments: async () => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('podcast_assignments')
       .select('*')
       .order('assigned_at', { ascending: false });
@@ -592,7 +692,11 @@ export const supabaseHelpers = {
   },
 
   createPodcastAssignment: async (assignmentData: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('podcast_assignments')
       .insert(assignmentData)
       .select()
@@ -603,7 +707,11 @@ export const supabaseHelpers = {
   },
 
   getUserCourses: async (userId: string) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('user_courses')
       .select(`
         *,
@@ -625,7 +733,11 @@ export const supabaseHelpers = {
 
   // Podcast progress operations
   getAllPodcastProgress: async () => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('podcast_progress')
       .select('*')
       .order('last_played_at', { ascending: false });
@@ -635,9 +747,13 @@ export const supabaseHelpers = {
   },
 
   savePodcastProgress: async (userId: string, podcastId: string, currentTime: number, duration: number) => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
     const progressPercent = duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
     
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('podcast_progress')
       .upsert({
         user_id: userId,
@@ -654,9 +770,13 @@ export const supabaseHelpers = {
   },
 
   savePodcastProgressWithRetry: async (userId: string, podcastId: string, currentTime: number, duration: number, progressPercent: number, maxRetries = 3) => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
           .from('podcast_progress')
           .upsert({
             user_id: userId,
@@ -683,8 +803,12 @@ export const supabaseHelpers = {
   },
 
   calculateUserLearningMetrics: async (userId: string) => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .rpc('get_current_user_metrics');
       
       if (error) throw error;
@@ -718,7 +842,11 @@ export const supabaseHelpers = {
 
   // Logo operations
   getLogos: async (companyId?: string) => {
-    let query = supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    let query = supabaseAdmin
       .from('logos')
       .select('*')
       .order('created_at', { ascending: false });
@@ -734,7 +862,11 @@ export const supabaseHelpers = {
   },
 
   createLogo: async (logoData: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('logos')
       .insert(logoData)
       .select()
@@ -745,7 +877,11 @@ export const supabaseHelpers = {
   },
 
   deleteLogo: async (logoId: string) => {
-    const { error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { error } = await supabaseAdmin
       .from('logos')
       .delete()
       .eq('id', logoId);
@@ -755,8 +891,12 @@ export const supabaseHelpers = {
 
   // File upload operations
   uploadFile: async (bucket: string, fileName: string, file: File) => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
     console.log(`Uploading file to bucket: ${bucket}, fileName: ${fileName}`);
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabaseAdmin.storage
       .from(bucket)
       .upload(fileName, file, {
         cacheControl: '3600',
@@ -765,7 +905,7 @@ export const supabaseHelpers = {
 
     if (error) throw error;
 
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = supabaseAdmin.storage
       .from(bucket)
       .getPublicUrl(fileName);
 
@@ -775,7 +915,11 @@ export const supabaseHelpers = {
 
   // Temporary passwords operations
   getTempPasswords: async () => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('temp_passwords')
       .select('*')
       .order('created_at', { ascending: false });
@@ -785,7 +929,11 @@ export const supabaseHelpers = {
   },
 
   createTempPassword: async (tempPasswordData: any) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('temp_passwords')
       .insert(tempPasswordData)
       .select()
@@ -796,7 +944,11 @@ export const supabaseHelpers = {
   },
 
   markTempPasswordAsUsed: async (tempPasswordId: string) => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('temp_passwords')
       .update({ is_used: true })
       .eq('id', tempPasswordId)
@@ -808,7 +960,11 @@ export const supabaseHelpers = {
   },
 
   deleteTempPassword: async (tempPasswordId: string) => {
-    const { error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { error } = await supabaseAdmin
       .from('temp_passwords')
       .delete()
       .eq('id', tempPasswordId);
@@ -818,7 +974,11 @@ export const supabaseHelpers = {
 
   // User registration operations
   getUserRegistrations: async () => {
-    const { data, error } = await supabase
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
       .from('user_registrations')
       .select('*')
       .order('created_at', { ascending: false });
@@ -828,7 +988,11 @@ export const supabaseHelpers = {
   },
 
   approveUserRegistration: async (registrationId: string, action: string, companyId?: string, notes?: string) => {
-    const { data, error } = await supabase.rpc('approve_user_registration', {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin.rpc('approve_user_registration', {
       registration_id_param: registrationId,
       action_param: action,
       company_id_param: companyId,
@@ -840,7 +1004,11 @@ export const supabaseHelpers = {
   },
 
   rejectUserRegistration: async (registrationId: string, notes?: string) => {
-    const { data, error } = await supabase.rpc('reject_user_registration', {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin.rpc('reject_user_registration', {
       registration_id_param: registrationId,
       notes_param: notes
     });
