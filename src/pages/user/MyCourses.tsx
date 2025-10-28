@@ -45,6 +45,18 @@ interface PodcastProgress {
   last_played_at?: string;
 }
 
+interface UserCourse {
+  id: string;
+  user_id: string;
+  course_id: string;
+  assigned_by: string;
+  assigned_at: string;
+  due_date: string | null;
+  completed: boolean;
+  completion_date: string | null;
+  courses: Course;
+}
+
 export default function MyCourses() {
   const navigate = useNavigate();
   const [supabaseData, setSupabaseData] = useState({
@@ -52,7 +64,7 @@ export default function MyCourses() {
     categories: [] as Category[],
     podcasts: [] as Podcast[],
     pdfs: [] as any[],
-    userCourses: [] as any[]
+    userCourses: [] as UserCourse[]
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -307,15 +319,26 @@ export default function MyCourses() {
     return Math.round(totalProgress / coursePodcasts.length);
   };
 
-  const courseHierarchy = supabaseData.courses.map(course => ({
-    ...course,
-    categories: supabaseData.categories
-      .filter(cat => cat.course_id === course.id)
-      .map(category => ({
-        ...category,
-        podcasts: supabaseData.podcasts.filter(podcast => podcast.category_id === category.id)
-      }))
-  }));
+  // Build course hierarchy for display - only for assigned courses
+  const courseHierarchy = React.useMemo(() => {
+    // Get assigned course IDs
+    const assignedCourseIds = new Set(supabaseData.userCourses.map(uc => uc.course_id));
+    
+    // Filter courses to show only assigned courses
+    const assignedCourses = supabaseData.courses.filter(course => 
+      assignedCourseIds.has(course.id)
+    );
+    
+    return assignedCourses.map(course => ({
+      ...course,
+      categories: supabaseData.categories
+        .filter(cat => cat.course_id === course.id)
+        .map(category => ({
+          ...category,
+          podcasts: supabaseData.podcasts.filter(podcast => podcast.category_id === category.id)
+        }))
+    }));
+  }, [supabaseData.courses, supabaseData.categories, supabaseData.podcasts, supabaseData.userCourses]);
 
   const handlePodcastPlay = (podcast: Podcast) => {
     const relatedPodcasts = supabaseData.podcasts.filter(p => 

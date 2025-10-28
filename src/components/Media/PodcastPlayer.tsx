@@ -21,6 +21,7 @@ export default function PodcastPlayer({
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressSaveInterval = useRef<any>(null);
   const [progressSaved, setProgressSaved] = useState(false);
+  const lastSaveTime = useRef<number>(0);
 
   useEffect(() => {
     // Reset player state when podcast changes
@@ -35,9 +36,15 @@ export default function PodcastPlayer({
     if (userId) {
       progressSaveInterval.current = setInterval(() => {
         if (audioRef.current && audioRef.current.currentTime > 0 && !progressSaved) {
-          saveProgress();
+          const currentTime = Date.now();
+          // Save progress every 40 seconds or when significant progress is made
+          if (currentTime - lastSaveTime.current > 40000 || 
+              (audioRef.current && audioRef.current.currentTime > 1)) {
+            saveProgress();
+            lastSaveTime.current = currentTime;
+          }
         }
-      }, 10000); // Save every 10 seconds while playing
+      }, 5000); // Check every 5 seconds
     }
     
     return () => {
@@ -47,7 +54,7 @@ export default function PodcastPlayer({
       
       // Save progress when component unmounts
       if (userId && audioRef.current && audioRef.current.currentTime > 0.5 && !progressSaved) {
-        await saveProgress();
+        saveProgress();
       }
     };
   }, [podcast.id, podcast.mp3_url, userId]);
@@ -68,11 +75,9 @@ export default function PodcastPlayer({
         return;
       }
       
-      if (data) {
+      if (data && audioRef.current) {
         // Only set if audio is loaded and has duration
-        if (audioRef.current) {
-          audioRef.current.currentTime = data.playback_position || 0;
-        }
+        audioRef.current.currentTime = data.playback_position || 0;
       }
     } catch (error) {
       console.error('Error loading podcast progress:', error);

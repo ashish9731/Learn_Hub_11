@@ -19,6 +19,7 @@ export default function CourseDetail() {
   const [currentPdf, setCurrentPdf] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [podcastProgress, setPodcastProgress] = useState<Record<string, number>>({});
+  const [isUserAssignedToCourse, setIsUserAssignedToCourse] = useState<boolean>(false);
 
   useEffect(() => {
     const getUserId = async () => {
@@ -31,16 +32,42 @@ export default function CourseDetail() {
   }, []);
 
   useEffect(() => {
-    if (courseId) {
+    if (courseId && userId) {
+      checkUserCourseAssignment();
       loadCourseData();
     }
-  }, [courseId]);
+  }, [courseId, userId]);
 
   useEffect(() => {
     if (userId) {
       loadPodcastProgress();
     }
   }, [userId]);
+
+  const checkUserCourseAssignment = async () => {
+    if (!userId || !courseId) return;
+    
+    try {
+      // Check if user is assigned to this course
+      const { data, error } = await supabase
+        .from('user_courses')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('course_id', courseId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error checking course assignment:', error);
+        setIsUserAssignedToCourse(false);
+        return;
+      }
+      
+      setIsUserAssignedToCourse(!!data);
+    } catch (err) {
+      console.error('Error checking course assignment:', err);
+      setIsUserAssignedToCourse(false);
+    }
+  };
 
   const loadPodcastProgress = async () => {
     if (!userId) return;
@@ -76,6 +103,13 @@ export default function CourseDetail() {
     try {
       setLoading(true);
       setError(null);
+
+      // Check if user is assigned to this course before loading data
+      if (!isUserAssignedToCourse) {
+        setError('You are not assigned to this course. Please contact your administrator.');
+        setLoading(false);
+        return;
+      }
 
       // Get course details and related data including documents
       const [courseData, categoriesData, podcastsData, pdfsData] = await Promise.all([
@@ -173,6 +207,12 @@ export default function CourseDetail() {
     return (
       <div className="text-center py-12">
         <div className="text-red-600">Error loading course: {error}</div>
+        <button
+          onClick={() => navigate('/user/courses')}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Back to Courses
+        </button>
       </div>
     );
   }

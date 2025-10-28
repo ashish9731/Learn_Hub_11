@@ -310,6 +310,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       setLoading(true);
       setError(null);
       
+      // Load all data first
       const [coursesData, categoriesData, podcastsData, pdfsData] = await Promise.all([
         supabaseHelpers.getCourses(),
         supabaseHelpers.getContentCategories(), 
@@ -320,9 +321,15 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       // Load liked podcasts separately to avoid the error
       const likedPodcastsData = await loadUserLikedPodcasts(userId);
       
+      // Filter courses to show only assigned courses
+      const assignedCourseIds = new Set(supabaseData.userCourses.map(uc => uc.course_id));
+      const assignedCourses = (coursesData || []).filter(course => 
+        assignedCourseIds.has(course.id)
+      );
+      
       setSupabaseData(prev => ({
         ...prev,
-        courses: coursesData,
+        courses: assignedCourses,
         categories: categoriesData || [],
         podcasts: podcastsData,
         pdfs: pdfsData,
@@ -334,7 +341,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     } finally {
       setLoading(false);
     }
-  }, [userId, loadUserLikedPodcasts]);
+  }, [userId, loadUserLikedPodcasts, supabaseData.userCourses]);
 
   // Real-time sync for all relevant tables
   useRealtimeSync('user-courses', loadUserCourses);
@@ -395,10 +402,16 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   // Then load user data when userId is available
   useEffect(() => {
     if (userId) {
-      loadUserData();
-      loadUserCourses();
+      loadUserCourses(); // Load user courses first
     }
-  }, [userId, loadUserCourses, loadUserData]);
+  }, [userId, loadUserCourses]);
+  
+  // Load user data after user courses are loaded
+  useEffect(() => {
+    if (userId && supabaseData.userCourses.length > 0) {
+      loadUserData();
+    }
+  }, [userId, supabaseData.userCourses, loadUserData]);
   
   // Load user profile when userId is available
   useEffect(() => {
@@ -450,7 +463,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     });
   }, [supabaseData.podcasts, supabaseData.categories]);
 
-  // Build course hierarchy for display
+  // Build course hierarchy for display - only for assigned courses
   const courseHierarchy = React.useMemo(() => {
     return supabaseData.courses.map(course => {
       // Get categories for this course

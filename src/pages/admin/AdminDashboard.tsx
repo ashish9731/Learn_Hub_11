@@ -116,18 +116,20 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
       setUserProfiles(userProfilesData || []);
       setPodcastProgress(progressData || []);
       
-      // Calculate real-time metrics
+      // Filter courses to show only those assigned to users in admin's company
       const adminUsers = companyId 
         ? (usersData || []).filter((user: User) => user.role === 'user' && user.company_id === companyId)
         : (usersData || []).filter((user: User) => user.role === 'user');
       
-      // Filter courses to show only those assigned to users in admin's company
       const adminUserIds = adminUsers.map((user: User) => user.id);
       const adminUserCourses = (userCoursesData || []).filter((uc: UserCourse) => 
         adminUserIds.includes(uc.user_id)
       );
       
       const assignedCourseIds = new Set(adminUserCourses.map((uc: UserCourse) => uc.course_id));
+      const assignedCourses = (coursesData || []).filter((course: Course) => 
+        assignedCourseIds.has(course.id)
+      );
       
       // Calculate total hours from podcast progress
       const filteredProgress = (progressData || []).filter((progress: any) => 

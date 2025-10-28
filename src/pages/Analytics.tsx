@@ -71,6 +71,14 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [realTimeAnalytics, setRealTimeAnalytics] = useState({
+    totalOrganizations: 0,
+    totalCourses: 0,
+    totalPodcasts: 0,
+    totalUsers: 0,
+    totalLearningHours: 0,
+    totalDocuments: 0
+  });
 
   // Define loadSupabaseData function before it's used
   const loadSupabaseData = async () => {
@@ -96,6 +104,45 @@ export default function Analytics() {
         pdfs: pdfsData,
         users: usersData,
         userCourses: userCoursesData || []
+      });
+      
+      // Calculate real-time analytics
+      const totalOrganizations = companiesData.length || 0;
+      const totalCourses = coursesData.length || 0;
+      const totalPodcasts = podcastsData.length || 0;
+      // Only count regular users and admins, not super_admin
+      const totalUsers = usersData.filter((user: any) => 
+        user.role === 'user' || user.role === 'admin'
+      ).length || 0;
+      const totalDocuments = pdfsData.length || 0;
+      
+      // Calculate total learning hours from podcast progress
+      let totalLearningHours = 0;
+      try {
+        const { data: progressData } = await supabase
+          .from('podcast_progress')
+          .select('*');
+          
+        if (progressData && progressData.length > 0) {
+          const totalSeconds = progressData.reduce((total: number, item: any) => {
+            const duration = typeof item.duration === 'string' ? parseFloat(item.duration) : (item.duration || 0);
+            const progressPercent = item.progress_percent || 0;
+            return total + (duration * (progressPercent / 100));
+          }, 0);
+          
+          totalLearningHours = Math.round(totalSeconds / 3600 * 10) / 10;
+        }
+      } catch (progressError) {
+        console.error('Error calculating learning hours:', progressError);
+      }
+      
+      setRealTimeAnalytics({
+        totalOrganizations,
+        totalCourses,
+        totalPodcasts,
+        totalUsers,
+        totalLearningHours,
+        totalDocuments
       });
     } catch (error: any) {
       console.error('Failed to load Supabase data:', error);
@@ -131,32 +178,6 @@ export default function Analytics() {
   useRealtimeSync('approval-logs', loadSupabaseData);
   useRealtimeSync('audit-logs', loadSupabaseData);
   useRealtimeSync('contact-messages', loadSupabaseData);
-
-  // Calculate real metrics from Supabase data only
-  const totalOrganizations = supabaseData.companies.length || 0;
-  const totalCourses = supabaseData.courses.length || 0;
-  const totalPodcasts = supabaseData.podcasts.length || 0;
-  // Only count regular users and admins, not super_admin
-  const totalUsers = supabaseData.users.filter((user: any) => 
-    user.role === 'user' || user.role === 'admin'
-  ).length || 0;
-
-  // Calculate total learning hours
-  const totalLearningHours = 0.0; // No learning hours yet
-
-  useEffect(() => {
-    loadSupabaseData();
-  }, []);
-
-  // Add missing realTimeAnalytics state
-  const [realTimeAnalytics, setRealTimeAnalytics] = useState({
-    totalOrganizations: 0,
-    totalCourses: 0,
-    totalPodcasts: 0,
-    totalUsers: 0,
-    totalLearningHours: 0,
-    totalDocuments: 0
-  });
 
   // Function to handle KPI card click
   const handleKPICardClick = (kpiType: string) => {
@@ -584,6 +605,10 @@ export default function Analytics() {
       </g>
     );
   };
+
+  useEffect(() => {
+    loadSupabaseData();
+  }, []);
 
   if (loading) {
     return (
