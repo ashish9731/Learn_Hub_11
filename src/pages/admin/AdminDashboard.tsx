@@ -63,6 +63,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
     podcasts: [],
     userCourses: []
   });
+  const [assignedCourses, setAssignedCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [adminId, setAdminId] = useState<string | null>(null);
@@ -120,6 +121,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         ? (usersData || []).filter((user: User) => user.role === 'user' && user.company_id === companyId)
         : (usersData || []).filter((user: User) => user.role === 'user');
       
+      // Filter courses to show only those assigned to users in admin's company
       const adminUserIds = adminUsers.map((user: User) => user.id);
       const adminUserCourses = (userCoursesData || []).filter((uc: UserCourse) => 
         adminUserIds.includes(uc.user_id)
@@ -144,6 +146,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         progress.progress_percent > 0).map((progress: any) => progress.user_id));
       const activeUsers = new Set([...usersWithCourses, ...usersWithProgress]).size;
       
+      setAssignedCourses(assignedCourses);
       setRealTimeMetrics({
         totalUsers: adminUsers.length,
         totalCourses: assignedCourseIds.size,
@@ -374,18 +377,18 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                {supabaseData.courses.length > 0 ? (
-                  supabaseData.courses.slice(0, 6).map((course: any, index: number) => (
+                {assignedCourses.length > 0 ? (
+                  assignedCourses.slice(0, 6).map((course: any, index: number) => (
                     <div key={course.id} className="flex items-center justify-between p-3 bg-[#252525] rounded-lg">
                       <div>
                         <h4 className="text-sm font-medium text-white">{course.title}</h4>
-                        <p className="text-xs text-[#a0a0a0]">Added by Super Admin</p>
+                        <p className="text-xs text-[#a0a0a0]">Assigned to your users</p>
                       </div>
-                      <span className="text-xs text-[#a0a0a0]">Available</span>
+                      <span className="text-xs text-[#a0a0a0]">Active</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-center text-[#a0a0a0] py-4">No courses available</p>
+                  <p className="text-center text-[#a0a0a0] py-4">No courses assigned yet</p>
                 )}
               </div>
             </div>

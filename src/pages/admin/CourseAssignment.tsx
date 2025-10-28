@@ -207,7 +207,22 @@ export default function CourseAssignment() {
   };
 
   // Build course hierarchy for content selection
-  const courseHierarchy = supabaseData.courses.map((course: Course) => {
+  // Filter courses to show only those assigned to users in admin's company
+  const adminUsers = supabaseData.users.filter((user: User) => 
+    user.role === 'user' && 
+    (!adminCompanyId || user.company_id === adminCompanyId)
+  );
+  
+  const adminUserIds = adminUsers.map((user: User) => user.id);
+  const adminUserCourses = supabaseData.userCourses.filter((uc: UserCourse) => 
+    adminUserIds.includes(uc.user_id)
+  );
+  
+  const assignedCourseIds = new Set(adminUserCourses.map((uc: UserCourse) => uc.course_id));
+  
+  const courseHierarchy = supabaseData.courses
+    .filter((course: Course) => assignedCourseIds.has(course.id))
+    .map((course: Course) => {
     // Get categories for this course
     const courseCategories = supabaseData.categories.filter((cat: Category) => cat.course_id === course.id);
     
@@ -737,7 +752,7 @@ export default function CourseAssignment() {
                   </div>
                 ) : (
                   <div className="text-center py-8 text-[#a0a0a0]">
-                    No content available. Contact Super Admin to add content.
+                    No courses assigned to your users yet. Contact Super Admin to assign courses.
                   </div>
                 )}
               </div>

@@ -25,7 +25,7 @@ export default function Reports() {
       setError(null);
       
       const [usersData, coursesData, companiesData, podcastsData] = await Promise.all([
-        supabaseHelpers.getUsersWithRLS(),
+        supabaseHelpers.getUsers(),
         supabaseHelpers.getCourses(),
         supabaseHelpers.getCompanies(),
         supabaseHelpers.getPodcasts()
