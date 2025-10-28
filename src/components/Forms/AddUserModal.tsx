@@ -312,38 +312,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
     } finally {
       setIsCreatingUser(false);
     }
-  };
-    
-  const sendEmailNotification = async () => {
-    try {
-      const selectedCompany = companies.find(company => company.id === formData.companyId);
-      const companyName = selectedCompany ? selectedCompany.name : '';
-      
-      const emailResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-user-notification`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'user_created',
-          userEmail: formData.userEmail,
-          userName: formData.userName,
-          password: generatedPassword,
-          companyName: companyName
-        })
-      });
-      
-      if (!emailResponse.ok) {
-        console.error('Failed to send email notification');
-      } else {
-        console.log('Email notification sent successfully');
-      }
-    } catch (emailError) {
-      console.error('Error sending email notification:', emailError);
-      // Don't fail user creation if email fails
-    }
-  };
+  }
 
   const handleClose = () => {
     setFormData({
