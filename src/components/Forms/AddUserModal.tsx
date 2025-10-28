@@ -161,7 +161,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
       console.log('Created auth user with ID:', userId);
       
       // Create the user in the users table
-      const { data: userData, error: userError } = await supabase
+      const { data: userData, error: userError } = await supabaseAdmin
         .from('users')
         .insert({
           id: userId,
@@ -187,7 +187,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
       }
       
       // Create user profile
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabaseAdmin
         .from('user_profiles')
         .insert({
           user_id: userId,
@@ -232,7 +232,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
       let finalTempPassword = password;
       try {
         console.log('🔥🔥🔥 USER - FETCHING TEMP PASSWORD FROM DATABASE FOR USER ID:', userId);
-        const { data: storedTempPasswordData, error: fetchError } = await supabase
+        const { data: storedTempPasswordData, error: fetchError } = await supabaseAdmin
           .from('temp_passwords')
           .select('*')
           .eq('user_id', userId)

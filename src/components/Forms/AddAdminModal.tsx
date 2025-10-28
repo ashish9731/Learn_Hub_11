@@ -107,7 +107,7 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
       }
       
       // Check if user already exists in our database
-      const { data: existingUser, error: checkError } = await supabase
+      const { data: existingUser, error: checkError } = await supabaseAdmin
         .from('users')
         .select('id, email')
         .eq('email', formData.adminEmail)
@@ -175,7 +175,7 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
       }
       
       // Create the user in the users table
-      const { data: userData, error: userError } = await supabase
+      const { data: userData, error: userError } = await supabaseAdmin
         .from('users')
         .insert({
           id: authData.user.id,
@@ -201,7 +201,7 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
       }
       
       // Create user profile
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabaseAdmin
         .from('user_profiles')
         .insert({
           user_id: authData.user.id,
@@ -242,7 +242,7 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
       let finalTempPassword = password;
       try {
         console.log('🔥🔥🔥 ADMIN - FETCHING TEMP PASSWORD FROM DATABASE FOR USER ID:', authData.user.id);
-        const { data: storedTempPasswordData, error: fetchError } = await supabase
+        const { data: storedTempPasswordData, error: fetchError } = await supabaseAdmin
           .from('temp_passwords')
           .select('*')
           .eq('user_id', authData.user.id)
