@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, Music } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, Music, Image, RefreshCw } from 'lucide-react';
 import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
 import { supabase } from '../lib/supabase';
+import { stabilityAI } from '../services/stabilityai';
 
 interface Course {
   id: string;
@@ -95,6 +96,7 @@ export default function ContentUpload() {
   const [error, setError] = useState<string | null>(null);
   const [expandedCourses, setExpandedCourses] = useState<Record<string, boolean>>({});
   const [isUploading, setIsUploading] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState<Record<string, boolean>>({});
 
   // Predefined categories
   const predefinedCategories = ['Books', 'HBR', 'TED Talks', 'Concept'];
@@ -676,6 +678,70 @@ export default function ContentUpload() {
     }
   };
 
+  // Function to manually generate course image using Stability AI
+  const generateCourseImage = async (courseId: string, courseTitle: string) => {
+    // Check if Stability AI is configured
+    if (!stabilityAI.isConfigured()) {
+      alert('Stability AI API key is not configured. Please contact administrator.');
+      return;
+    }
+
+    try {
+      setIsGeneratingImage(prev => ({ ...prev, [courseId]: true }));
+      
+      console.log('Generating AI image for course:', courseTitle);
+      const base64Image = await stabilityAI.generateCourseImage(courseTitle);
+      
+      if (base64Image) {
+        // Convert base64 to blob and upload to Supabase storage
+        const binaryString = atob(base64Image);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'image/png' });
+        
+        // Upload to Supabase storage
+        const fileName = `course-images/${courseId}-${Date.now()}.png`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('course-images')
+          .upload(fileName, blob, {
+            cacheControl: '3600',
+            upsert: true
+          });
+        
+        if (uploadError) {
+          console.error('Error uploading AI generated image:', uploadError);
+          alert('Failed to upload generated image. Please try again.');
+          setIsGeneratingImage(prev => ({ ...prev, [courseId]: false }));
+          return;
+        }
+        
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('course-images')
+          .getPublicUrl(fileName);
+        
+        // Update course with the new image URL
+        try {
+          await supabaseHelpers.updateCourse(courseId, { image_url: publicUrl });
+          console.log('Course image updated successfully');
+          alert('Course image generated and saved successfully!');
+        } catch (updateError) {
+          console.error('Error updating course with image URL:', updateError);
+          alert('Failed to save image to course. Please try again.');
+        }
+      } else {
+        alert('Failed to generate course image. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error generating AI course image:', error);
+      alert('Error generating course image. Please try again.');
+    } finally {
+      setIsGeneratingImage(prev => ({ ...prev, [courseId]: false }));
+    }
+  };
+
   // Toggle course expansion
   const toggleCourseExpansion = (courseId: string) => {
     setExpandedCourses(prev => ({
@@ -684,78 +750,115 @@ export default function ContentUpload() {
     }));
   };
 
-  // Build course hierarchy for display
-  const courseHierarchy = (supabaseData.courses || []).map(course => {
-    // Get categories for this course
-    const courseCategories = (supabaseData.categories || []).filter(cat => cat.course_id === course.id);
-    
-    // Get content for this course
-    const coursePodcasts = (supabaseData.podcasts || []).filter(
-      podcast => podcast.course_id === course.id
+  const renderCourseLibrary = () => {
+    const filteredCourses = supabaseData.courses.filter(course =>
+      course.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    
-    const coursePDFs = (supabaseData.pdfs || []).filter(
-      pdf => pdf.course_id === course.id
-    );
-    
-    // Calculate total content
-    const totalContent = coursePodcasts.length + coursePDFs.length;
-    
-    return {
-      ...course,
-      courseCategories,
-      coursePodcasts,
-      coursePDFs,
-      totalContent
-    };
-  });
 
-  // Filter courses based on search term
-  const filteredCourses = courseHierarchy.filter(course =>
-    course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.courseCategories.some(cat =>
-      cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.coursePodcasts.some(podcast => 
-        podcast.title.toLowerCase().includes(searchTerm.toLowerCase())
-      ) ||
-      course.coursePDFs.some(pdf => 
-        pdf.title.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    )
-  );
-
-  if (loading) {
     return (
-      <div className="py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading content...</p>
-            </div>
-          </div>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Course Library</h2>
+          <button
+            onClick={() => setShowAddCourseForm(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Add New Course
+          </button>
         </div>
+
+        {filteredCourses.length === 0 ? (
+          <div className="text-center py-12">
+            <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No courses</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Get started by creating a new course.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCourses.map((course) => (
+              <div key={course.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="aspect-video bg-gray-200 relative">
+                  {course.image_url ? (
+                    <img
+                      src={course.image_url}
+                      alt={course.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <BookOpen className="h-12 w-12 text-gray-400" />
+                    </div>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      generateCourseImage(course.id, course.title);
+                    }}
+                    disabled={isGeneratingImage[course.id]}
+                    className="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 shadow-md disabled:opacity-50"
+                    title="Generate course image"
+                  >
+                    {isGeneratingImage[course.id] ? (
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Image className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900">{course.title}</h3>
+                    {course.level && (
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        course.level === 'Basics' 
+                          ? 'bg-green-100 text-green-800' 
+                          : course.level === 'Intermediate' 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : 'bg-red-100 text-red-800'
+                      }`}>
+                        {course.level}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                    {course.description || 'No description provided'}
+                  </p>
+
+                  <div className="flex justify-between items-center">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => {
+                          setSelectedCourse(course.id);
+                          setShowContentUploadForm(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        Add Content
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCourse(course.id)}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
-  }
-
-  if (error) {
-    return (
-      <div className="py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <p className="text-red-600">Error: {error}</p>
-            <button 
-              onClick={loadSupabaseData}
-              className="mt-2 text-sm text-red-700 hover:text-red-500"
-            >
-              Try again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  };
 
   return (
     <div className="py-6">
@@ -1017,141 +1120,7 @@ export default function ContentUpload() {
 
           {/* Course Library */}
           <div className="lg:col-span-2">
-            <div className="bg-[#1e1e1e] shadow rounded-lg border border-[#333333]">
-              <div className="px-6 py-4 border-b border-[#333333]">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-white">Course Library</h3>
-                  <div className="relative">
-                    <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-[#a0a0a0] pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder="Search content..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="block w-full pl-10 pr-3 py-2 border border-[#333333] rounded-md leading-5 bg-[#252525] placeholder-[#a0a0a0] text-white focus:outline-none focus:placeholder-[#a0a0a0] focus:ring-1 focus:ring-[#8b5cf6] focus:border-[#8b5cf6] text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              <div className="max-h-[600px] overflow-y-auto">
-                {courseHierarchy.length > 0 ? (
-                  <div className="divide-y divide-[#333333]">
-                    {courseHierarchy
-                      .filter(course => 
-                        !searchTerm || 
-                        course.title.toLowerCase().includes(searchTerm.toLowerCase())
-                      )
-                      .map((course) => (
-                      <div key={course.id} className="border-b border-[#333333]">
-                        {/* Course Header */}
-                        <div 
-                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
-                          onClick={() => toggleCourseExpansion(course.id)}
-                        >
-                          <div className="flex items-center">
-                            <div className="mr-2">
-                              {expandedCourses[course.id] ? (
-                                <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
-                              ) : (
-                                <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
-                              )}
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium text-white">{course.title}</h4>
-                              <p className="text-xs text-[#a0a0a0]">
-                                {course.totalContent} items • 
-                                {course.coursePodcasts.length} podcasts • 
-                                {course.coursePDFs.length} documents
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent expanding/collapsing when clicking delete
-                              handleDeleteCourse(course.id);
-                            }}
-                            className="p-2 text-red-400 hover:text-red-300 rounded-full hover:bg-red-900/20"
-                            title="Delete Course"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                        
-                        {/* Course Content */}
-                        {expandedCourses[course.id] && (
-                          <div className="pl-8 pr-4 pb-4">
-                            {/* Podcasts */}
-                            {course.coursePodcasts.length > 0 && (
-                              <div className="mb-4">
-                                <h5 className="text-sm font-medium text-[#8b5cf6] mb-2">Podcasts</h5>
-                                <div className="space-y-2">
-                                  {course.coursePodcasts.map((podcast) => (
-                                    <div key={podcast.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
-                                      {podcast.is_youtube_video ? (
-                                        <Play className="h-4 w-4 text-red-500 mr-3" />
-                                      ) : (
-                                        <Music className="h-4 w-4 text-[#8b5cf6] mr-3" />
-                                      )}
-                                      <div className="flex-1">
-                                        <h6 className="text-sm font-medium text-white">{podcast.title}</h6>
-                                        <p className="text-xs text-[#a0a0a0]">
-                                          {podcast.is_youtube_video ? 'YouTube Video' : 'Audio Content'}
-                                        </p>
-                                      </div>
-                                      <button
-                                        onClick={() => handleDeletePodcast(podcast.id)}
-                                        className="p-2 text-red-400 hover:text-red-300 rounded-full hover:bg-red-900/20"
-                                        title="Delete Podcast"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Documents */}
-                            {course.coursePDFs.length > 0 && (
-                              <div className="mb-4">
-                                <h5 className="text-sm font-medium text-purple-400 mb-2">Documents</h5>
-                                <div className="space-y-2">
-                                  {course.coursePDFs.map((pdf) => (
-                                    <div key={pdf.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
-                                      <FileText className="h-4 w-4 text-purple-500 mr-3" />
-                                      <div className="flex-1">
-                                        <h6 className="text-sm font-medium text-white">{pdf.title}</h6>
-                                        <p className="text-xs text-[#a0a0a0]">PDF Document</p>
-                                      </div>
-                                      <button
-                                        onClick={() => handleDeletePDF(pdf.id)}
-                                        className="p-2 text-red-400 hover:text-red-300 rounded-full hover:bg-red-900/20"
-                                        title="Delete Document"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            
-                            {course.totalContent === 0 && (
-                              <p className="text-center text-[#a0a0a0] py-4">No content uploaded yet</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-[#a0a0a0]">
-                    {supabaseData.courses.length === 0 ? 'No courses available. Create a course first.' : 'No content matches your search.'}
-                  </div>
-                )}
-              </div>
-            </div>
+            {renderCourseLibrary()}
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, BookOpen, User, ChevronLeft, Play, FileText, MessageSquare, Headphones, Download, Lock, CheckCircle, Image as ImageIcon, File as FileIcon } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, Music, Folder, User, Image, RefreshCw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
@@ -86,26 +86,19 @@ export default function CourseDetail() {
   // State for course image
   const [courseImage, setCourseImage] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState<boolean>(false);
-  
-  // Ref to track if image generation has been attempted
-  const imageGenerationAttemptedRef = useRef(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
-  // Generate course image using Stability AI
+  // Function to manually generate course image using Stability AI
   const generateCourseImage = async (courseTitle: string, courseId: string) => {
-    // If we already have a course image, return it
-    if (courseImage) {
-      return courseImage;
+    // Check if Stability AI is configured
+    if (!stabilityAI.isConfigured()) {
+      alert('Stability AI API key is not configured. Please contact administrator.');
+      return;
     }
-    
-    // First, check if course already has an image_url
-    if (course?.image_url) {
-      setCourseImage(course.image_url);
-      return course.image_url;
-    }
-    
-    // If no image_url exists, generate one using Stability AI
+
     try {
-      setLoadingImage(true);
+      setIsGeneratingImage(true);
+      
       console.log('Generating AI image for course:', courseTitle);
       const base64Image = await stabilityAI.generateCourseImage(courseTitle);
       
@@ -129,8 +122,9 @@ export default function CourseDetail() {
         
         if (uploadError) {
           console.error('Error uploading AI generated image:', uploadError);
-          setLoadingImage(false);
-          return null;
+          alert('Failed to upload generated image. Please try again.');
+          setIsGeneratingImage(false);
+          return;
         }
         
         // Get public URL
@@ -142,29 +136,22 @@ export default function CourseDetail() {
         try {
           await supabaseHelpers.updateCourse(courseId, { image_url: publicUrl });
           console.log('Course image updated successfully');
+          setCourseImage(publicUrl);
+          alert('Course image generated and saved successfully!');
         } catch (updateError) {
           console.error('Error updating course with image URL:', updateError);
+          alert('Failed to save image to course. Please try again.');
         }
-        
-        setCourseImage(publicUrl);
-        setLoadingImage(false);
-        return publicUrl;
+      } else {
+        alert('Failed to generate course image. Please try again.');
       }
     } catch (error) {
       console.error('Error generating AI course image:', error);
+      alert('Error generating course image. Please try again.');
+    } finally {
+      setIsGeneratingImage(false);
     }
-    
-    setLoadingImage(false);
-    return null;
   };
-
-  // Effect to generate course image when course loads
-  useEffect(() => {
-    if (course && course.id && !courseImage && !loadingImage && !imageGenerationAttemptedRef.current) {
-      imageGenerationAttemptedRef.current = true;
-      generateCourseImage(course.title, course.id);
-    }
-  }, [course, courseImage, loadingImage]);
 
   // Get course image with fallback
   const getCourseImageWithFallback = () => {
@@ -366,7 +353,7 @@ export default function CourseDetail() {
   }
 
   return (
-    <div className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       {/* Back Button */}
       <button
         onClick={() => navigate('/user/courses')}
@@ -384,223 +371,341 @@ export default function CourseDetail() {
         </div>
       )}
 
-      {/* Course Header with Enhanced Design */}
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8 transition-all hover:shadow-2xl">
-        <div className="flex flex-col md:flex-row">
-          {/* Course Image with Gradient Overlay */}
-          <div className="md:w-2/5 relative">
-            <div className="h-64 md:h-full bg-gradient-to-r from-blue-500 to-purple-600 relative overflow-hidden">
-              {loadingImage ? (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                </div>
-              ) : (
-                <img
-                  src={getCourseImageWithFallback()}
-                  alt={course.title}
-                  className="w-full h-full object-cover opacity-90"
-                  onError={handleImageError}
-                />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-            </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
-          
-          {/* Course Info with Enhanced Styling */}
-          <div className="md:w-3/5 p-8">
-            <div className="mb-6">
-              <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                <h1 className="text-3xl font-bold text-gray-900">{course.title}</h1>
-                {course.level && (
-                  <span className={`px-4 py-2 text-sm font-semibold rounded-full shadow-sm ${
-                    course.level === 'Basics' 
-                      ? 'bg-green-100 text-green-800' 
-                      : course.level === 'Intermediate' 
-                        ? 'bg-yellow-100 text-yellow-800' 
-                        : 'bg-red-100 text-red-800'
-                  }`}>
-                    {course.level}
-                  </span>
-                )}
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
               </div>
-              
-              <p className="text-gray-700 text-lg mb-6 leading-relaxed">
-                {course.description || `Master the art of ${course.title.toLowerCase()}. This course contains various modules to help you develop your skills.`}
-              </p>
-              
-              <div className="flex flex-wrap items-center gap-6 text-gray-600">
-                <div className="flex items-center">
-                  <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                    <Clock className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Total Time</p>
-                    <p className="font-semibold">{podcasts.length > 0 ? `${Math.ceil(podcasts.length * 0.25)} hours` : 'N/A'}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center">
-                  <div className="p-2 bg-purple-100 rounded-lg mr-3">
-                    <BookOpen className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Modules</p>
-                    <p className="font-semibold">{categories.length}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center">
-                  <div className="p-2 bg-green-100 rounded-lg mr-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Progress</p>
-                    <p className="font-semibold">
-                      {(() => {
-                        const totalPodcasts = podcasts.length;
-                        const completedPodcasts = podcasts.filter(p => {
-                          const progress = podcastProgress[p.id];
-                          return progress && progress.progress_percent === 100;
-                        }).length;
-                        return totalPodcasts > 0 ? `${Math.round((completedPodcasts / totalPodcasts) * 100)}%` : '0%';
-                      })()}
-                    </p>
-                  </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error loading course</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        ) : course ? (
+          <>
+            {/* Course Header */}
+            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+              <div className="md:flex">
+                {/* Course Image - Left Side */}
+                <div className="md:w-1/3">
+                  <div className="aspect-square bg-gray-200 relative">
+                    {loadingImage ? (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      </div>
+                    ) : courseImage || course?.image_url ? (
+                      <img
+                        src={getCourseImageWithFallback()}
+                        alt={course.title}
+                        className="w-full h-full object-cover"
+                        onError={handleImageError}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 p-4">
+                        <BookOpen className="h-12 w-12 text-gray-400 mb-2" />
+                        <p className="text-gray-500 text-center">No course image</p>
+                        <button
+                          onClick={() => generateCourseImage(course.title, course.id)}
+                          disabled={isGeneratingImage}
+                          className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm flex items-center disabled:opacity-50"
+                        >
+                          {isGeneratingImage ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Image className="h-4 w-4 mr-1" />
+                              Generate Image
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-      {/* Enhanced Action Buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        <button
-          onClick={() => setActiveTab('audios')}
-          className={`py-4 px-2 rounded-xl flex flex-col items-center justify-center font-medium transition-all transform hover:scale-105 ${
-            activeTab === 'audios' 
-              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg' 
-              : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md'
-          }`}
-        >
-          <div className="p-3 rounded-full mb-2 bg-white/20">
-            <Headphones className="h-6 w-6" />
-          </div>
-          <span className="text-sm font-semibold">Audios</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('videos')}
-          className={`py-4 px-2 rounded-xl flex flex-col items-center justify-center font-medium transition-all transform hover:scale-105 ${
-            activeTab === 'videos' 
-              ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg' 
-              : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md'
-          }`}
-        >
-          <div className="p-3 rounded-full mb-2 bg-white/20">
-            <Play className="h-6 w-6" />
-          </div>
-          <span className="text-sm font-semibold">Videos</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('docs')}
-          className={`py-4 px-2 rounded-xl flex flex-col items-center justify-center font-medium transition-all transform hover:scale-105 ${
-            activeTab === 'docs' 
-              ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg' 
-              : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md'
-          }`}
-        >
-          <div className="p-3 rounded-full mb-2 bg-white/20">
-            <FileText className="h-6 w-6" />
-          </div>
-          <span className="text-sm font-semibold">Docs</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('images')}
-          className={`py-4 px-2 rounded-xl flex flex-col items-center justify-center font-medium transition-all transform hover:scale-105 ${
-            activeTab === 'images' 
-              ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg' 
-              : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md'
-          }`}
-        >
-          <div className="p-3 rounded-full mb-2 bg-white/20">
-            <ImageIcon className="h-6 w-6" />
-          </div>
-          <span className="text-sm font-semibold">Images</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('templates')}
-          className={`py-4 px-2 rounded-xl flex flex-col items-center justify-center font-medium transition-all transform hover:scale-105 ${
-            activeTab === 'templates' 
-              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg' 
-              : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md'
-          }`}
-        >
-          <div className="p-3 rounded-full mb-2 bg-white/20">
-            <FileIcon className="h-6 w-6" />
-          </div>
-          <span className="text-sm font-semibold">Templates</span>
-        </button>
-      </div>
-
-      {/* Audios Tab */}
-      {activeTab === 'audios' && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Audio Content</h2>
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Podcast List - Left Side */}
-            <div className="lg:w-1/2">
-              <div className="space-y-3">
-                {podcasts.filter(p => !p.is_youtube_video).length > 0 ? 
-                  podcasts.filter(p => !p.is_youtube_video).map(podcast => {
-                    const completion = getPodcastCompletion(podcast.id);
-                    
-                    return (
-                      <div 
-                        key={podcast.id} 
-                        className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-50 ${
-                          currentPodcast?.id === podcast.id 
-                            ? 'bg-blue-50 border border-blue-200' 
-                            : 'bg-gray-50'
-                        }`}
-                        onClick={() => handlePlayPodcast(podcast)}
+                {/* Course Details - Right Side */}
+                <div className="md:w-2/3 p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h1 className="text-2xl font-bold text-gray-900 mb-2">{course.title}</h1>
+                      {course.level && (
+                        <span className={`px-3 py-1 text-sm rounded-full ${
+                          course.level === 'Basics' 
+                            ? 'bg-green-100 text-green-800' 
+                            : course.level === 'Intermediate' 
+                              ? 'bg-yellow-100 text-yellow-800' 
+                              : 'bg-red-100 text-red-800'
+                        }`}>
+                          {course.level}
+                        </span>
+                      )}
+                    </div>
+                    {(!courseImage && !course?.image_url) && (
+                      <button
+                        onClick={() => generateCourseImage(course.title, course.id)}
+                        disabled={isGeneratingImage}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm flex items-center disabled:opacity-50"
                       >
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 mr-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                              <Headphones className="h-5 w-5 text-blue-600" />
-                            </div>
-                          </div> 
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-medium text-gray-900 truncate">{podcast.title}</h3>
-                            <p className="text-xs text-gray-500">Audio content</p>
-                            {completion > 0 && (
-                              <div className="ml-2 flex items-center">
-                                <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                  <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                        {isGeneratingImage ? (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Image className="h-4 w-4 mr-1" />
+                            Generate Image
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  <p className="text-gray-600 mb-6">{course.description || 'No description provided for this course.'}</p>
+
+                  {/* Course Metadata */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-blue-50 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {categoriesWithProgress.length}
+                      </div>
+                      <div className="text-sm text-gray-600">Categories</div>
+                    </div>
+                    <div className="bg-green-50 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {podcasts.length}
+                      </div>
+                      <div className="text-sm text-gray-600">Podcasts</div>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {pdfs.length}
+                      </div>
+                      <div className="text-sm text-gray-600">Documents</div>
+                    </div>
+                    <div className="bg-yellow-50 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {totalLearningHours.toFixed(1)}
+                      </div>
+                      <div className="text-sm text-gray-600">Hours</div>
+                    </div>
+                  </div>
+
+                  {/* Navigation Tabs */}
+                  <div className="border-b border-gray-200">
+                    <nav className="-mb-px flex space-x-8">
+                      {['podcasts', 'documents', 'quiz'].map((tab) => (
+                        <button
+                          key={tab}
+                          onClick={() => setActiveTab(tab)}
+                          className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${
+                            activeTab === tab
+                              ? 'border-blue-500 text-blue-600'
+                              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          }`}
+                        >
+                          {tab}
+                        </button>
+                      ))}
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Podcasts Tab */}
+            {activeTab === 'podcasts' && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Podcasts</h2>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Podcast List - Left Side */}
+                  <div className="lg:w-1/2">
+                    <div className="space-y-3">
+                      {podcasts.length > 0 ? 
+                        podcasts.map(podcast => {
+                          const completion = getPodcastCompletion(podcast.id);
+                          
+                          return (
+                            <div 
+                              key={podcast.id} 
+                              className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-50 ${
+                                currentPodcast?.id === podcast.id 
+                                  ? 'bg-blue-50 border border-blue-200' 
+                                  : 'bg-gray-50'
+                              }`}
+                              onClick={() => handlePlayPodcast(podcast)}
+                            >
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 mr-3">
+                                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <Headphones className="h-5 w-5 text-blue-600" />
+                                  </div>
+                                </div> 
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-sm font-medium text-gray-900 truncate">{podcast.title}</h3>
+                                  <p className="text-xs text-gray-500">Audio content</p>
+                                  {completion > 0 && (
+                                    <div className="ml-2 flex items-center">
+                                      <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                        <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                                      </div>
+                                      <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                                    </div>
+                                  )}
                                 </div>
-                                <span className="text-xs text-gray-500 ml-1">{completion}%</span>
                               </div>
-                            )}
+                            </div>
+                          );
+                        }) : (
+                          <div className="text-center py-8 text-gray-500">
+                            <Headphones className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Podcasts</h3>
+                            <p className="text-gray-500">This course doesn't have any podcasts yet.</p>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                  
+                  {/* Audio Player - Right Side */}
+                  <div className="lg:w-1/2">
+                    {currentPodcast ? (
+                      <div className="bg-gray-50 rounded-lg p-4 h-full">
+                        <div className="mb-4">
+                          <h2 className="text-lg font-bold text-gray-900">{currentPodcast.title}</h2>
+                        </div>
+                        <div className="mt-4">
+                          <PodcastPlayer 
+                            podcast={currentPodcast} 
+                            userId={userId || undefined}
+                            onProgressUpdate={(progress: number, duration: number, currentTime: number) => {
+                              // Update local progress state
+                              setPodcastProgress(prev => ({
+                                ...prev,
+                                [currentPodcast.id]: {
+                                  id: currentPodcast.id,
+                                  user_id: userId || '',
+                                  podcast_id: currentPodcast.id,
+                                  playback_position: currentTime,
+                                  duration: duration,
+                                  progress_percent: progress,
+                                  last_played_at: new Date().toISOString()
+                                }
+                              }));
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 rounded-lg p-8 h-full flex flex-col items-center justify-center text-gray-500">
+                        <Headphones className="h-12 w-12 mb-4" />
+                        <p className="text-center">Select a podcast from the playlist to start listening</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Documents Tab */}
+            {activeTab === 'documents' && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Documents</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pdfs.length > 0 ? 
+                    pdfs.map(pdf => (
+                      <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
+                            <FileText className="h-8 w-8 text-blue-600" />
+                          </div>
+                          <div className="ml-3 flex-1">
+                            <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
+                            <p className="text-xs text-gray-500 mb-3">PDF Document</p>
+                            <a 
+                              href={pdf.pdf_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                // Open in new window/tab
+                                window.open(pdf.pdf_url, '_blank');
+                              }}
+                            >
+                              <FileText className="h-3 w-3 mr-1" />
+                              View Document
+                            </a>
                           </div>
                         </div>
                       </div>
-                    );
-                  }) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Headphones className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No Audio Content</h3>
-                      <p className="text-gray-500">This course doesn't have any audio content yet.</p>
-                    </div>
-                  )}
+                    )) : (
+                      <div className="text-center py-8 text-gray-500 col-span-full">
+                        <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Documents</h3>
+                        <p className="text-gray-500">This course doesn't have any documents yet.</p>
+                      </div>
+                    )}
+                </div>
               </div>
-            </div>
-            
-            {/* Audio Player - Right Side */}
-            <div className="lg:w-1/2">
-              {currentPodcast ? (
-                <div className="bg-gray-50 rounded-lg p-4 h-full">
-                  <div className="mb-4">
-                    <h2 className="text-lg font-bold text-gray-900">{currentPodcast.title}</h2>
+            )}
+
+            {/* Quiz Tab */}
+            {activeTab === 'quiz' && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Quiz</h2>
+                <div className="space-y-4">
+                  {/* Quiz Content */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Module Quiz</h3>
+                    <p className="text-gray-600 mb-4">Test your knowledge on the course modules.</p>
+                    <button
+                      onClick={() => startModuleQuiz('module1', 'Module 1')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Start Module 1 Quiz
+                    </button>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Final Quiz</h3>
+                    <p className="text-gray-600 mb-4">Complete the final quiz to finish the course.</p>
+                    <button
+                      onClick={startFinalQuiz}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Start Final Quiz
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Media Player */}
+            {currentPodcast && activeTab === 'podcasts' && (
+              <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">{currentPodcast.title}</h2>
+                    <button
+                      onClick={() => setCurrentPodcast(null)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </button>
                   </div>
                   <div className="mt-4">
                     <PodcastPlayer 
@@ -624,298 +729,19 @@ export default function CourseDetail() {
                     />
                   </div>
                 </div>
-              ) : (
-                <div className="bg-gray-50 rounded-lg p-8 h-full flex flex-col items-center justify-center text-gray-500">
-                  <Headphones className="h-12 w-12 mb-4" />
-                  <p className="text-center">Select an audio file from the playlist to start listening</p>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">Course not found</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              The requested course could not be found.
+            </p>
           </div>
-        </div>
-      )}
-
-      {/* Videos Tab */}
-      {activeTab === 'videos' && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Video Content</h2>
-          <div className="space-y-6">
-            {podcasts.filter(p => p.is_youtube_video).length > 0 ? 
-              podcasts.filter(p => p.is_youtube_video).map(podcast => {
-                const completion = getPodcastCompletion(podcast.id);
-                
-                return (
-                  <div 
-                    key={podcast.id} 
-                    className={`p-4 rounded-lg transition-colors ${
-                      currentPodcast?.id === podcast.id 
-                        ? 'bg-blue-50 border border-blue-200' 
-                        : 'bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex flex-col md:flex-row gap-4">
-                      <div className="md:w-1/3">
-                        {podcast.video_url ? (
-                          <div 
-                            className="aspect-video bg-gray-200 rounded-lg cursor-pointer relative group"
-                            onClick={() => handlePlayPodcast(podcast)}
-                          >
-                            <img 
-                              src={`https://img.youtube.com/vi/${extractYouTubeVideoId(podcast.video_url)}/mqdefault.jpg`} 
-                              alt={podcast.title}
-                              className="w-full h-full object-cover rounded-lg"
-                            />
-                            <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center rounded-lg group-hover:bg-opacity-20 transition-all">
-                              <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
-                                <Play className="h-8 w-8 text-white ml-1" />
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
-                            <Play className="h-12 w-12 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="md:w-2/3">
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">{podcast.title}</h3>
-                        <p className="text-sm text-gray-600 mb-3">YouTube Video</p>
-                        
-                        {currentPodcast?.id === podcast.id && podcast.video_url && (
-                          <div className="mt-4 bg-white rounded-lg overflow-hidden border">
-                            <div className="aspect-video">
-                              <iframe
-                                src={`https://www.youtube.com/embed/${extractYouTubeVideoId(podcast.video_url)}?autoplay=1`}
-                                title={podcast.title}
-                                className="w-full h-full"
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                              ></iframe>
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center justify-between mt-4">
-                          <button
-                            onClick={() => handlePlayPodcast(podcast)}
-                            className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-                          >
-                            <Play className="h-4 w-4 mr-2" />
-                            {currentPodcast?.id === podcast.id ? 'Playing...' : 'Play Video'}
-                          </button>
-                          
-                          {completion > 0 && (
-                            <div className="flex items-center">
-                              <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                                <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${completion}%` }}></div>
-                              </div>
-                              <span className="text-sm text-gray-600">{completion}%</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Play className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-xl font-medium text-gray-900 mb-2">No Video Content</h3>
-                  <p className="text-gray-500">This course doesn't have any video content yet.</p>
-                </div>
-              )}
-          </div>
-        </div>
-      )}
-
-      {/* Docs Tab */}
-      {activeTab === 'docs' && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Documents</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pdfs.filter(pdf => {
-              const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
-              return extension === 'pdf' || extension === 'docx' || extension === 'doc' || extension === 'txt';
-            }).length > 0 ? 
-              pdfs.filter(pdf => {
-                const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
-                return extension === 'pdf' || extension === 'docx' || extension === 'doc' || extension === 'txt';
-              }).map(pdf => (
-                <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
-                      <FileText className="h-8 w-8 text-blue-600" />
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
-                      <p className="text-xs text-gray-500 mb-3">PDF Document</p>
-                      <a 
-                        href={pdf.pdf_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // Open in new window/tab
-                          window.open(pdf.pdf_url, '_blank');
-                        }}
-                      >
-                        <FileText className="h-3 w-3 mr-1" />
-                        View Document
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )) : (
-                <div className="text-center py-8 text-gray-500 col-span-full">
-                  <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Documents</h3>
-                  <p className="text-gray-500">This course doesn't have any documents yet.</p>
-                </div>
-              )}
-          </div>
-        </div>
-      )}
-
-      {/* Images Tab */}
-      {activeTab === 'images' && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Images & Cheatsheets</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pdfs.filter(pdf => {
-              const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
-              return extension === 'jpg' || extension === 'jpeg' || extension === 'png' || extension === 'gif' || extension === 'svg';
-            }).length > 0 ? 
-              pdfs.filter(pdf => {
-                const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
-                return extension === 'jpg' || extension === 'jpeg' || extension === 'png' || extension === 'gif' || extension === 'svg';
-              }).map(pdf => (
-                <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
-                      <ImageIcon className="h-8 w-8 text-blue-600" />
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
-                      <p className="text-xs text-gray-500 mb-3">Image File</p>
-                      <a 
-                        href={pdf.pdf_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // Open in new window/tab
-                          window.open(pdf.pdf_url, '_blank');
-                        }}
-                      >
-                        <ImageIcon className="h-3 w-3 mr-1" />
-                        View Image
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )) : (
-                <div className="text-center py-8 text-gray-500 col-span-full">
-                  <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Images</h3>
-                  <p className="text-gray-500">This course doesn't have any images or cheatsheets yet.</p>
-                </div>
-              )}
-          </div>
-        </div>
-      )}
-
-      {/* Templates Tab */}
-      {activeTab === 'templates' && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Templates</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pdfs.filter(pdf => {
-              const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
-              return extension !== 'pdf' && extension !== 'docx' && extension !== 'doc' && extension !== 'txt' && 
-                     extension !== 'jpg' && extension !== 'jpeg' && extension !== 'png' && extension !== 'gif' && extension !== 'svg';
-            }).length > 0 ? 
-              pdfs.filter(pdf => {
-                const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
-                return extension !== 'pdf' && extension !== 'docx' && extension !== 'doc' && extension !== 'txt' && 
-                       extension !== 'jpg' && extension !== 'jpeg' && extension !== 'png' && extension !== 'gif' && extension !== 'svg';
-              }).map(pdf => (
-                <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
-                      <FileIcon className="h-8 w-8 text-blue-600" />
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
-                      <p className="text-xs text-gray-500 mb-3">Template File</p>
-                      <a 
-                        href={pdf.pdf_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // Open in new window/tab
-                          window.open(pdf.pdf_url, '_blank');
-                        }}
-                      >
-                        <FileIcon className="h-3 w-3 mr-1" />
-                        View Template
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )) : (
-                <div className="text-center py-8 text-gray-500 col-span-full">
-                  <FileIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Templates</h3>
-                  <p className="text-gray-500">This course doesn't have any templates yet.</p>
-                </div>
-              )}
-          </div>
-        </div>
-      )}
-
-      {/* Media Player */}
-      {currentPodcast && activeTab === 'audios' && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">{currentPodcast.title}</h2>
-              <button
-                onClick={() => setCurrentPodcast(null)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="mt-4">
-              <PodcastPlayer 
-                podcast={currentPodcast} 
-                userId={userId || undefined}
-                onProgressUpdate={(progress: number, duration: number, currentTime: number) => {
-                  // Update local progress state
-                  setPodcastProgress(prev => ({
-                    ...prev,
-                    [currentPodcast.id]: {
-                      id: currentPodcast.id,
-                      user_id: userId || '',
-                      podcast_id: currentPodcast.id,
-                      playback_position: currentTime,
-                      duration: duration,
-                      progress_percent: progress,
-                      last_played_at: new Date().toISOString()
-                    }
-                  }));
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

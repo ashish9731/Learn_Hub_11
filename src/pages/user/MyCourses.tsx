@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import { useRealtimeSync } from '../../hooks/useSupabase';
-import { Folder, Play, Clock, BookOpen, Users, BarChart3, FileText, Download } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, Music, Folder, User, Image, RefreshCw } from 'lucide-react';
 import PodcastPlayer from '../../components/Media/PodcastPlayer';
 import { useNavigate } from 'react-router-dom';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
@@ -83,32 +83,75 @@ export default function MyCourses() {
   // State to store generated course images
   const [courseImages, setCourseImages] = useState<Record<string, string>>({});
   const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
+  const [isGeneratingImage, setIsGeneratingImage] = useState<Record<string, boolean>>({});
   
   // Ref to track which courses have had images generated
   const generatedImagesRef = useRef<Record<string, boolean>>({});
 
-  // Generate course images when courses change
-  useEffect(() => {
-    const generateImages = async () => {
-      if (!supabaseData.courses || supabaseData.courses.length === 0) return;
+  // Function to manually generate course image using Stability AI
+  const handleGenerateCourseImage = async (courseId: string, courseTitle: string) => {
+    // Check if Stability AI is configured
+    if (!stabilityAI.isConfigured()) {
+      alert('Stability AI API key is not configured. Please contact administrator.');
+      return;
+    }
+
+    try {
+      setIsGeneratingImage(prev => ({ ...prev, [courseId]: true }));
       
-      // Generate images for courses that don't have them yet
-      for (const course of supabaseData.courses) {
-        // Skip if we've already tried to generate an image for this course
-        if (generatedImagesRef.current[course.id]) continue;
-        
-        if (!courseImages[course.id] && !loadingImages[course.id]) {
-          setLoadingImages(prev => ({ ...prev, [course.id]: true }));
-          await generateCourseImage(course.title, course.id);
-          setLoadingImages(prev => ({ ...prev, [course.id]: false }));
-          // Mark this course as having had image generation attempted
-          generatedImagesRef.current[course.id] = true;
+      console.log('Generating AI image for course:', courseTitle);
+      const base64Image = await stabilityAI.generateCourseImage(courseTitle);
+      
+      if (base64Image) {
+        // Convert base64 to blob and upload to Supabase storage
+        const binaryString = atob(base64Image);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
         }
+        const blob = new Blob([bytes], { type: 'image/png' });
+        
+        // Upload to Supabase storage
+        const fileName = `course-images/${courseId}-${Date.now()}.png`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('course-images')
+          .upload(fileName, blob, {
+            cacheControl: '3600',
+            upsert: true
+          });
+        
+        if (uploadError) {
+          console.error('Error uploading AI generated image:', uploadError);
+          alert('Failed to upload generated image. Please try again.');
+          setIsGeneratingImage(prev => ({ ...prev, [courseId]: false }));
+          return;
+        }
+        
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('course-images')
+          .getPublicUrl(fileName);
+        
+        // Update course with the new image URL
+        try {
+          await supabaseHelpers.updateCourse(courseId, { image_url: publicUrl });
+          console.log('Course image updated successfully');
+          setCourseImages(prev => ({ ...prev, [courseId]: publicUrl }));
+          alert('Course image generated and saved successfully!');
+        } catch (updateError) {
+          console.error('Error updating course with image URL:', updateError);
+          alert('Failed to save image to course. Please try again.');
+        }
+      } else {
+        alert('Failed to generate course image. Please try again.');
       }
-    };
-    
-    generateImages();
-  }, [supabaseData.courses, courseImages, loadingImages]);
+    } catch (error) {
+      console.error('Error generating AI course image:', error);
+      alert('Error generating course image. Please try again.');
+    } finally {
+      setIsGeneratingImage(prev => ({ ...prev, [courseId]: false }));
+    }
+  };
 
   // Get course image based on course title or generated AI image
   const generateCourseImage = async (courseTitle: string, courseId: string) => {
@@ -271,6 +314,21 @@ export default function MyCourses() {
                     onError={handleImageError}
                   />
                 )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleGenerateCourseImage(course.id, course.title);
+                  }}
+                  disabled={isGeneratingImage[course.id]}
+                  className="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 shadow-md disabled:opacity-50"
+                  title="Generate course image"
+                >
+                  {isGeneratingImage[course.id] ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Image className="h-4 w-4" />
+                  )}
+                </button>
               </div>
               
               <div className="p-6">
@@ -843,75 +901,45 @@ export default function MyCourses() {
   }
 
   return (
-    <div className="p-6">
-      {/* Debug component for troubleshooting - only shown in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mb-6">
-          <h3 className="text-lg font-bold mb-4">Debug Information</h3>
-          <DebugUserCourses />
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900">My Courses</h1>
         </div>
-      )}
-      
-      {selectedCourse ? renderCategoryCards() : renderCourseCards()}
+      </header>
 
-      {/* Full-screen Podcast Player */}
-      {isPodcastPlayerOpen && currentPodcast && !isPodcastPlayerMinimized && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">{currentPodcast.title}</h2>
-              <audio
-                src={currentPodcast.mp3_url}
-                controls
-                controlsList="nodownload"
-                className="w-full"
-                onTimeUpdate={(e) => {
-                  const audio = e.currentTarget;
-                  const progress = Math.round((audio.currentTime / audio.duration) * 100);
-                  handleProgressUpdate(currentPodcast.id, progress, audio.duration);
-                }}
-              />
-              <div className="flex justify-end mt-4">
-                <button
-                  onClick={() => {
-                    setCurrentPodcast(null);
-                    setIsPodcastPlayerOpen(false);
-                  }}
-                  className="px-4 py-2 bg-gray-200 rounded-md text-gray-700 hover:bg-gray-300"
-                >
-                  Close
-                </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Courses</h1>
+          <p className="text-gray-600">Access your assigned courses and track your learning progress.</p>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error loading courses</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Minimized Podcast Player */}
-      {isPodcastPlayerOpen && currentPodcast && isPodcastPlayerMinimized ? (
-        <div className="fixed bottom-0 right-0 bg-white shadow-lg rounded-tl-lg p-3 z-50 w-80">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium truncate">{currentPodcast.title}</h3>
-            <button
-              onClick={() => setIsPodcastPlayerMinimized(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              Expand
-            </button>
-          </div>
-          <audio
-            src={currentPodcast.mp3_url}
-            controls
-            controlsList="nodownload"
-            className="w-full"
-            onTimeUpdate={(e) => {
-              const audio = e.currentTarget;
-              const progress = Math.round((audio.currentTime / audio.duration) * 100);
-              handleProgressUpdate(currentPodcast.id, progress, audio.duration);
-            }}
-          />
-        </div>
-      ) : null}
+        ) : (
+          <>
+            {renderCourseCards()}
+          </>
+        )}
+      </div>
     </div>
   );
 }
