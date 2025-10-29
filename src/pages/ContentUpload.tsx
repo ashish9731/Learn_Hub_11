@@ -320,16 +320,11 @@ export default function ContentUpload() {
         level: newCourseLevel
       });
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      // Create the course
+      // Create the course (without created_by since it's not in the schema)
       const courseData = {
         title: newCourseTitle,
-        level: newCourseLevel,
-        created_by: user.id
+        level: newCourseLevel
+        // Note: courses table doesn't have created_by column, so we don't include it
       };
       
       console.log('Course data to insert:', courseData);
@@ -338,6 +333,13 @@ export default function ContentUpload() {
 
       if (error) {
         console.error('Course creation error:', error);
+        // Log detailed error information
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         throw new Error(`Database error: ${error.message || 'Unknown database error'}`);
       }
 
@@ -354,7 +356,23 @@ export default function ContentUpload() {
 
     } catch (error) {
       console.error('Failed to create course:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      // Log the full error object for debugging
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+      
+      // Handle different types of errors
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        if ('message' in error) {
+          errorMessage = (error as any).message;
+        } else {
+          errorMessage = JSON.stringify(error);
+        }
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
       alert(`Failed to create course: ${errorMessage}`);
     }
   };
