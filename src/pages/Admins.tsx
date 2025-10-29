@@ -46,7 +46,6 @@ interface UserCourse {
 }
 
 export default function Admins() {
-  const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -134,11 +133,7 @@ export default function Admins() {
     user.role === 'admin'
   );
 
-  const filteredAdmins = admins.filter((admin: User) => {
-    const companyName = admin.company_id ? getCompanyName(admin.company_id) : '';
-    return admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           (companyName && companyName.toLowerCase().includes(searchTerm.toLowerCase()));
-  });
+  const filteredAdmins = admins;
 
   const handleAddAdmin = async (adminData: any): Promise<string | null> => {
     try {
@@ -322,30 +317,6 @@ export default function Admins() {
               Add Admin
             </button>
           </div>
-          
-          <div className="relative">
-            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-[#a0a0a0] pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search admins..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-[#333333] rounded-md leading-5 bg-[#252525] placeholder-[#a0a0a0] text-white focus:outline-none focus:placeholder-[#a0a0a0] focus:ring-1 focus:ring-[#8b5cf6] focus:border-[#8b5cf6]"
-            />
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-gray-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search admins..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -469,29 +440,21 @@ export default function Admins() {
             </div>
           ) : (
             <div className="px-6 py-12 text-center text-[#a0a0a0]">
-              {admins.length === 0 ? (
-                <div>
-                  <UserCog className="mx-auto h-12 w-12 text-[#333333]" />
-                  <h3 className="mt-2 text-sm font-medium text-white">No admins</h3>
-                  <p className="mt-1 text-sm text-[#a0a0a0]">Get started by adding a new admin.</p>
-                  <div className="mt-6">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddModalOpen(true)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
-                    >
-                      <Plus className="-ml-1 mr-2 h-5 w-5" />
-                      Add Admin
-                    </button>
-                  </div>
+              <div>
+                <UserCog className="mx-auto h-12 w-12 text-[#333333]" />
+                <h3 className="mt-2 text-sm font-medium text-white">No admins</h3>
+                <p className="mt-1 text-sm text-[#a0a0a0]">Get started by adding a new admin.</p>
+                <div className="mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                  >
+                    <Plus className="-ml-1 mr-2 h-5 w-5" />
+                    Add Admin
+                  </button>
                 </div>
-              ) : (
-                <div>
-                  <Search className="mx-auto h-12 w-12 text-[#333333]" />
-                  <h3 className="mt-2 text-sm font-medium text-white">No admins found</h3>
-                  <p className="mt-1 text-sm text-[#a0a0a0]">Try adjusting your search filter.</p>
-                </div>
-              )}
+              </div>
             </div>
           )}
         </div>

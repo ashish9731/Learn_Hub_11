@@ -48,7 +48,6 @@ interface UserCourse {
 }
 
 export default function Users() {
-  const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -146,11 +145,7 @@ export default function Users() {
     user.role === 'user'
   );
 
-  const filteredUsers = users.filter((user: User) => {
-    const companyName = user.company_id ? getCompanyName(user.company_id) : '';
-    return user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           (companyName && companyName.toLowerCase().includes(searchTerm.toLowerCase()));
-  });
+  const filteredUsers = users;
 
   const handleAddUser = async (userData: any): Promise<string | null> => {
     try {
@@ -325,30 +320,6 @@ export default function Users() {
               Add User
             </button>
           </div>
-          
-          <div className="relative">
-            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-[#a0a0a0] pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-[#333333] rounded-md leading-5 bg-[#252525] placeholder-[#a0a0a0] text-white focus:outline-none focus:placeholder-[#a0a0a0] focus:ring-1 focus:ring-[#8b5cf6] focus:border-[#8b5cf6]"
-            />
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-gray-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -473,29 +444,21 @@ export default function Users() {
             </div>
           ) : (
             <div className="px-6 py-12 text-center text-[#a0a0a0]">
-              {users.length === 0 ? (
-                <div>
-                  <User className="mx-auto h-12 w-12 text-[#333333]" />
-                  <h3 className="mt-2 text-sm font-medium text-white">No users</h3>
-                  <p className="mt-1 text-sm text-[#a0a0a0]">Get started by adding a new user.</p>
-                  <div className="mt-6">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddModalOpen(true)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
-                    >
-                      <Plus className="-ml-1 mr-2 h-5 w-5" />
-                      Add User
-                    </button>
-                  </div>
+              <div>
+                <User className="mx-auto h-12 w-12 text-[#333333]" />
+                <h3 className="mt-2 text-sm font-medium text-white">No users</h3>
+                <p className="mt-1 text-sm text-[#a0a0a0]">Get started by adding a new user.</p>
+                <div className="mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                  >
+                    <Plus className="-ml-1 mr-2 h-5 w-5" />
+                    Add User
+                  </button>
                 </div>
-              ) : (
-                <div>
-                  <Search className="mx-auto h-12 w-12 text-[#333333]" />
-                  <h3 className="mt-2 text-sm font-medium text-white">No users found</h3>
-                  <p className="mt-1 text-sm text-[#a0a0a0]">Try adjusting your search filter.</p>
-                </div>
-              )}
+              </div>
             </div>
           )}
         </div>

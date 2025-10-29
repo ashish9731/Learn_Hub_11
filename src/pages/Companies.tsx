@@ -54,7 +54,6 @@ interface UserCourse {
 }
 
 export default function Companies() {
-  const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -150,9 +149,7 @@ export default function Companies() {
     return supabaseData.courses.filter((course: Course) => course.company_id === companyId);
   };
 
-  const filteredCompanies = supabaseData.companies.filter((company: Company) => {
-    return company.name.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  const filteredCompanies = supabaseData.companies;
 
   const handleAddCompany = async (companyData: any) => {
     try {
@@ -289,30 +286,6 @@ export default function Companies() {
               Add Company
             </button>
           </div>
-          
-          <div className="relative">
-            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-[#a0a0a0] pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search companies..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-[#333333] rounded-md leading-5 bg-[#252525] placeholder-[#a0a0a0] text-white focus:outline-none focus:placeholder-[#a0a0a0] focus:ring-1 focus:ring-[#8b5cf6] focus:border-[#8b5cf6]"
-            />
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-[#a0a0a0] pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search companies..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-[#333333] rounded-md leading-5 bg-[#252525] placeholder-[#a0a0a0] text-white focus:outline-none focus:placeholder-[#a0a0a0] focus:ring-1 focus:ring-[#8b5cf6] focus:border-[#8b5cf6]"
-            />
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -424,29 +397,21 @@ export default function Companies() {
             </div>
           ) : (
             <div className="px-6 py-12 text-center text-[#a0a0a0]">
-              {supabaseData.companies.length === 0 ? (
-                <div>
-                  <Building2 className="mx-auto h-12 w-12 text-[#333333]" />
-                  <h3 className="mt-2 text-sm font-medium text-white">No companies</h3>
-                  <p className="mt-1 text-sm text-[#a0a0a0]">Get started by adding a new company.</p>
-                  <div className="mt-6">
-                    <button
-                      type="button"
-                      onClick={() => setIsAddModalOpen(true)}
-                      className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
-                    >
-                      <Plus className="-ml-1 mr-2 h-5 w-5" />
-                      Add Company
-                    </button>
-                  </div>
+              <div>
+                <Building2 className="mx-auto h-12 w-12 text-[#333333]" />
+                <h3 className="mt-2 text-sm font-medium text-white">No companies</h3>
+                <p className="mt-1 text-sm text-[#a0a0a0]">Get started by adding a new company.</p>
+                <div className="mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddModalOpen(true)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                  >
+                    <Plus className="-ml-1 mr-2 h-5 w-5" />
+                    Add Company
+                  </button>
                 </div>
-              ) : (
-                <div>
-                  <Search className="mx-auto h-12 w-12 text-[#333333]" />
-                  <h3 className="mt-2 text-sm font-medium text-white">No companies found</h3>
-                  <p className="mt-1 text-sm text-[#a0a0a0]">Try adjusting your search filter.</p>
-                </div>
-              )}
+              </div>
             </div>
           )}
         </div>

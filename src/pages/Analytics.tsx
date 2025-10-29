@@ -829,33 +829,6 @@ export default function Analytics() {
             </table>
           </div>
         </div>
-
-        {/* Summary Statistics */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">System Summary</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{realTimeAnalytics.totalOrganizations}</div>
-              <div className="text-sm text-blue-700">Organizations</div>
-              <div className="text-xs text-gray-500 mt-1">Companies in database</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{realTimeAnalytics.totalCourses}</div>
-              <div className="text-sm text-green-700">Learning Resources</div>
-              <div className="text-xs text-gray-500 mt-1">Total courses available</div>
-            </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">{realTimeAnalytics.totalPodcasts}</div>
-              <div className="text-sm text-purple-700">Podcast Content</div>
-              <div className="text-xs text-gray-500 mt-1">Audio learning materials</div>
-            </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">{realTimeAnalytics.totalDocuments}</div>
-              <div className="text-sm text-orange-700">Documents</div>
-              <div className="text-xs text-gray-500 mt-1">Document resources</div>
-            </div>
-          </div>
-        </div>
       </div>
       
       {/* KPI Detail Modal */}

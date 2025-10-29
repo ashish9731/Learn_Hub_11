@@ -63,7 +63,7 @@ export default function ContentUpload() {
   const [contentDescription, setContentDescription] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState('');
-  const [contentType, setContentType] = useState<'podcast' | 'document'>('podcast');
+  const [contentType, setContentType] = useState<'audio' | 'video' | 'docs' | 'images' | 'templates'>('audio');
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [newCourseTitle, setNewCourseTitle] = useState('');
@@ -184,147 +184,128 @@ export default function ContentUpload() {
     const file = event.target.files?.[0];
     if (file) {
       // Validate file type based on content type
-      if (contentType === 'podcast') {
+      if (contentType === 'audio') {
         const validAudioTypes = ['.mp3', '.wav', '.aac', '.m4a'];
         const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
         if (!validAudioTypes.includes(fileExtension)) {
           alert(`Invalid file type for audio. Please upload one of: ${validAudioTypes.join(', ')}`);
           return;
         }
-      } else if (contentType === 'document') {
-        // For documents, we allow all types as specified in requirements
-        // Documents (.pdf, .docx, .pptx, .xlsx, .txt) or Images (.jpg, .jpeg, .png, .svg, .gif) or Templates (any)
-        // We'll just show a warning if it doesn't match common extensions
-        const validExtensions = ['.pdf', '.docx', '.pptx', '.xlsx', '.txt', '.jpg', '.jpeg', '.png', '.svg', '.gif'];
+      } else if (contentType === 'docs') {
+        const validDocTypes = ['.pdf', '.docx', '.pptx', '.xlsx', '.txt'];
         const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-        if (!validExtensions.includes(fileExtension)) {
-          console.log(`File extension ${fileExtension} may not be in the recommended list, but templates can be any type.`);
+        if (!validDocTypes.includes(fileExtension)) {
+          alert(`Invalid file type for documents. Please upload one of: ${validDocTypes.join(', ')}`);
+          return;
+        }
+      } else if (contentType === 'images') {
+        const validImageTypes = ['.jpg', '.jpeg', '.png', '.svg', '.gif'];
+        const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+        if (!validImageTypes.includes(fileExtension)) {
+          alert(`Invalid file type for images. Please upload one of: ${validImageTypes.join(', ')}`);
+          return;
         }
       }
+      // For templates, we allow all file types
       setSelectedFile(file);
     }
   };
 
   const renderUploadForm = () => {
-    if (contentType === 'podcast') {
+    if (contentType === 'audio') {
       return (
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="content-type" className="block text-sm font-medium text-white mb-2">
-              Podcast Type
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setYoutubeUrl('');
-                }}
-                className={`py-2 px-4 border rounded-md shadow-sm text-sm font-medium ${
-                  !youtubeUrl
-                    ? 'border-[#8b5cf6] bg-[#8b5cf6] text-white'
-                    : 'border-[#333333] bg-[#252525] text-white hover:bg-[#333333]'
-                }`}
-              >
-                Upload File
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedFile(null);
-                }}
-                className={`py-2 px-4 border rounded-md shadow-sm text-sm font-medium ${
-                  youtubeUrl
-                    ? 'border-[#8b5cf6] bg-[#8b5cf6] text-white'
-                    : 'border-[#333333] bg-[#252525] text-white hover:bg-[#333333]'
-                }`}
-              >
-                YouTube Link
-              </button>
+        <div>
+          <label htmlFor="file" className="block text-sm font-medium text-white mb-2">
+            Audio File Upload <span className="text-red-500">*</span>
+          </label>
+          
+          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-[#333333] border-dashed rounded-md">
+            <div className="space-y-1 text-center">
+              <Headphones className="mx-auto h-12 w-12 text-[#a0a0a0]" />
+              <div className="flex text-sm text-[#a0a0a0]">
+                <label htmlFor="file-upload-audio" className="relative cursor-pointer bg-[#1e1e1e] rounded-md font-medium text-[#8b5cf6] hover:text-[#7c3aed] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#8b5cf6]">
+                  <span>Upload an audio file</span>
+                  <input 
+                    id="file-upload-audio" 
+                    name="file-upload" 
+                    type="file" 
+                    className="sr-only"
+                    onChange={handleFileSelect}
+                    accept=".mp3,.wav,.aac,.m4a"
+                  />
+                </label>
+                <p className="pl-1">or drag and drop</p>
+              </div>
+              <p className="text-xs text-[#a0a0a0]">MP3, WAV, AAC, M4A files supported</p>
+              {selectedFile && (
+                <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
+              )}
             </div>
           </div>
-
-          {!youtubeUrl ? (
-            <div>
-              <label htmlFor="file" className="block text-sm font-medium text-white mb-2">
-                File Upload <span className="text-red-500">*</span>
-              </label>
-              
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-[#333333] border-dashed rounded-md">
-                <div className="space-y-1 text-center">
-                  <Headphones className="mx-auto h-12 w-12 text-[#a0a0a0]" />
-                  <div className="flex text-sm text-[#a0a0a0]">
-                    <label htmlFor="file-upload-podcast" className="relative cursor-pointer bg-[#1e1e1e] rounded-md font-medium text-[#8b5cf6] hover:text-[#7c3aed] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#8b5cf6]">
-                      <span>Upload an audio file</span>
-                      <input 
-                        id="file-upload-podcast" 
-                        name="file-upload" 
-                        type="file" 
-                        className="sr-only"
-                        onChange={handleFileSelect}
-                        accept=".mp3,.wav,.aac,.m4a"
-                      />
-                    </label>
-                    <p className="pl-1">or drag and drop</p>
-                  </div>
-                  <p className="text-xs text-[#a0a0a0]">MP3, WAV, AAC, M4A files supported</p>
-                  {selectedFile && (
-                    <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <label htmlFor="youtube-url" className="block text-sm font-medium text-white mb-2">
-                YouTube URL <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="url"
-                id="youtube-url"
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
-                className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
-              />
-              <p className="mt-1 text-xs text-[#a0a0a0]">
-                Paste the full YouTube URL. The video will be embedded in the app.
-              </p>
-            </div>
-          )}
+        </div>
+      );
+    } else if (contentType === 'video') {
+      return (
+        <div>
+          <label htmlFor="youtube-url" className="block text-sm font-medium text-white mb-2">
+            YouTube URL <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="url"
+            id="youtube-url"
+            value={youtubeUrl}
+            onChange={(e) => setYoutubeUrl(e.target.value)}
+            placeholder="https://www.youtube.com/watch?v=..."
+            className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+          />
+          <p className="mt-1 text-xs text-[#a0a0a0]">
+            Paste the full YouTube URL. The video will be embedded in the app.
+          </p>
         </div>
       );
     } else {
+      // For docs, images, and templates
       return (
         <div>
           <label htmlFor="file" className="block text-sm font-medium text-white mb-2">
             File Upload <span className="text-red-500">*</span>
           </label>
           
-          {contentType === 'document' && (
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-[#333333] border-dashed rounded-md">
-              <div className="space-y-1 text-center">
-                <FileText className="mx-auto h-12 w-12 text-[#a0a0a0]" />
-                <div className="flex text-sm text-[#a0a0a0]">
-                  <label htmlFor="file-upload-document" className="relative cursor-pointer bg-[#1e1e1e] rounded-md font-medium text-[#8b5cf6] hover:text-[#7c3aed] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#8b5cf6]">
-                    <span>Upload a document/image/template</span>
-                    <input 
-                      id="file-upload-document" 
-                      name="file-upload" 
-                      type="file" 
-                      className="sr-only"
-                      onChange={handleFileSelect}
-                      accept=".pdf,.docx,.pptx,.xlsx,.txt,.jpg,.jpeg,.png,.svg,.gif"
-                    />
-                  </label>
-                  <p className="pl-1">or drag and drop</p>
-                </div>
-                <p className="text-xs text-[#a0a0a0]">PDF, DOCX, PPTX, XLSX, TXT, JPG, JPEG, PNG, SVG, GIF files supported</p>
-                {selectedFile && (
-                  <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
-                )}
+          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-[#333333] border-dashed rounded-md">
+            <div className="space-y-1 text-center">
+              <FileText className="mx-auto h-12 w-12 text-[#a0a0a0]" />
+              <div className="flex text-sm text-[#a0a0a0]">
+                <label htmlFor="file-upload-document" className="relative cursor-pointer bg-[#1e1e1e] rounded-md font-medium text-[#8b5cf6] hover:text-[#7c3aed] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#8b5cf6]">
+                  <span>Upload a file</span>
+                  <input 
+                    id="file-upload-document" 
+                    name="file-upload" 
+                    type="file" 
+                    className="sr-only"
+                    onChange={handleFileSelect}
+                    accept={
+                      contentType === 'docs' 
+                        ? '.pdf,.docx,.pptx,.xlsx,.txt' 
+                        : contentType === 'images' 
+                          ? '.jpg,.jpeg,.png,.svg,.gif' 
+                          : '*'
+                    }
+                  />
+                </label>
+                <p className="pl-1">or drag and drop</p>
               </div>
+              <p className="text-xs text-[#a0a0a0]">
+                {contentType === 'docs' 
+                  ? 'PDF, DOCX, PPTX, XLSX, TXT files supported' 
+                  : contentType === 'images' 
+                    ? 'JPG, JPEG, PNG, SVG, GIF files supported' 
+                    : 'Any file type supported'}
+              </p>
+              {selectedFile && (
+                <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
+              )}
             </div>
-          )}
+          </div>
         </div>
       );
     }
@@ -444,13 +425,18 @@ export default function ContentUpload() {
       return;
     }
 
-    if (contentType === 'podcast' && !selectedFile && !youtubeUrl) {
-      alert('Please either upload a file or provide a YouTube URL for podcasts');
+    if (contentType === 'audio' && !selectedFile) {
+      alert('Please upload an audio file');
       return;
     }
 
-    if (contentType === 'document' && !selectedFile) {
-      alert('Please upload a file for documents');
+    if (contentType === 'video' && !youtubeUrl) {
+      alert('Please provide a YouTube URL');
+      return;
+    }
+
+    if ((contentType === 'docs' || contentType === 'images' || contentType === 'templates') && !selectedFile) {
+      alert('Please upload a file');
       return;
     }
 
@@ -463,71 +449,69 @@ export default function ContentUpload() {
         throw new Error('User not authenticated');
       }
 
-      if (contentType === 'podcast') {
-        if (youtubeUrl) {
-          // Create YouTube video podcast record
-          console.log('Creating YouTube video podcast record...');
-          
-          const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
-            title: contentTitle,
-            course_id: selectedCourse,
-            category: selectedCategory,
-            video_url: youtubeUrl,
-            is_youtube_video: true,
-            created_by: user.id
+      if (contentType === 'audio' && selectedFile) {
+        // Upload audio file
+        console.log('Uploading to podcast-files bucket...');
+        const sanitizedFileName = selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const fileName = `${Date.now()}_${sanitizedFileName}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('podcast-files')
+          .upload(fileName, selectedFile, {
+            cacheControl: '3600',
+            upsert: true
           });
 
-          if (podcastError) {
-            console.error('YouTube podcast creation error:', podcastError);
-            throw podcastError;
-          }
-          
-          console.log('YouTube podcast created successfully:', podcastData);
-          alert('YouTube video added successfully!');
-        } else if (selectedFile) {
-          // Upload podcast file
-          console.log('Uploading to podcast-files bucket...');
-          const sanitizedFileName = selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-          const fileName = `${Date.now()}_${sanitizedFileName}`;
-          
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('podcast-files')
-            .upload(fileName, selectedFile, {
-              cacheControl: '3600',
-              upsert: true
-            });
-
-          if (uploadError) {
-            console.error('Storage upload error:', uploadError);
-            throw uploadError;
-          }
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('podcast-files')
-            .getPublicUrl(fileName);
-
-          console.log('File uploaded, creating podcast record...');
-          
-          // Create podcast record
-          const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
-            title: contentTitle,
-            course_id: selectedCourse,
-            category: selectedCategory,
-            mp3_url: publicUrl,
-            is_youtube_video: false,
-            created_by: user.id
-          });
-
-          if (podcastError) {
-            console.error('Podcast creation error:', podcastError);
-            throw podcastError;
-          }
-          
-          console.log('Podcast created successfully:', podcastData);
-          alert('Podcast uploaded successfully!');
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw uploadError;
         }
-      } else if (contentType === 'document' && selectedFile) {
-        // Upload PDF file
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('podcast-files')
+          .getPublicUrl(fileName);
+
+        console.log('File uploaded, creating podcast record...');
+        
+        // Create podcast record
+        const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
+          title: contentTitle,
+          course_id: selectedCourse,
+          category: selectedCategory,
+          mp3_url: publicUrl,
+          is_youtube_video: false,
+          created_by: user.id
+        });
+
+        if (podcastError) {
+          console.error('Podcast creation error:', podcastError);
+          throw podcastError;
+        }
+        
+        console.log('Podcast created successfully:', podcastData);
+        alert('Audio file uploaded successfully!');
+      } else if (contentType === 'video' && youtubeUrl) {
+        // Create YouTube video podcast record
+        console.log('Creating YouTube video podcast record...');
+        
+        const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
+          title: contentTitle,
+          course_id: selectedCourse,
+          category: selectedCategory,
+          video_url: youtubeUrl,
+          is_youtube_video: true,
+          created_by: user.id
+        });
+
+        if (podcastError) {
+          console.error('YouTube podcast creation error:', podcastError);
+          throw podcastError;
+        }
+        
+        console.log('YouTube podcast created successfully:', podcastData);
+        alert('YouTube video added successfully!');
+      } else if ((contentType === 'docs' || contentType === 'images' || contentType === 'templates') && selectedFile) {
+        // Upload document/image/template file
         console.log('Uploading to pdf-files bucket...');
         const sanitizedFileName = selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
         const fileName = `${Date.now()}_${sanitizedFileName}`;
@@ -564,13 +548,14 @@ export default function ContentUpload() {
         }
         
         console.log('PDF created successfully:', pdfData);
-        alert('Document uploaded successfully!');
+        alert('File uploaded successfully!');
       }
       
       // Reset form
       setContentTitle('');
       setContentDescription('');
       setSelectedFile(null);
+      setYoutubeUrl('');
       setSelectedCourse('');
       setSelectedCategory('');
       
@@ -898,7 +883,7 @@ export default function ContentUpload() {
 
                 <div>
                   <label htmlFor="category" className="block text-sm font-medium text-white mb-2">
-                    Select Category <span className="text-red-500">*</span>
+                    Category <span className="text-red-500">*</span>
                   </label>
                   
                   {/* Category Selection */}
@@ -925,64 +910,9 @@ export default function ContentUpload() {
                         </option>
                       ))}
                     </select>
-                    
-                    {/* Create New Category Section */}
-                    <div className="border border-[#333333] rounded-md p-3 bg-[#252525]">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-sm font-medium text-white">Create New Category</h4>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setNewCategoryTitle('');
-                            setNewCategoryLevel('Basics');
-                          }}
-                          className="text-xs text-[#8b5cf6] hover:text-[#7c3aed]"
-                        >
-                          Clear
-                        </button>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <input
-                          type="text"
-                          value={newCategoryTitle}
-                          onChange={(e) => setNewCategoryTitle(e.target.value)}
-                          placeholder="Enter category name"
-                          className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#1e1e1e] text-white text-sm"
-                        />
-                        
-                        <div>
-                          <label className="block text-xs font-medium text-[#a0a0a0] mb-1">
-                            Category Level (Inherited from Course)
-                          </label>
-                          <div className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm bg-[#1e1e1e] text-white text-sm">
-                            {selectedCourse ? (
-                              (() => {
-                                const course = supabaseData.courses.find(c => c.id === selectedCourse);
-                                return course?.level || 'Basics';
-                              })()
-                            ) : (
-                              'Select a course first'
-                            )}
-                          </div>
-                          <p className="mt-1 text-xs text-[#a0a0a0]">
-                            Category level is automatically inherited from the selected course
-                          </p>
-                        </div>
-                        
-                        <button
-                          type="button"
-                          onClick={handleCreateCategory}
-                          disabled={!newCategoryTitle.trim() || !selectedCourse}
-                          className="w-full py-1 px-3 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Create Category
-                        </button>
-                      </div>
-                    </div>
                   </div>
                   
-                  <p className="mt-1 text-xs text-[#a0a0a0]">Select or create a category for your content</p>
+                  <p className="mt-1 text-xs text-[#a0a0a0]">Select a category for your content</p>
                 </div>
 
                 <div>
@@ -992,16 +922,25 @@ export default function ContentUpload() {
                   <select
                     id="content-type"
                     value={contentType}
-                    onChange={(e) => setContentType(e.target.value as 'podcast' | 'document')}
+                    onChange={(e) => setContentType(e.target.value as 'audio' | 'video' | 'docs' | 'images' | 'templates')}
                     className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
                   >
-                    <option value="podcast">Audio/Video</option>
-                    <option value="document">Document/Image/Template</option>
+                    <option value="audio">Audio</option>
+                    <option value="video">Video</option>
+                    <option value="docs">Docs</option>
+                    <option value="images">Images</option>
+                    <option value="templates">Templates</option>
                   </select>
                   <p className="mt-1 text-xs text-[#a0a0a0]">
-                    {contentType === 'podcast' 
-                      ? 'Audio files (.mp3, .wav, .aac, .m4a) or YouTube videos' 
-                      : 'Documents (.pdf, .docx, .pptx, .xlsx, .txt) or Images (.jpg, .jpeg, .png, .svg, .gif) or Templates (any)'}
+                    {contentType === 'audio' 
+                      ? 'Audio files (.mp3, .wav, .aac, .m4a)' 
+                      : contentType === 'video'
+                      ? 'YouTube videos'
+                      : contentType === 'docs'
+                      ? 'Documents (.pdf, .docx, .pptx, .xlsx, .txt)'
+                      : contentType === 'images'
+                      ? 'Images (.jpg, .jpeg, .png, .svg, .gif)'
+                      : 'Templates (any file type)'}
                   </p>
                 </div>
 
@@ -1053,7 +992,15 @@ export default function ContentUpload() {
                   <button
                     type="button"
                     onClick={handleUpload}
-                    disabled={isUploading || !contentTitle || !selectedCourse || !selectedCategory || (contentType === 'podcast' && !selectedFile && !youtubeUrl) || (contentType === 'document' && !selectedFile)}
+                    disabled={
+                      isUploading || 
+                      !contentTitle || 
+                      !selectedCourse || 
+                      !selectedCategory || 
+                      (contentType === 'audio' && !selectedFile) || 
+                      (contentType === 'video' && !youtubeUrl) || 
+                      ((contentType === 'docs' || contentType === 'images' || contentType === 'templates') && !selectedFile)
+                    }
                     className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUploading ? 'Uploading...' : 'Upload'}
