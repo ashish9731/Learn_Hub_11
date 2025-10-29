@@ -191,6 +191,188 @@ export interface Database {
           due_date?: string | null
         }
       }
+      
+      // Quiz System Tables
+      module_quizzes: {
+        Row: {
+          id: string
+          course_id: string
+          category_id: string
+          title: string
+          description: string | null
+          created_at: string
+          created_by: string | null
+        }
+        Insert: {
+          id?: string
+          course_id: string
+          category_id: string
+          title: string
+          description?: string | null
+          created_at?: string
+          created_by?: string | null
+        }
+        Update: {
+          id?: string
+          course_id?: string
+          category_id?: string
+          title?: string
+          description?: string | null
+          created_at?: string
+          created_by?: string | null
+        }
+      }
+      
+      course_quizzes: {
+        Row: {
+          id: string
+          course_id: string
+          title: string
+          description: string | null
+          created_at: string
+          created_by: string | null
+        }
+        Insert: {
+          id?: string
+          course_id: string
+          title: string
+          description?: string | null
+          created_at?: string
+          created_by?: string | null
+        }
+        Update: {
+          id?: string
+          course_id?: string
+          title?: string
+          description?: string | null
+          created_at?: string
+          created_by?: string | null
+        }
+      }
+      
+      quiz_questions: {
+        Row: {
+          id: string
+          module_quiz_id: string | null
+          course_quiz_id: string | null
+          question_text: string
+          question_type: string
+          difficulty: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          module_quiz_id?: string | null
+          course_quiz_id?: string | null
+          question_text: string
+          question_type?: string
+          difficulty?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          module_quiz_id?: string | null
+          course_quiz_id?: string | null
+          question_text?: string
+          question_type?: string
+          difficulty?: string
+          created_at?: string
+        }
+      }
+      
+      quiz_answers: {
+        Row: {
+          id: string
+          question_id: string
+          answer_text: string
+          is_correct: boolean
+          explanation: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          question_id: string
+          answer_text: string
+          is_correct?: boolean
+          explanation?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          question_id?: string
+          answer_text?: string
+          is_correct?: boolean
+          explanation?: string | null
+          created_at?: string
+        }
+      }
+      
+      user_quiz_attempts: {
+        Row: {
+          id: string
+          user_id: string
+          module_quiz_id: string | null
+          course_quiz_id: string | null
+          started_at: string
+          completed_at: string | null
+          score: number | null
+          total_questions: number | null
+          passed: boolean | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          module_quiz_id?: string | null
+          course_quiz_id?: string | null
+          started_at?: string
+          completed_at?: string | null
+          score?: number | null
+          total_questions?: number | null
+          passed?: boolean | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          module_quiz_id?: string | null
+          course_quiz_id?: string | null
+          started_at?: string
+          completed_at?: string | null
+          score?: number | null
+          total_questions?: number | null
+          passed?: boolean | null
+        }
+      }
+      
+      user_quiz_answers: {
+        Row: {
+          id: string
+          attempt_id: string
+          question_id: string
+          selected_answer_id: string | null
+          short_answer_text: string | null
+          is_correct: boolean | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          attempt_id: string
+          question_id: string
+          selected_answer_id?: string | null
+          short_answer_text?: string | null
+          is_correct?: boolean | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          attempt_id?: string
+          question_id?: string
+          selected_answer_id?: string | null
+          short_answer_text?: string | null
+          is_correct?: boolean | null
+          created_at?: string
+        }
+      }
+
       podcasts: {
         Row: {
           id: string

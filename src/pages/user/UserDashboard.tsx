@@ -12,13 +12,15 @@ import {
   Play,
   Pause,
   RotateCcw,
-  BarChart3
+  BarChart3,
+  X
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import { useRealtimeSync } from '../../hooks/useSupabase';
 import { useNavigate } from 'react-router-dom';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
+import { getUserQuizAttempts, getQuizAttemptDetails } from '../../services/quizService';
 
 interface Course {
   id: string;
@@ -69,6 +71,17 @@ interface UserCourse {
   courses: Course;
 }
 
+interface QuizAttempt {
+  id: string;
+  started_at: string;
+  completed_at: string | null;
+  score: number | null;
+  total_questions: number | null;
+  passed: boolean | null;
+  module_quizzes?: any;
+  course_quizzes?: any;
+}
+
 export default function UserDashboard({ userEmail = '' }: { userEmail?: string }) {
   const [userId, setUserId] = useState<string>('');
   const [podcastProgress, setPodcastProgress] = useState<Record<string, number>>({});
@@ -103,6 +116,10 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   const [isPodcastPlayerOpen, setIsPodcastPlayerOpen] = useState(false);
   const [isPodcastPlayerMinimized, setIsPodcastPlayerMinimized] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
+  const [selectedQuizAttempt, setSelectedQuizAttempt] = useState<string | null>(null);
+  const [quizAttemptDetails, setQuizAttemptDetails] = useState<any>(null);
+  const [showQuizResults, setShowQuizResults] = useState(false);
   const navigate = useNavigate();
 
   // Load user liked podcasts
@@ -661,6 +678,57 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     });
   };
 
+  // Load quiz attempts
+  const loadQuizAttempts = useCallback(async () => {
+    if (!userId) return;
+    
+    try {
+      // Get assigned courses for the user
+      const { data: userCourses } = await supabase
+        .from('user_courses')
+        .select('course_id');
+      
+      const courseIds = userCourses?.map(uc => uc.course_id) || [];
+      
+      if (courseIds.length === 0) return;
+      
+      const allAttempts: any[] = [];
+      
+      // Get quiz attempts for each course
+      for (const courseId of courseIds) {
+        const { moduleAttempts, courseAttempts } = await getUserQuizAttempts(userId, courseId);
+        allAttempts.push(...moduleAttempts, ...courseAttempts);
+      }
+      
+      // Sort attempts by date
+      const sortedAttempts = allAttempts
+        .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
+      
+      setQuizAttempts(sortedAttempts);
+    } catch (error) {
+      console.error('Error loading quiz attempts:', error);
+    }
+  }, [userId]);
+
+  // Load quiz attempt details
+  const loadQuizAttemptDetails = async (attemptId: string) => {
+    try {
+      const details = await getQuizAttemptDetails(attemptId);
+      setQuizAttemptDetails(details);
+      setSelectedQuizAttempt(attemptId);
+      setShowQuizResults(true);
+    } catch (error) {
+      console.error('Error loading quiz attempt details:', error);
+    }
+  };
+
+  // Add quiz attempts loading to the main data loading
+  useEffect(() => {
+    if (userId) {
+      loadQuizAttempts();
+    }
+  }, [userId, loadQuizAttempts]);
+
   if (loading) {
     return (
       <div className="py-6">
@@ -782,10 +850,167 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                 </div>
               )}
             </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-[#8b5cf6]">{quizAttempts.filter(q => q.passed).length}</div>
+              <div className="text-sm text-gray-300">Quizzes Passed</div>
+              <div className="text-xs text-gray-400 mt-1">
+                {quizAttempts.length} total attempts
+              </div>
+            </div>
           </div>
         </div>
       </div>
       
+      {/* Quiz Results Modal */}
+      {showQuizResults && quizAttemptDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">
+                {quizAttemptDetails.module_quizzes?.title || quizAttemptDetails.course_quizzes?.title}
+              </h2>
+              <button
+                onClick={() => setShowQuizResults(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                    quizAttemptDetails.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {quizAttemptDetails.passed ? 'Passed' : 'Failed'}
+                  </span>
+                  <p className="mt-2 text-gray-600">
+                    Score: {quizAttemptDetails.score}% ({quizAttemptDetails.correct_answers}/{quizAttemptDetails.total_questions} correct)
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">
+                    Started: {new Date(quizAttemptDetails.started_at).toLocaleDateString()}
+                  </p>
+                  {quizAttemptDetails.completed_at && (
+                    <p className="text-sm text-gray-500">
+                      Completed: {new Date(quizAttemptDetails.completed_at).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold">Quiz Results</h3>
+              {quizAttemptDetails.questions.map((question: any, index: number) => (
+                <div 
+                  key={index} 
+                  className={`p-4 rounded-lg border ${
+                    question.selected_is_correct 
+                      ? 'border-green-200 bg-green-50' 
+                      : 'border-red-200 bg-red-50'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-medium text-gray-900">Question {index + 1}: {question.question_text}</h4>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      question.difficulty === 'easy' 
+                        ? 'bg-green-100 text-green-800' 
+                        : question.difficulty === 'medium' 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : 'bg-red-100 text-red-800'
+                    }`}>
+                      {question.difficulty}
+                    </span>
+                  </div>
+                  
+                  <div className="mt-3">
+                    <p className="text-sm font-medium text-gray-700">Your Answer:</p>
+                    <p className={`mt-1 ${question.selected_is_correct ? 'text-green-700' : 'text-red-700'}`}>
+                      {question.selected_answer}
+                    </p>
+                    {!question.selected_is_correct && (
+                      <>
+                        <p className="text-sm font-medium text-gray-700 mt-2">Correct Answer:</p>
+                        <p className="mt-1 text-green-700">{question.correct_answer}</p>
+                      </>
+                    )}
+                  </div>
+                  
+                  <div className="mt-3">
+                    <p className="text-sm font-medium text-gray-700">Explanation:</p>
+                    <p className="mt-1 text-gray-600">
+                      {question.selected_is_correct 
+                        ? question.explanation 
+                        : question.correct_explanation}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowQuizResults(false)}
+                className="px-4 py-2 bg-gray-200 rounded-md text-gray-700 hover:bg-gray-300"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quiz Results Section */}
+      {quizAttempts.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+          <div className="bg-[#1e1e1e] shadow-lg rounded-lg border border-[#333333] p-6">
+            <h3 className="text-lg font-medium text-white mb-4">Quiz Results</h3>
+            <div className="space-y-3">
+              {quizAttempts.map((attempt) => (
+                <div 
+                  key={attempt.id} 
+                  className="flex items-center justify-between p-3 bg-[#252525] rounded-lg cursor-pointer hover:bg-[#333333]"
+                  onClick={() => loadQuizAttemptDetails(attempt.id)}
+                >
+                  <div>
+                    <h4 className="text-sm font-medium text-white">
+                      {attempt.module_quizzes?.title || attempt.course_quizzes?.title}
+                    </h4>
+                    <p className="text-xs text-gray-400">
+                      {attempt.module_quizzes 
+                        ? `Module: ${attempt.module_quizzes.content_categories?.name || 'Unknown'}` 
+                        : 'Final Course Quiz'}
+                    </p>
+                  </div>
+                  <div className="flex items-center">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      attempt.passed 
+                        ? 'bg-green-900/30 text-green-400' 
+                        : attempt.completed_at 
+                          ? 'bg-red-900/30 text-red-400' 
+                          : 'bg-yellow-900/30 text-yellow-400'
+                    }`}>
+                      {attempt.passed 
+                        ? 'Passed' 
+                        : attempt.completed_at 
+                          ? 'Failed' 
+                          : 'In Progress'}
+                    </span>
+                    {attempt.score !== null && (
+                      <span className="ml-2 text-sm text-gray-300">{attempt.score}%</span>
+                    )}
+                    <ChevronRight className="h-4 w-4 text-gray-400 ml-2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Weekly Progress Charts */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

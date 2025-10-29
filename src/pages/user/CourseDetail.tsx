@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, BookOpen, User, ChevronLeft, Play, FileText, MessageSquare, Headphones, Download, Lock } from 'lucide-react';
+import { Clock, BookOpen, User, ChevronLeft, Play, FileText, MessageSquare, Headphones, Download, Lock, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
+import QuizComponent from '../../components/Quiz/QuizComponent';
 
 interface Course {
   id: string;
@@ -42,6 +43,17 @@ interface PodcastProgress {
   last_played_at: string;
 }
 
+interface CategoryWithProgress {
+  id: string;
+  name: string;
+  course_id: string;
+  created_at: string;
+  podcasts: Podcast[];
+  completedPodcasts: number;
+  totalPodcasts: number;
+  isCompleted: boolean;
+}
+
 export default function CourseDetail() {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -60,6 +72,12 @@ export default function CourseDetail() {
   const [isUserAssignedToCourse, setIsUserAssignedToCourse] = useState<boolean>(false);
   const [assignmentChecked, setAssignmentChecked] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [categoriesWithProgress, setCategoriesWithProgress] = useState<CategoryWithProgress[]>([]);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [quizCategoryId, setQuizCategoryId] = useState<string | null>(null);
+  const [quizCategoryName, setQuizCategoryName] = useState<string | null>(null);
+  const [showFinalQuiz, setShowFinalQuiz] = useState(false);
+  const [allModulesCompleted, setAllModulesCompleted] = useState(false);
 
   useEffect(() => {
     const checkAuthAndUser = async () => {
@@ -118,6 +136,36 @@ export default function CourseDetail() {
       loadPodcastProgress();
     }
   }, [userId, isAuthenticated]);
+
+  // Calculate category progress and completion status
+  useEffect(() => {
+    if (categories.length > 0 && podcasts.length > 0 && Object.keys(podcastProgress).length > 0) {
+      const updatedCategories = categories.map(category => {
+        const categoryPodcasts = podcasts.filter(p => p.category_id === category.id);
+        const completedPodcasts = categoryPodcasts.filter(podcast => {
+          const progress = podcastProgress[podcast.id];
+          return progress && progress.progress_percent === 100;
+        }).length;
+        
+        const isCompleted = categoryPodcasts.length > 0 && completedPodcasts === categoryPodcasts.length;
+        
+        return {
+          ...category,
+          podcasts: categoryPodcasts,
+          completedPodcasts,
+          totalPodcasts: categoryPodcasts.length,
+          isCompleted
+        };
+      });
+      
+      setCategoriesWithProgress(updatedCategories);
+      
+      // Check if all modules are completed
+      const allCompleted = updatedCategories.length > 0 && 
+        updatedCategories.every(category => category.isCompleted);
+      setAllModulesCompleted(allCompleted);
+    }
+  }, [categories, podcasts, podcastProgress]);
 
   const checkUserCourseAssignment = async () => {
     // Reset states
@@ -383,6 +431,32 @@ export default function CourseDetail() {
     return progress ? progress.progress_percent : 0;
   };
 
+  // Start module quiz
+  const startModuleQuiz = (categoryId: string, categoryName: string) => {
+    setQuizCategoryId(categoryId);
+    setQuizCategoryName(categoryName);
+    setShowQuiz(true);
+    setActiveTab('quiz');
+  };
+
+  // Start final quiz
+  const startFinalQuiz = () => {
+    setShowFinalQuiz(true);
+    setActiveTab('quiz');
+  };
+
+  // Handle quiz completion
+  const handleQuizComplete = (passed: boolean, score: number) => {
+    setShowQuiz(false);
+    setShowFinalQuiz(false);
+    setActiveTab('podcasts');
+    
+    // Reload data to reflect quiz completion
+    if (userId) {
+      loadPodcastProgress();
+    }
+  };
+
   if (loading) {
     console.log('CourseDetail: Showing loading spinner');
     return (
@@ -552,17 +626,33 @@ export default function CourseDetail() {
         <>
           {/* Category Filters */}
           <div className="grid grid-cols-5 gap-4 mb-6">
-            {categories.map(category => (
+            {categoriesWithProgress.map(category => (
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
-                className={`py-3 px-4 rounded-lg text-center font-medium ${
+                className={`py-3 px-4 rounded-lg text-center font-medium relative ${
                   activeCategory === category.id 
                     ? 'bg-blue-500 text-white' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {category.name}
+                <div className="flex flex-col items-center">
+                  <span className="truncate">{category.name}</span>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                    <div 
+                      className="bg-blue-600 h-1.5 rounded-full" 
+                      style={{ width: `${category.totalPodcasts > 0 ? (category.completedPodcasts / category.totalPodcasts) * 100 : 0}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs mt-1">
+                    {category.completedPodcasts}/{category.totalPodcasts}
+                  </span>
+                  {category.isCompleted && (
+                    <div className="absolute top-1 right-1">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    </div>
+                  )}
+                </div>
               </button>
             ))}
           </div>
@@ -571,7 +661,20 @@ export default function CourseDetail() {
           <div className="flex flex-col md:flex-row gap-6">
             {/* Podcast List */}
             <div className="md:w-1/3 bg-white rounded-lg shadow-md p-4">
-              <h2 className="text-lg font-semibold mb-4">Podcasts</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Podcasts</h2>
+                {activeCategory && (() => {
+                  const category = categoriesWithProgress.find(c => c.id === activeCategory);
+                  return category?.isCompleted ? (
+                    <button
+                      onClick={() => startModuleQuiz(category.id, category.name)}
+                      className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
+                    >
+                      Take Quiz
+                    </button>
+                  ) : null;
+                })()}
+              </div>
               <div className="space-y-3">
                 {getFilteredPodcasts().length > 0 ? 
                   getFilteredPodcasts().map(podcast => {
@@ -717,6 +820,44 @@ export default function CourseDetail() {
         </>
       )}
 
+      {activeTab === 'quiz' && showQuiz && quizCategoryId && quizCategoryName && (
+        <div className="mt-6">
+          <QuizComponent
+            courseId={courseId || ''}
+            categoryId={quizCategoryId}
+            categoryName={quizCategoryName}
+            onComplete={handleQuizComplete}
+          />
+        </div>
+      )}
+
+      {activeTab === 'quiz' && showFinalQuiz && (
+        <div className="mt-6">
+          <QuizComponent
+            courseId={courseId || ''}
+            isFinalQuiz={true}
+            onComplete={handleQuizComplete}
+          />
+        </div>
+      )}
+
+      {/* Final Quiz Button - only show when all modules are completed */}
+      {allModulesCompleted && activeTab !== 'quiz' && (
+        <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-medium text-green-800">Congratulations! You've completed all modules.</h3>
+              <p className="text-green-700">Take the final quiz to complete this course.</p>
+            </div>
+            <button
+              onClick={startFinalQuiz}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              Start Final Quiz
+            </button>
+          </div>
+        </div>
+      )}
 
       {activeTab === 'downloads' && pdfs.length > 0 ? (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
