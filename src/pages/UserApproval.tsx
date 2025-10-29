@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, UserCheck, UserX, Building2, Mail, Phone, Calendar, Eye, CheckCircle, XCircle, Clock, User } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, UserCheck, Mail, Phone, MapPin, Building2, ArrowLeft, User, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { supabase, supabaseAdmin } from '../lib/supabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
 
@@ -269,6 +269,15 @@ export default function UserApproval() {
             <p className="mt-1 text-sm text-[#a0a0a0]">
               Review and approve user registrations
             </p>
+          </div>
+          <div className="mt-4 flex md:mt-0 md:ml-4">
+            <button
+              onClick={() => window.history.back()}
+              className="inline-flex items-center px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#1e1e1e] hover:bg-[#252525] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+            >
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Back
+            </button>
           </div>
         </div>
 

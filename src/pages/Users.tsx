@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Building2, User, Mail, Phone, MapPin, Users as UsersIcon, CheckCircle, Clock } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Building2, User, Mail, Phone, MapPin, Users as UsersIcon, CheckCircle, Clock, ArrowLeft } from 'lucide-react';
 import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
 import { supabase } from '../lib/supabase';
@@ -311,14 +311,23 @@ export default function Users() {
                 Manage all system users and their access
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsAddModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
-            >
-              <Plus className="-ml-1 mr-2 h-5 w-5" />
-              Add User
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => window.history.back()}
+                className="flex items-center px-4 py-2 bg-[#1e1e1e] text-white rounded-lg hover:bg-[#252525] border border-[#333333] transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+              >
+                <Plus className="-ml-1 mr-2 h-5 w-5" />
+                Add User
+              </button>
+            </div>
           </div>
         </div>
 

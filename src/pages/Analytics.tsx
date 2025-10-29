@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, BookOpen, Headphones, Users, Clock, X, ChevronRight, BarChart3, PieChart } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart as RePieChart, Pie, Cell, Legend, Sector } from 'recharts';
+import { BarChart as BarChartIcon, PieChart, TrendingUp, Users, BookOpen, Headphones, FileText, Clock, ArrowLeft, Building2, ChevronRight, X } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart as ReBarChart, Bar, PieChart as RePieChart, Pie, Cell, Legend, Sector } from 'recharts';
 import { supabase } from '../lib/supabase';
 import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
@@ -234,14 +234,14 @@ export default function Analytics() {
             <div className="bg-white shadow rounded-lg p-6">
               <h4 className="text-lg font-medium text-gray-900 mb-4">Organization Growth</h4>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={companyData}>
+                <ReBarChart data={companyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="userCount" name="Users" fill="#3B82F6" />
                   <Bar dataKey="courseCount" name="Courses" fill="#10B981" />
-                </BarChart>
+                </ReBarChart>
               </ResponsiveContainer>
             </div>
           </div>
@@ -254,13 +254,13 @@ export default function Analytics() {
             <div className="bg-white shadow rounded-lg p-6">
               <h4 className="text-lg font-medium text-gray-900 mb-4">Course Completion Rates</h4>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={courseCompletionData}>
+                <ReBarChart data={courseCompletionData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="course" />
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="completion" name="Completion %" fill="#10B981" />
-                </BarChart>
+                </ReBarChart>
               </ResponsiveContainer>
             </div>
             <div className="bg-white shadow rounded-lg p-6">
@@ -377,13 +377,13 @@ export default function Analytics() {
             <div className="bg-white shadow rounded-lg p-6">
               <h4 className="text-lg font-medium text-gray-900 mb-4">User Distribution by Company</h4>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={companyData}>
+                <ReBarChart data={companyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="userCount" name="Users" fill="#8B5CF6" />
-                </BarChart>
+                </ReBarChart>
               </ResponsiveContainer>
             </div>
             <div className="bg-white shadow rounded-lg p-6">
@@ -431,7 +431,7 @@ export default function Analytics() {
             <div className="bg-white shadow rounded-lg p-6">
               <h4 className="text-lg font-medium text-gray-900 mb-4">Learning Hours by Company</h4>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={companyData.map(company => ({
+                <ReBarChart data={companyData.map(company => ({
                   name: company.name,
                   hours: supabaseData.users
                     .filter(user => user.company_id === company.id)
@@ -442,7 +442,7 @@ export default function Analytics() {
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="hours" name="Learning Hours" fill="#EF4444" />
-                </BarChart>
+                </ReBarChart>
               </ResponsiveContainer>
             </div>
             <div className="bg-white shadow rounded-lg p-6">
@@ -657,7 +657,14 @@ export default function Analytics() {
               Real-time insights from Supabase database
             </p>
           </div>
-          <div className="mt-4 flex md:mt-0 md:ml-4">
+          <div className="mt-4 flex md:mt-0 md:ml-4 space-x-2">
+            <button
+              onClick={() => window.history.back()}
+              className="inline-flex items-center px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#1e1e1e] hover:bg-[#252525] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+            >
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Back
+            </button>
             <button
               onClick={loadSupabaseData}
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -710,13 +717,13 @@ export default function Analytics() {
             <p className="text-sm text-gray-600 mb-4">Completion rates by course (when tracking is implemented)</p>
             {courseCompletionData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={courseCompletionData}>
+                <ReBarChart data={courseCompletionData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="course" />
                   <YAxis />
                   <Tooltip />
                   <Bar dataKey="completion" fill="#10B981" />
-                </BarChart>
+                </ReBarChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-64 flex items-center justify-center text-gray-500">
@@ -837,7 +844,7 @@ export default function Analytics() {
           <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center">
-                <BarChart3 className="h-6 w-6 text-blue-600 mr-2" />
+                <BarChartIcon className="h-6 w-6 text-blue-600 mr-2" />
                 <h2 className="text-xl font-semibold text-gray-900">Detailed Analytics</h2>
               </div>
               <button
