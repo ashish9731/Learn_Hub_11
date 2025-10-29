@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, BookOpen, User, ChevronLeft, Play, FileText, MessageSquare, Headphones, Download, Lock, CheckCircle } from 'lucide-react';
+import { Clock, BookOpen, User, ChevronLeft, Play, FileText, MessageSquare, Headphones, Download, Lock, CheckCircle, Image as ImageIcon, File as FileIcon } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
 import QuizComponent from '../../components/Quiz/QuizComponent';
+import PodcastPlayer from '../../components/Media/PodcastPlayer';
 
 interface Course {
   id: string;
@@ -310,8 +311,9 @@ export default function CourseDetail() {
       console.log('User is assigned, proceeding to load course data...');
       // Get course details and related data including documents
       console.log('Fetching course data...');
-      const [courseData, categoriesData, podcastsData, pdfsData] = await Promise.all([
-        supabase
+      
+      // Fetch course data with proper RLS enforcement
+      const { data: courseData, error: courseError } = await supabase
         .from('courses')
         .select(`
           *,
@@ -321,47 +323,67 @@ export default function CourseDetail() {
           )
         `)
         .eq('id', courseId)
-        .single()
-        .then(res => {
-          console.log('Course data result:', res);
-          if (res.error) throw res.error;
-          return res.data;
-        }),
-        supabase
+        .single();
+      
+      if (courseError) {
+        console.error('Error fetching course data:', courseError);
+        clearTimeout(timeoutId);
+        setError('Failed to load course data. Please try again.');
+        setLoading(false);
+        return;
+      }
+      
+      // Fetch categories with proper RLS enforcement
+      const { data: categoriesData, error: categoriesError } = await supabase
         .from('content_categories')
         .select('*')
         .eq('course_id', courseId)
-        .order('name')
-        .then(res => {
-          console.log('Categories data result:', res);
-          return res.data || [];
-        }),
-        supabase
+        .order('name');
+      
+      if (categoriesError) {
+        console.error('Error fetching categories data:', categoriesError);
+        clearTimeout(timeoutId);
+        setError('Failed to load course categories. Please try again.');
+        setLoading(false);
+        return;
+      }
+      
+      // Fetch podcasts with proper RLS enforcement - only podcasts for this course that user is assigned to
+      const { data: podcastsData, error: podcastsError } = await supabase
         .from('podcasts')
         .select('*')
-        .eq('course_id', courseId)
-        .then(res => {
-          console.log('Podcasts data result:', res);
-          return res.data || [];
-        }),
-        supabase
+        .eq('course_id', courseId);
+      
+      if (podcastsError) {
+        console.error('Error fetching podcasts data:', podcastsError);
+        clearTimeout(timeoutId);
+        setError('Failed to load course podcasts. Please try again.');
+        setLoading(false);
+        return;
+      }
+      
+      // Fetch PDFs with proper RLS enforcement - only PDFs for this course that user is assigned to
+      const { data: pdfsData, error: pdfsError } = await supabase
         .from('pdfs')
         .select('*')
-        .eq('course_id', courseId)
-        .then(res => {
-          console.log('PDFs data result:', res);
-          return res.data || [];
-        })
-      ]);
+        .eq('course_id', courseId);
+      
+      if (pdfsError) {
+        console.error('Error fetching PDFs data:', pdfsError);
+        clearTimeout(timeoutId);
+        setError('Failed to load course documents. Please try again.');
+        setLoading(false);
+        return;
+      }
       
       // Clear the timeout since we've successfully loaded
       clearTimeout(timeoutId);
       
       console.log('All data loaded successfully');
       setCourse(courseData);
-      setCategories(categoriesData);
-      setPodcasts(podcastsData);
-      setPdfs(pdfsData);
+      setCategories(categoriesData || []);
+      setPodcasts(podcastsData || []);
+      setPdfs(pdfsData || []);
 
       // Set first category as active if categories exist
       if (categoriesData && categoriesData.length > 0) {
@@ -751,7 +773,7 @@ export default function CourseDetail() {
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          <Image className="h-5 w-5 mr-2" />
+          <ImageIcon className="h-5 w-5 mr-2" />
           Images
         </button>
         <button
@@ -762,7 +784,7 @@ export default function CourseDetail() {
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          <File className="h-5 w-5 mr-2" />
+          <FileIcon className="h-5 w-5 mr-2" />
           Templates
         </button>
       </div>
@@ -939,7 +961,7 @@ export default function CourseDetail() {
                 <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-start">
                     <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
-                      <Image className="h-8 w-8 text-blue-600" />
+                      <ImageIcon className="h-8 w-8 text-blue-600" />
                     </div>
                     <div className="ml-3 flex-1">
                       <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
@@ -955,7 +977,7 @@ export default function CourseDetail() {
                           window.open(pdf.pdf_url, '_blank');
                         }}
                       >
-                        <Image className="h-3 w-3 mr-1" />
+                        <ImageIcon className="h-3 w-3 mr-1" />
                         View Image
                       </a>
                     </div>
@@ -963,7 +985,7 @@ export default function CourseDetail() {
                 </div>
               )) : (
                 <div className="text-center py-8 text-gray-500 col-span-full">
-                  <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No Images</h3>
                   <p className="text-gray-500">This course doesn't have any images or cheatsheets yet.</p>
                 </div>
@@ -990,7 +1012,7 @@ export default function CourseDetail() {
                 <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-start">
                     <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
-                      <File className="h-8 w-8 text-blue-600" />
+                      <FileIcon className="h-8 w-8 text-blue-600" />
                     </div>
                     <div className="ml-3 flex-1">
                       <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
@@ -1006,7 +1028,7 @@ export default function CourseDetail() {
                           window.open(pdf.pdf_url, '_blank');
                         }}
                       >
-                        <File className="h-3 w-3 mr-1" />
+                        <FileIcon className="h-3 w-3 mr-1" />
                         View Template
                       </a>
                     </div>
@@ -1014,7 +1036,7 @@ export default function CourseDetail() {
                 </div>
               )) : (
                 <div className="text-center py-8 text-gray-500 col-span-full">
-                  <File className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <FileIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No Templates</h3>
                   <p className="text-gray-500">This course doesn't have any templates yet.</p>
                 </div>
@@ -1040,7 +1062,7 @@ export default function CourseDetail() {
               <PodcastPlayer 
                 podcast={currentPodcast} 
                 userId={userId || undefined}
-                onProgressUpdate={(progress, duration, currentTime) => {
+                onProgressUpdate={(progress: number, duration: number, currentTime: number) => {
                   // Update local progress state
                   setPodcastProgress(prev => ({
                     ...prev,
@@ -1054,11 +1076,6 @@ export default function CourseDetail() {
                       last_played_at: new Date().toISOString()
                     }
                   }));
-                  
-                  // Call parent callback if provided
-                  if (onProgressUpdate) {
-                    onProgressUpdate(progress, duration, currentTime);
-                  }
                 }}
               />
             </div>
