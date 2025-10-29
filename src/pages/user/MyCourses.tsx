@@ -132,17 +132,29 @@ export default function MyCourses() {
       let courses = [], categories = [], podcasts = [], pdfs = [], documents = [];
       
       try {
-        const [coursesData, categoriesData, podcastsData, pdfsData] = await Promise.all([
-          supabaseHelpers.getCourses(),
+        // Load categories, podcasts, and pdfs using supabaseHelpers
+        const [categoriesData, podcastsData, pdfsData] = await Promise.all([
           supabaseHelpers.getCategories(),
           supabaseHelpers.getPodcasts(),
           supabaseHelpers.getPDFs()
         ]);
         
-        courses = coursesData || [];
         categories = categoriesData || [];
         podcasts = podcastsData || [];
         pdfs = pdfsData || [];
+        
+        // Load courses using regular supabase client to respect RLS policies
+        const { data: coursesData, error: coursesError } = await supabase
+          .from('courses')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (coursesError) {
+          console.error('Error fetching courses with RLS:', coursesError);
+          courses = [];
+        } else {
+          courses = coursesData || [];
+        }
       } catch (dataError) {
         console.error('Error loading basic data:', dataError);
         // Continue with empty arrays

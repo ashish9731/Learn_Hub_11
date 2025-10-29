@@ -327,18 +327,37 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       setError(null);
       
       // Load all data first
-      const [coursesData, categoriesData, podcastsData, pdfsData, userCoursesData] = await Promise.all([
-        supabaseHelpers.getCourses(),
+      const [categoriesData, podcastsData, pdfsData, userCoursesData] = await Promise.all([
         supabaseHelpers.getContentCategories(), 
         supabaseHelpers.getPodcasts(),
         supabaseHelpers.getPDFs(),
         supabaseHelpers.getUserCourses(userId)
       ]);
       
+      // Load courses using regular supabase client to respect RLS policies
+      let coursesData = [];
+      try {
+        const { data, error } = await supabase
+          .from('courses')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching courses with RLS:', error);
+          // Fallback to empty array
+          coursesData = [];
+        } else {
+          coursesData = data || [];
+        }
+      } catch (courseError) {
+        console.error('Exception fetching courses:', courseError);
+        coursesData = [];
+      }
+      
       // Load liked podcasts separately to avoid the error
       const likedPodcastsData = await loadUserLikedPodcasts(userId);
       
-      // Filter courses to show only assigned courses
+      // Filter courses to show only courses assigned to this specific user
       const assignedCourseIds = new Set(userCoursesData.map(uc => uc.course_id));
       const assignedCourses = (coursesData || []).filter(course => 
         assignedCourseIds.has(course.id)
