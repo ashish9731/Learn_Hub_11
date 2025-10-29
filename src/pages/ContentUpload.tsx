@@ -19,6 +19,7 @@ interface Category {
   name: string;
   course_id: string;
   created_at: string;
+  level?: string;
 }
 
 interface Podcast {
@@ -67,6 +68,8 @@ export default function ContentUpload() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [newCourseTitle, setNewCourseTitle] = useState('');
   const [newCourseLevel, setNewCourseLevel] = useState<'Basics' | 'Intermediate' | 'Advanced'>('Basics');
+  const [newCategoryTitle, setNewCategoryTitle] = useState('');
+  const [newCategoryLevel, setNewCategoryLevel] = useState<'Basics' | 'Intermediate' | 'Advanced'>('Basics');
   
   // Assignment form state
   const [assignmentTitle, setAssignmentTitle] = useState('');
@@ -346,6 +349,58 @@ export default function ContentUpload() {
     } catch (error) {
       console.error('Failed to create course:', error);
       alert('Failed to create course: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryTitle.trim() || !selectedCourse) {
+      alert('Please enter a category name and select a course');
+      return;
+    }
+
+    try {
+      console.log('Creating category:', {
+        name: newCategoryTitle,
+        course_id: selectedCourse,
+        level: newCategoryLevel
+      });
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Create the category with level
+      const { data, error } = await supabase
+        .from('content_categories')
+        .insert({
+          name: newCategoryTitle,
+          course_id: selectedCourse,
+          level: newCategoryLevel,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating category:', error);
+        throw error;
+      }
+      
+      console.log('Category created successfully:', data);
+      
+      // Reset form
+      setNewCategoryTitle('');
+      setNewCategoryLevel('Basics');
+      
+      // Reload data to show the new category
+      await loadSupabaseData();
+      
+      alert('Category created successfully!');
+      
+    } catch (error) {
+      console.error('Failed to create category:', error);
+      alert('Failed to create category: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
@@ -801,20 +856,92 @@ export default function ContentUpload() {
                   <label htmlFor="category" className="block text-sm font-medium text-white mb-2">
                     Select Category <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    id="category"
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
-                  >
-                    <option value="">Choose a category...</option>
-                    {predefinedCategories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="mt-1 text-xs text-[#a0a0a0]">Select a predefined category for your content</p>
+                  
+                  {/* Category Selection */}
+                  <div className="space-y-3">
+                    <select
+                      id="category"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                    >
+                      <option value="">Choose a category...</option>
+                      {/* Show course-specific categories */}
+                      {(supabaseData.categories || [])
+                        .filter(cat => cat.course_id === selectedCourse)
+                        .map((category) => (
+                          <option key={category.id} value={category.name}>
+                            {category.name} ({category.level})
+                          </option>
+                        ))}
+                      {/* Show predefined categories as fallback */}
+                      {predefinedCategories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                    
+                    {/* Create New Category Section */}
+                    <div className="border border-[#333333] rounded-md p-3 bg-[#252525]">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-medium text-white">Create New Category</h4>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewCategoryTitle('');
+                            setNewCategoryLevel('Basics');
+                          }}
+                          className="text-xs text-[#8b5cf6] hover:text-[#7c3aed]"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          value={newCategoryTitle}
+                          onChange={(e) => setNewCategoryTitle(e.target.value)}
+                          placeholder="Enter category name"
+                          className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#1e1e1e] text-white text-sm"
+                        />
+                        
+                        <div>
+                          <label className="block text-xs font-medium text-[#a0a0a0] mb-1">
+                            Category Level
+                          </label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {(['Basics', 'Intermediate', 'Advanced'] as const).map((level) => (
+                              <button
+                                key={level}
+                                type="button"
+                                onClick={() => setNewCategoryLevel(level)}
+                                className={`py-1 px-2 border rounded text-xs font-medium ${
+                                  newCategoryLevel === level
+                                    ? 'border-[#8b5cf6] bg-[#8b5cf6] text-white'
+                                    : 'border-[#333333] bg-[#1e1e1e] text-[#a0a0a0] hover:bg-[#333333]'
+                                }`}
+                              >
+                                {level}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <button
+                          type="button"
+                          onClick={handleCreateCategory}
+                          disabled={!newCategoryTitle.trim() || !selectedCourse}
+                          className="w-full py-1 px-3 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Create Category
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p className="mt-1 text-xs text-[#a0a0a0]">Select or create a category for your content</p>
                 </div>
 
                 <div>

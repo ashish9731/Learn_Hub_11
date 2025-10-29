@@ -533,6 +533,35 @@ export interface Database {
           updated_at?: string
         }
       }
+      content_categories: {
+        Row: {
+          id: string
+          name: string
+          course_id: string
+          description: string | null
+          created_at: string
+          created_by: string | null
+          level: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          course_id: string
+          description?: string | null
+          created_at?: string
+          created_by?: string | null
+          level?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          course_id?: string
+          description?: string | null
+          created_at?: string
+          created_by?: string | null
+          level?: string | null
+        }
+      }
     }
   }
 }

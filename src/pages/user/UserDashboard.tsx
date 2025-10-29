@@ -37,6 +37,7 @@ interface Category {
   name: string;
   course_id: string;
   created_at: string;
+  level?: string;
 }
 
 interface Podcast {
@@ -120,6 +121,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   const [selectedQuizAttempt, setSelectedQuizAttempt] = useState<string | null>(null);
   const [quizAttemptDetails, setQuizAttemptDetails] = useState<any>(null);
   const [showQuizResults, setShowQuizResults] = useState(false);
+  const [activeTab, setActiveTab] = useState('basics');
   const navigate = useNavigate();
 
   // Load user liked podcasts
@@ -621,6 +623,44 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     });
   }, [supabaseData.courses, supabaseData.categories, supabaseData.podcasts, supabaseData.userCourses]);
 
+  // Group podcasts by level (Basics, Intermediate, Advanced)
+  const podcastsByLevel = React.useMemo(() => {
+    // Get all podcasts assigned to user's courses
+    const assignedCourseIds = new Set(supabaseData.userCourses.map(uc => uc.course_id));
+    const userPodcasts = supabaseData.podcasts.filter(podcast => 
+      assignedCourseIds.has(podcast.course_id)
+    );
+    
+    // Group podcasts by their category level
+    const groupedPodcasts: Record<string, any[]> = {
+      'Basics': [],
+      'Intermediate': [],
+      'Advanced': []
+    };
+    
+    userPodcasts.forEach(podcast => {
+      // Find the category for this podcast
+      const category = supabaseData.categories.find(cat => cat.id === podcast.category_id);
+      const level = category?.level || 'Basics'; // Default to Basics if no level
+      
+      // Add podcast to the appropriate level group
+      if (groupedPodcasts[level]) {
+        groupedPodcasts[level].push({
+          ...podcast,
+          category_name: category?.name || 'Uncategorized'
+        });
+      } else {
+        // If level is not one of the standard levels, add to Basics
+        groupedPodcasts['Basics'].push({
+          ...podcast,
+          category_name: category?.name || 'Uncategorized'
+        });
+      }
+    });
+    
+    return groupedPodcasts;
+  }, [supabaseData.podcasts, supabaseData.categories, supabaseData.userCourses]);
+
   // Toggle course expansion
   const toggleCourseExpansion = (courseId: string) => {
     setExpandedCourses(prev => ({
@@ -1066,6 +1106,70 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
             <div className="h-64 flex items-center justify-center text-[#a0a0a0]">
               <p>Engagement data will appear here as you interact with courses</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Podcasts by Level Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <div className="bg-[#1e1e1e] shadow-lg rounded-lg border border-[#333333] p-6">
+          <h3 className="text-lg font-medium text-white mb-4">Podcasts by Level</h3>
+          
+          {/* Level Tabs */}
+          <div className="flex space-x-4 mb-6 border-b border-[#333333]">
+            {['Basics', 'Intermediate', 'Advanced'].map((level) => (
+              <button
+                key={level}
+                className={`pb-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === level.toLowerCase()
+                    ? 'border-[#8b5cf6] text-[#8b5cf6]'
+                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
+                }`}
+                onClick={() => setActiveTab(level.toLowerCase())}
+              >
+                {level} ({podcastsByLevel[level]?.length || 0})
+              </button>
+            ))}
+          </div>
+          
+          {/* Podcasts List */}
+          <div className="space-y-4">
+            {podcastsByLevel[activeTab.charAt(0).toUpperCase() + activeTab.slice(1)]?.map((podcast) => (
+              <div 
+                key={podcast.id} 
+                className="flex items-center justify-between p-4 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
+                onClick={() => handlePlayPodcast(podcast)}
+              >
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-10 w-10 bg-[#8b5cf6] rounded-lg flex items-center justify-center">
+                    <Headphones className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="ml-4">
+                    <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
+                    <p className="text-xs text-gray-400">{podcast.category_name}</p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  {podcastProgress[podcast.id] > 0 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#8b5cf6]/20 text-[#8b5cf6] mr-2">
+                      {Math.round(podcastProgress[podcast.id] || 0)}%
+                    </span>
+                  )}
+                  <Play className="h-4 w-4 text-gray-400" />
+                </div>
+              </div>
+            ))}
+            
+            {(!podcastsByLevel[activeTab.charAt(0).toUpperCase() + activeTab.slice(1)] || 
+              podcastsByLevel[activeTab.charAt(0).toUpperCase() + activeTab.slice(1)]?.length === 0) && (
+              <div className="text-center py-8">
+                <Headphones className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-300">No podcasts</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  No podcasts available at the {activeTab} level.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
