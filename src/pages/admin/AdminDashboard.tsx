@@ -332,7 +332,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-[#a0a0a0] truncate">{card.title}</dt>
+                      <dt className="text-sm font-medium text-gray-300 truncate">{card.title}</dt>
                       <dd className="text-2xl font-semibold text-white">{card.value}</dd>
                     </dl>
                   </div>
@@ -354,9 +354,9 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-medium text-white">Manage Users</h4>
-                      <p className="text-sm text-[#a0a0a0]">Add, edit, delete users</p>
+                      <p className="text-sm text-gray-400">Add, edit, delete users</p>
                     </div>
-                    <Users className="h-5 w-5 text-[#a0a0a0]" />
+                    <Users className="h-5 w-5 text-gray-400" />
                   </div>
                 </button>
                 
@@ -364,9 +364,9 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-medium text-white">Assign Courses</h4>
-                      <p className="text-sm text-[#a0a0a0]">Assign/Remove courses</p>
+                      <p className="text-sm text-gray-400">Assign/Remove courses</p>
                     </div>
-                    <BookOpen className="h-5 w-5 text-[#a0a0a0]" />
+                    <BookOpen className="h-5 w-5 text-gray-400" />
                   </div>
                 </button>
                 
@@ -374,9 +374,9 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-medium text-white">View Content</h4>
-                      <p className="text-sm text-[#a0a0a0]">View content added by Super Admin</p>
+                      <p className="text-sm text-gray-400">View content added by Super Admin</p>
                     </div>
-                    <BookOpen className="h-5 w-5 text-[#a0a0a0]" />
+                    <BookOpen className="h-5 w-5 text-gray-400" />
                   </div>
                 </button>
               </div>
@@ -399,22 +399,22 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                           {course.level && (
                             <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                               course.level === 'Basics' 
-                                ? 'bg-green-100 text-green-800' 
+                                ? 'bg-green-900/30 text-green-400' 
                                 : course.level === 'Intermediate' 
-                                  ? 'bg-yellow-100 text-yellow-800' 
-                                  : 'bg-red-100 text-red-800'
+                                  ? 'bg-yellow-900/30 text-yellow-400' 
+                                  : 'bg-red-900/30 text-red-400'
                             }`}>
                               {course.level}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-[#a0a0a0]">Assigned to users</p>
+                        <p className="text-xs text-gray-400">Assigned to users</p>
                       </div>
-                      <span className="text-xs text-[#a0a0a0]">Active</span>
+                      <span className="text-xs text-gray-400">Active</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-center text-[#a0a0a0] py-4">No courses assigned yet</p>
+                  <p className="text-center text-gray-400 py-4">No courses assigned yet</p>
                 )}
               </div>
             </div>
@@ -437,22 +437,22 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                         {course.level && (
                           <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                             course.level === 'Basics' 
-                              ? 'bg-green-100 text-green-800' 
+                              ? 'bg-green-900/30 text-green-400' 
                               : course.level === 'Intermediate' 
-                                ? 'bg-yellow-100 text-yellow-800' 
-                                : 'bg-red-100 text-red-800'
+                                ? 'bg-yellow-900/30 text-yellow-400' 
+                                : 'bg-red-900/30 text-red-400'
                           }`}>
                             {course.level}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-[#a0a0a0]">Available for assignment</p>
+                      <p className="text-xs text-gray-400">Available for assignment</p>
                     </div>
-                    <span className="text-xs text-[#a0a0a0]">Active</span>
+                    <span className="text-xs text-gray-400">Active</span>
                   </div>
                 ))
               ) : (
-                <p className="text-center text-[#a0a0a0] py-4">No courses available for assignment</p>
+                <p className="text-center text-gray-400 py-4">No courses available for assignment</p>
               )}
             </div>
           </div>
@@ -476,7 +476,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                         <p className="text-sm font-medium text-white">
                           {userProfiles.find(p => p.user_id === user.id)?.full_name || user.email}
                         </p>
-                        <p className="text-xs text-[#a0a0a0]">
+                        <p className="text-xs text-gray-400">
                           {supabaseData.userCourses.filter(uc => uc.user_id === user.id).length} courses enrolled
                         </p>
                       </div>
@@ -502,7 +502,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                   </div>
                 ))
               ) : (
-                <p className="text-center text-[#a0a0a0] py-4">No users assigned yet</p>
+                <p className="text-center text-gray-400 py-4">No users assigned yet</p>
               )}
             </div>
           </div>
@@ -517,16 +517,16 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
             <table className="min-w-full divide-y divide-[#333333]">
               <thead className="bg-[#252525]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Company Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Users
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Courses
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Created
                   </th>
                 </tr>
@@ -559,7 +559,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-[#a0a0a0]">
+                    <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
                       No companies found
                     </td>
                   </tr>

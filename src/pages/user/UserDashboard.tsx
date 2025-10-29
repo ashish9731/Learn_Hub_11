@@ -737,8 +737,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-[#8b5cf6]">{metrics.totalCoursesAvailable}</div>
-              <div className="text-sm text-[#a0a0a0]">Courses Available</div>
-              <div className="text-xs text-[#a0a0a0] mt-1">
+              <div className="text-sm text-gray-300">Courses Available</div>
+              <div className="text-xs text-gray-400 mt-1">
                 {metrics.totalCoursesAvailable} courses assigned
               </div>
             </div>
@@ -746,10 +746,10 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
               <div className="text-3xl font-bold text-[#8b5cf6]">
                 {metrics.completedCourses}
               </div>
-              <div className="text-sm text-[#a0a0a0]">
+              <div className="text-sm text-gray-300">
                 {metrics.completedCourses > 0 ? 'Courses Completed' : 'Courses In Progress'}
               </div>
-              <div className="text-xs text-[#a0a0a0] mt-1">
+              <div className="text-xs text-gray-400 mt-1">
                 {metrics.coursesInProgress} in progress
               </div>
               {(metrics.coursesInProgress > 0 || Object.keys(podcastProgress).length > 0) && (
@@ -769,7 +769,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-[#8b5cf6]">{metrics.totalHoursCompleted.toFixed(1)}</div>
-              <div className="text-sm text-[#a0a0a0]">Hours Completed</div>
+              <div className="text-sm text-gray-300">Hours Completed</div>
               {(metrics.totalHoursCompleted > 0 || Object.keys(podcastProgress).length > 0) && (
                 <div className="mt-2 w-full bg-[#333333] rounded-full h-1.5">
                   <div 
