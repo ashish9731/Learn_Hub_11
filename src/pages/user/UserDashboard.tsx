@@ -18,6 +18,7 @@ import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import { useRealtimeSync } from '../../hooks/useSupabase';
 import { useNavigate } from 'react-router-dom';
+import DebugUserCourses from '../../components/Debug/DebugUserCourses';
 
 interface Course {
   id: string;
@@ -602,6 +603,12 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
               Try again
             </button>
           </div>
+          
+          {/* Debug component for troubleshooting */}
+          <div className="mt-8">
+            <h3 className="text-lg font-bold mb-4">Debug Information</h3>
+            <DebugUserCourses />
+          </div>
         </div>
       </div>
     );
@@ -610,6 +617,14 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   return (
     <div className="py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" key="dashboard-header">
+        {/* Debug component for troubleshooting - only shown in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-6">
+            <h3 className="text-lg font-bold mb-4">Debug Information</h3>
+            <DebugUserCourses />
+          </div>
+        )}
+        
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white">Dashboard</h1>
           <p className="mt-1 text-sm text-[#a0a0a0]">

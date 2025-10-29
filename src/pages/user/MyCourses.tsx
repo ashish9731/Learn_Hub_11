@@ -5,6 +5,7 @@ import { useRealtimeSync } from '../../hooks/useSupabase';
 import { Folder, Play, Clock, BookOpen, Users, BarChart3, FileText, Download } from 'lucide-react';
 import PodcastPlayer from '../../components/Media/PodcastPlayer';
 import { useNavigate } from 'react-router-dom';
+import DebugUserCourses from '../../components/Debug/DebugUserCourses';
 
 interface Course {
   id: string;
@@ -589,14 +590,30 @@ export default function MyCourses() {
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <div className="text-red-600">Error loading courses: {error}</div>
+      <div className="p-6">
+        <div className="text-center py-12">
+          <div className="text-red-600">Error loading courses: {error}</div>
+        </div>
+        
+        {/* Debug component for troubleshooting */}
+        <div className="mt-8">
+          <h3 className="text-lg font-bold mb-4">Debug Information</h3>
+          <DebugUserCourses />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="p-6">
+      {/* Debug component for troubleshooting - only shown in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mb-6">
+          <h3 className="text-lg font-bold mb-4">Debug Information</h3>
+          <DebugUserCourses />
+        </div>
+      )}
+      
       {selectedCourse ? renderCategoryCards() : renderCourseCards()}
 
       {/* Full-screen Podcast Player */}

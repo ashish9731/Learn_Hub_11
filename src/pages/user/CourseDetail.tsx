@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, BookOpen, User, ChevronLeft, Play, FileText, MessageSquare, Headphones, Download } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
+import DebugUserCourses from '../../components/Debug/DebugUserCourses';
 
 export default function CourseDetail() {
   const { courseId } = useParams();
@@ -20,6 +21,7 @@ export default function CourseDetail() {
   const [userId, setUserId] = useState<string | null>(null);
   const [podcastProgress, setPodcastProgress] = useState<Record<string, number>>({});
   const [isUserAssignedToCourse, setIsUserAssignedToCourse] = useState<boolean>(false);
+  const [assignmentChecked, setAssignmentChecked] = useState<boolean>(false);
 
   useEffect(() => {
     const getUserId = async () => {
@@ -50,12 +52,14 @@ export default function CourseDetail() {
     console.log('User assignment status changed or dependencies updated:', { 
       courseId, 
       userId, 
-      isUserAssignedToCourse 
+      isUserAssignedToCourse,
+      assignmentChecked
     });
-    if (courseId && userId) {
+    // Only load course data after we've checked the assignment
+    if (courseId && userId && assignmentChecked) {
       loadCourseData();
     }
-  }, [courseId, userId, isUserAssignedToCourse]);
+  }, [courseId, userId, isUserAssignedToCourse, assignmentChecked]);
 
   useEffect(() => {
     if (userId) {
@@ -64,9 +68,13 @@ export default function CourseDetail() {
   }, [userId]);
 
   const checkUserCourseAssignment = async () => {
+    // Reset states
+    setIsUserAssignedToCourse(false);
+    setAssignmentChecked(false);
+    
     if (!userId || !courseId) {
       console.log('Missing userId or courseId for assignment check');
-      setIsUserAssignedToCourse(false);
+      setAssignmentChecked(true);
       return;
     }
     
@@ -97,12 +105,14 @@ export default function CourseDetail() {
         console.error('Error checking course assignment:', error);
         console.log('Setting isUserAssignedToCourse to false due to error');
         setIsUserAssignedToCourse(false);
+        setAssignmentChecked(true);
         return;
       }
       
       const isAssigned = !!data;
       console.log('User course assignment result:', isAssigned, 'Data:', data);
       setIsUserAssignedToCourse(isAssigned);
+      setAssignmentChecked(true);
       
       // Additional debugging - check if course exists at all
       if (!isAssigned) {
@@ -123,6 +133,7 @@ export default function CourseDetail() {
       console.error('Error checking course assignment:', err);
       console.log('Setting isUserAssignedToCourse to false due to exception');
       setIsUserAssignedToCourse(false);
+      setAssignmentChecked(true);
     }
   };
 
@@ -292,14 +303,22 @@ export default function CourseDetail() {
   if (error) {
     console.log('CourseDetail: Showing error message:', error);
     return (
-      <div className="text-center py-12">
-        <div className="text-red-600">Error loading course: {error}</div>
-        <button
-          onClick={() => navigate('/user/courses')}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Back to Courses
-        </button>
+      <div className="p-6">
+        <div className="text-center py-12">
+          <div className="text-red-600">Error loading course: {error}</div>
+          <button
+            onClick={() => navigate('/user/courses')}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Back to Courses
+          </button>
+        </div>
+        
+        {/* Debug component for troubleshooting */}
+        <div className="mt-8">
+          <h3 className="text-lg font-bold mb-4">Debug Information</h3>
+          <DebugUserCourses />
+        </div>
       </div>
     );
   }
@@ -307,8 +326,16 @@ export default function CourseDetail() {
   if (!course) {
     console.log('CourseDetail: Showing course not found message');
     return (
-      <div className="text-center py-12">
-        <div className="text-gray-600">Course not found</div>
+      <div className="p-6">
+        <div className="text-center py-12">
+          <div className="text-gray-600">Course not found</div>
+        </div>
+        
+        {/* Debug component for troubleshooting */}
+        <div className="mt-8">
+          <h3 className="text-lg font-bold mb-4">Debug Information</h3>
+          <DebugUserCourses />
+        </div>
       </div>
     );
   }
@@ -323,6 +350,14 @@ export default function CourseDetail() {
         <ChevronLeft className="h-5 w-5 mr-1" />
         Back to Courses
       </button>
+
+      {/* Debug component for troubleshooting - only shown in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mb-6">
+          <h3 className="text-lg font-bold mb-4">Debug Information</h3>
+          <DebugUserCourses />
+        </div>
+      )}
 
       {/* Course Header */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
