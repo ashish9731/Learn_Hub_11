@@ -208,16 +208,20 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         .select('*')
         .eq('user_id', userId);
 
-      const totalHours = (progressData || []).reduce((sum, progress) => {
+      // Calculate total hours with partial minutes (show even 10 seconds)
+      let totalHours = 0;
+      (progressData || []).forEach(progress => {
         const duration = typeof progress.duration === 'string' ? parseFloat(progress.duration) : (progress.duration || 0);
         const progressPercent = progress.progress_percent || 0;
-        return sum + ((duration * (progressPercent / 100)) / 3600);
-      }, 0);
+        // Calculate hours with decimal precision (don't round to nearest minute)
+        const hours = (duration * (progressPercent / 100)) / 3600;
+        totalHours += hours;
+      });
 
       setLearningMetrics({
-        totalHours: Math.round(totalHours * 10) / 10,
-        completedCourses: (coursesData || []).length,
-        inProgressCourses: (progressData || []).filter(p => p.progress_percent > 0).length,
+        totalHours: parseFloat(totalHours.toFixed(2)), // Show 2 decimal places for partial hours
+        completedCourses: (coursesData || []).filter(uc => uc.completed).length,
+        inProgressCourses: (progressData || []).filter(p => (p.progress_percent || 0) > 0 && (p.progress_percent || 0) < 100).length,
         averageCompletion: (progressData || []).length > 0 ? 
           (progressData || []).reduce((sum, p) => sum + (p.progress_percent || 0), 0) / (progressData || []).length : 0
       });
@@ -250,8 +254,12 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         await loadLearningMetricsFallback(userId);
       } else if (data && data.length > 0) {
         const metrics = data[0];
+        // Parse total hours with decimal precision
+        const totalHours = typeof metrics.total_hours === 'string' ? 
+          parseFloat(metrics.total_hours) : (metrics.total_hours || 0);
+        
         setLearningMetrics({
-          totalHours: parseFloat(metrics.total_hours) || 0,
+          totalHours: parseFloat(totalHours.toFixed(2)), // Show 2 decimal places for partial hours
           completedCourses: parseInt(metrics.completed_courses) || 0,
           inProgressCourses: parseInt(metrics.in_progress_courses) || 0,
           averageCompletion: parseFloat(metrics.average_completion) || 0
@@ -312,16 +320,20 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         .select('*')
         .eq('user_id', userId);
 
-      const totalHours = (progressData || []).reduce((sum, progress) => {
+      // Calculate total hours with partial minutes (show even 10 seconds)
+      let totalHours = 0;
+      (progressData || []).forEach(progress => {
         const duration = typeof progress.duration === 'string' ? parseFloat(progress.duration) : (progress.duration || 0);
         const progressPercent = progress.progress_percent || 0;
-        return sum + ((duration * (progressPercent / 100)) / 3600);
-      }, 0);
+        // Calculate hours with decimal precision (don't round to nearest minute)
+        const hours = (duration * (progressPercent / 100)) / 3600;
+        totalHours += hours;
+      });
 
       setLearningMetrics({
-        totalHours: Math.round(totalHours * 10) / 10,
+        totalHours: parseFloat(totalHours.toFixed(2)), // Show 2 decimal places for partial hours
         completedCourses: (userCoursesData || []).filter(uc => uc.completed).length,
-        inProgressCourses: (progressData || []).filter(p => p.progress_percent > 0 && p.progress_percent < 100).length,
+        inProgressCourses: (progressData || []).filter(p => (p.progress_percent || 0) > 0 && (p.progress_percent || 0) < 100).length,
         averageCompletion: (progressData || []).length > 0 ? 
           (progressData || []).reduce((sum, p) => sum + (p.progress_percent || 0), 0) / (progressData || []).length : 0
       });
@@ -628,27 +640,47 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   // Calculate metrics from current data
   const metrics = React.useMemo(() => {
     const assignedCourses = supabaseData.userCourses || [];
-    const coursesWithProgress = Object.keys(podcastProgress).length > 0 ? 
-      assignedCourses.filter(uc => {
-        // Check if any podcasts in this course have progress
-        const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === uc.course_id);
-        return coursePodcasts.some(podcast => podcastProgress[podcast.id] > 0);
-      }).length : 0;
+    
+    // Calculate courses with progress (any podcast with > 0 progress)
+    const coursesWithProgress = assignedCourses.filter(uc => {
+      // Check if any podcasts in this course have progress (> 0)
+      const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === uc.course_id);
+      return coursePodcasts.some(podcast => {
+        const progress = podcastProgress[podcast.id] || 0;
+        return progress > 0; // Any progress, even 10 seconds
+      });
+    }).length;
 
+    // Calculate completed courses (all podcasts 100% complete)
     const completedCourses = assignedCourses.filter(uc => {
       // Check if ALL podcasts in this course are 100% complete
       const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === uc.course_id);
       if (coursePodcasts.length === 0) return false;
-      return coursePodcasts.every(podcast => podcastProgress[podcast.id] === 100);
+      return coursePodcasts.every(podcast => {
+        const progress = podcastProgress[podcast.id] || 0;
+        return progress === 100;
+      });
     }).length;
+
+    // Calculate total hours with partial minutes (show even 10 seconds)
+    let totalHours = 0;
+    Object.keys(podcastProgress).forEach(podcastId => {
+      const progressPercent = podcastProgress[podcastId] || 0;
+      if (progressPercent > 0) {
+        const duration = podcastDurations[podcastId] || 0;
+        // Calculate hours with decimal precision (don't round to nearest minute)
+        const hours = (duration * (progressPercent / 100)) / 3600;
+        totalHours += hours;
+      }
+    });
 
     return {
       totalCoursesAvailable: assignedCourses.length,
       completedCourses: completedCourses,
       coursesInProgress: coursesWithProgress,
-      totalHoursCompleted: learningMetrics.totalHours
+      totalHoursCompleted: parseFloat(totalHours.toFixed(2)) // Show 2 decimal places for partial hours
     };
-  }, [supabaseData.userCourses, supabaseData.podcasts, podcastProgress, learningMetrics.totalHours]);
+  }, [supabaseData.userCourses, supabaseData.podcasts, podcastProgress, podcastDurations]);
 
   const handleProgressUpdate = (progress: number, duration: number, currentTime: number) => {
     if (!userId) return;
