@@ -47,7 +47,11 @@ export default function CourseDetail() {
   }, [courseId, userId]);
 
   useEffect(() => {
-    console.log('User assignment status changed:', isUserAssignedToCourse);
+    console.log('User assignment status changed or dependencies updated:', { 
+      courseId, 
+      userId, 
+      isUserAssignedToCourse 
+    });
     if (courseId && userId) {
       loadCourseData();
     }
@@ -62,30 +66,62 @@ export default function CourseDetail() {
   const checkUserCourseAssignment = async () => {
     if (!userId || !courseId) {
       console.log('Missing userId or courseId for assignment check');
+      setIsUserAssignedToCourse(false);
       return;
     }
     
     try {
       console.log('Checking if user', userId, 'is assigned to course', courseId);
-      // Check if user is assigned to this course
+      
+      // First, try to get all user courses to see what's available
+      const { data: allUserCourses, error: allCoursesError } = await supabase
+        .from('user_courses')
+        .select('*')
+        .eq('user_id', userId);
+      
+      if (allCoursesError) {
+        console.error('Error fetching all user courses:', allCoursesError);
+      } else {
+        console.log('All user courses:', allUserCourses);
+      }
+      
+      // Check if user is assigned to this specific course
       const { data, error } = await supabase
         .from('user_courses')
-        .select('id')
+        .select('id, course_id, user_id')
         .eq('user_id', userId)
         .eq('course_id', courseId)
         .maybeSingle();
       
       if (error) {
         console.error('Error checking course assignment:', error);
+        console.log('Setting isUserAssignedToCourse to false due to error');
         setIsUserAssignedToCourse(false);
         return;
       }
       
       const isAssigned = !!data;
-      console.log('User course assignment result:', isAssigned);
+      console.log('User course assignment result:', isAssigned, 'Data:', data);
       setIsUserAssignedToCourse(isAssigned);
+      
+      // Additional debugging - check if course exists at all
+      if (!isAssigned) {
+        console.log('User is not assigned to course. Checking if course exists...');
+        const { data: courseData, error: courseError } = await supabase
+          .from('courses')
+          .select('id, title')
+          .eq('id', courseId)
+          .maybeSingle();
+        
+        if (courseError) {
+          console.error('Error checking if course exists:', courseError);
+        } else {
+          console.log('Course exists:', courseData);
+        }
+      }
     } catch (err) {
       console.error('Error checking course assignment:', err);
+      console.log('Setting isUserAssignedToCourse to false due to exception');
       setIsUserAssignedToCourse(false);
     }
   };
@@ -123,6 +159,8 @@ export default function CourseDetail() {
   const loadCourseData = async () => {
     try {
       console.log('Loading course data for courseId:', courseId);
+      console.log('User ID:', userId);
+      console.log('Is user assigned to course:', isUserAssignedToCourse);
       setLoading(true);
       setError(null);
 
@@ -136,11 +174,13 @@ export default function CourseDetail() {
       // Check if user is assigned to this course
       if (!isUserAssignedToCourse) {
         clearTimeout(timeoutId);
+        console.log('User is not assigned to this course, showing error');
         setError('You are not assigned to this course. Please contact your administrator.');
         setLoading(false);
         return;
       }
 
+      console.log('User is assigned, proceeding to load course data...');
       // Get course details and related data including documents
       console.log('Fetching course data...');
       const [courseData, categoriesData, podcastsData, pdfsData] = await Promise.all([

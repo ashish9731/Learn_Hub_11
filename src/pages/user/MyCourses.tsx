@@ -78,6 +78,8 @@ export default function MyCourses() {
   // Function declarations (hoisted)
   async function loadUserCourses(userId: string) {
     try {
+      console.log('Loading user courses for userId:', userId);
+      
       const { data: userCourses, error } = await supabase
         .from('user_courses')
         .select(`
@@ -101,6 +103,7 @@ export default function MyCourses() {
           userCourses: []
         }));
       } else {
+        console.log('User courses loaded:', userCourses);
         setSupabaseData(prev => ({
           ...prev,
           userCourses: userCourses || []
@@ -399,6 +402,9 @@ export default function MyCourses() {
     const assignedCourses = supabaseData.courses.filter(course => 
       userCourseIds.includes(course.id)
     );
+    
+    console.log('Rendering course cards. User course IDs:', userCourseIds);
+    console.log('Assigned courses:', assignedCourses);
     
     if (!assignedCourses || assignedCourses.length === 0) {
       return (

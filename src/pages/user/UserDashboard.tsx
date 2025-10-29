@@ -327,6 +327,9 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         assignedCourseIds.has(course.id)
       );
       
+      console.log('Assigned courses for user:', assignedCourses);
+      console.log('User courses data:', userCoursesData);
+      
       setSupabaseData(prev => ({
         ...prev,
         courses: assignedCourses,
