@@ -101,6 +101,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   const [currentPodcast, setCurrentPodcast] = useState<Podcast | null>(null);
   const [isPodcastPlayerOpen, setIsPodcastPlayerOpen] = useState(false);
   const [isPodcastPlayerMinimized, setIsPodcastPlayerMinimized] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const navigate = useNavigate();
 
   // Load user liked podcasts
@@ -138,6 +139,11 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       
       if (error) {
         console.error('Error loading podcast progress:', error);
+        // Check if it's an auth error
+        if (error.message && error.message.includes('Auth')) {
+          setError('Authentication failed. Please log in again.');
+          return;
+        }
         // Set empty progress if query fails
         setPodcastProgress({});
         setPodcastDurations({});
@@ -217,6 +223,11 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       
       if (error) {
         console.error('Error fetching current user metrics via RPC:', error);
+        // Check if it's an auth error
+        if (error.message && error.message.includes('Auth')) {
+          setError('Authentication failed. Please log in again.');
+          return;
+        }
         // Fallback to manual calculation
         await loadLearningMetricsFallback(userId);
       } else if (data && data.length > 0) {
@@ -261,6 +272,11 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
 
       if (error) {
         console.error('Error loading user courses:', error);
+        // Check if it's an auth error
+        if (error.message && error.message.includes('Auth')) {
+          setError('Authentication failed. Please log in again.');
+          return;
+        }
         return;
       }
 
@@ -371,6 +387,37 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
 
   // Get user ID on component mount
   useEffect(() => {
+    const checkAuthAndUser = async () => {
+      try {
+        // First check if user is authenticated
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          console.error('Auth session missing or error:', sessionError);
+          setError('Authentication failed. Please log in again.');
+          setLoading(false);
+          return;
+        }
+        
+        setIsAuthenticated(true);
+        setUserId(session.user.id);
+        
+        // Also get user ID through getUser as fallback
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (!userError && user) {
+          setUserId(user.id);
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        setError('Authentication check failed. Please log in again.');
+        setLoading(false);
+      }
+    };
+    
+    checkAuthAndUser();
+  }, []);
+
+  useEffect(() => {
     const initializeDashboard = async () => {
       console.log('🚀 Initializing User Dashboard');
       setLoading(true);
@@ -378,16 +425,19 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       
       try {
         console.log('🔑 Getting user authentication info');
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (authError) {
-          console.error('❌ Auth error:', authError);
-          throw new Error(`Authentication failed: ${authError.message}`);
+        if (sessionError || !session) {
+          console.error('❌ Auth session missing or error:', sessionError);
+          setError('Authentication failed. Please log in again.');
+          setLoading(false);
+          return;
         }
         
-        if (user) {
-          console.log('👤 User authenticated:', user.id);
-          setUserId(user.id);
+        if (session.user) {
+          console.log('👤 User authenticated:', session.user.id);
+          setUserId(session.user.id);
+          setIsAuthenticated(true);
           
           console.log('📊 Loading dashboard data...');
           // Load all data in parallel
@@ -395,7 +445,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
             loadUserCourses().then(() => console.log('✅ User courses loaded')),
             loadUserData().then(() => console.log('✅ User data loaded')),
             loadPodcastProgress().then(() => console.log('✅ Podcast progress loaded')),
-            loadLearningMetrics(user.id).then(() => console.log('✅ Learning metrics loaded'))
+            loadLearningMetrics(session.user.id).then(() => console.log('✅ Learning metrics loaded'))
           ]);
           console.log('🎉 All dashboard data loaded successfully');
         } else {
@@ -410,8 +460,10 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       }
     };
     
-    initializeDashboard();
-  }, []);
+    if (isAuthenticated) {
+      initializeDashboard();
+    }
+  }, [isAuthenticated]);
   
   // Load user data when userId is available
   useEffect(() => {
@@ -428,13 +480,17 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     if (userId) {
       const fetchUserProfile = async () => {
         try {
-          const { data: profile } = await supabase
+          const { data: profile, error } = await supabase
             .from('user_profiles')
             .select('*')
             .eq('user_id', userId)
             .single();
           
-          setUserProfile(profile);
+          if (error) {
+            console.error('Error fetching user profile:', error);
+          } else {
+            setUserProfile(profile);
+          }
         } catch (error) {
           console.error('Error fetching user profile:', error);
         }
@@ -548,10 +604,10 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   }, [supabaseData.userCourses, supabaseData.podcasts, podcastProgress, learningMetrics.totalHours]);
 
   const handleProgressUpdate = (progress: number, duration: number, currentTime: number) => {
-    if (!currentPodcast || !userId) return;
+    if (!userId) return;
     
     // Save progress to Supabase
-    supabaseHelpers.savePodcastProgress(userId, currentPodcast.id, currentTime, duration);
+    supabaseHelpers.savePodcastProgress(userId, currentPodcast?.id || '', currentTime, duration);
   };
 
   const handlePlayPodcast = (podcast: any) => {
@@ -596,9 +652,23 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
             <p className="text-red-600">Error: {error}</p>
+            {error.includes('Authentication') && (
+              <button
+                onClick={() => {
+                  // Redirect to login page
+                  window.location.href = '/login';
+                }}
+                className="mt-2 text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+              >
+                Go to Login
+              </button>
+            )}
             <button 
-              onClick={loadUserData}
-              className="mt-2 text-sm text-red-700 hover:text-red-500"
+              onClick={() => {
+                // Try to reload
+                window.location.reload();
+              }}
+              className="mt-2 text-sm text-red-700 hover:text-red-500 ml-4"
             >
               Try again
             </button>

@@ -22,50 +22,65 @@ export default function CourseDetail() {
   const [podcastProgress, setPodcastProgress] = useState<Record<string, number>>({});
   const [isUserAssignedToCourse, setIsUserAssignedToCourse] = useState<boolean>(false);
   const [assignmentChecked, setAssignmentChecked] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
-    const getUserId = async () => {
+    const checkAuthAndUser = async () => {
       try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) {
-          console.error('Auth error:', error);
+        // First check if user is authenticated
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          console.error('Auth session missing or error:', sessionError);
+          setError('Authentication failed. Please log in again.');
+          setLoading(false);
           return;
         }
-        if (user) {
+        
+        setIsAuthenticated(true);
+        setUserId(session.user.id);
+        
+        // Also get user ID through getUser as fallback
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (!userError && user) {
           setUserId(user.id);
         }
       } catch (err) {
-        console.error('Error getting user ID:', err);
+        console.error('Error checking authentication:', err);
+        setError('Authentication check failed. Please log in again.');
+        setLoading(false);
       }
     };
-    getUserId();
+    
+    checkAuthAndUser();
   }, []);
 
   useEffect(() => {
     console.log('CourseId changed:', courseId);
-    if (courseId && userId) {
+    if (courseId && userId && isAuthenticated) {
       checkUserCourseAssignment();
     }
-  }, [courseId, userId]);
+  }, [courseId, userId, isAuthenticated]);
 
   useEffect(() => {
     console.log('User assignment status changed or dependencies updated:', { 
       courseId, 
       userId, 
       isUserAssignedToCourse,
-      assignmentChecked
+      assignmentChecked,
+      isAuthenticated
     });
-    // Only load course data after we've checked the assignment
-    if (courseId && userId && assignmentChecked) {
+    // Only load course data after we've checked the assignment and user is authenticated
+    if (courseId && userId && assignmentChecked && isAuthenticated) {
       loadCourseData();
     }
-  }, [courseId, userId, isUserAssignedToCourse, assignmentChecked]);
+  }, [courseId, userId, isUserAssignedToCourse, assignmentChecked, isAuthenticated]);
 
   useEffect(() => {
-    if (userId) {
+    if (userId && isAuthenticated) {
       loadPodcastProgress();
     }
-  }, [userId]);
+  }, [userId, isAuthenticated]);
 
   const checkUserCourseAssignment = async () => {
     // Reset states
@@ -89,6 +104,12 @@ export default function CourseDetail() {
       
       if (allCoursesError) {
         console.error('Error fetching all user courses:', allCoursesError);
+        // Check if it's an auth error
+        if (allCoursesError.message && allCoursesError.message.includes('Auth')) {
+          setError('Authentication failed. Please log in again.');
+          setLoading(false);
+          return;
+        }
       } else {
         console.log('All user courses:', allUserCourses);
       }
@@ -104,6 +125,13 @@ export default function CourseDetail() {
       
       if (error) {
         console.error('Error checking course assignment:', error);
+        // Check if it's an auth error
+        if (error.message && error.message.includes('Auth')) {
+          setError('Authentication failed. Please log in again.');
+          setLoading(false);
+          setAssignmentChecked(true);
+          return;
+        }
         console.log('Setting isUserAssignedToCourse to false due to error');
         setIsUserAssignedToCourse(false);
         setAssignmentChecked(true);
@@ -313,6 +341,17 @@ export default function CourseDetail() {
           >
             Back to Courses
           </button>
+          {error.includes('Authentication') && (
+            <button
+              onClick={() => {
+                // Redirect to login page
+                window.location.href = '/login';
+              }}
+              className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 ml-4"
+            >
+              Go to Login
+            </button>
+          )}
         </div>
         
         {/* Debug component for troubleshooting */}

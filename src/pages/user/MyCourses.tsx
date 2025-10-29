@@ -75,6 +75,8 @@ export default function MyCourses() {
   const [isPodcastPlayerMinimized, setIsPodcastPlayerMinimized] = useState(false);
   const [podcastProgress, setPodcastProgress] = useState<PodcastProgress[]>([]);
   const [userId, setUserId] = useState<string>('');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   // Function declarations (hoisted)
   async function loadUserCourses(userId: string) {
@@ -99,6 +101,11 @@ export default function MyCourses() {
       
       if (error) {
         console.error('Error fetching user courses:', error);
+        // Check if it's an auth error
+        if (error.message && error.message.includes('Auth')) {
+          setError('Authentication failed. Please log in again.');
+          return;
+        }
         setSupabaseData(prev => ({
           ...prev,
           userCourses: []
@@ -166,6 +173,11 @@ export default function MyCourses() {
       
       if (error) {
         console.error('Error fetching podcast progress:', error);
+        // Check if it's an auth error
+        if (error.message && error.message.includes('Auth')) {
+          setError('Authentication failed. Please log in again.');
+          return;
+        }
         setPodcastProgress([]);
       } else {
         setPodcastProgress(data || []);
@@ -216,17 +228,34 @@ export default function MyCourses() {
   }, []);
 
   useEffect(() => {
-    const fetchUserId = async () => {
+    const checkAuthAndUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+        // First check if user is authenticated
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          console.error('Auth session missing or error:', sessionError);
+          setError('Authentication failed. Please log in again.');
+          setLoading(false);
+          return;
+        }
+        
+        setIsAuthenticated(true);
+        setUserId(session.user.id);
+        
+        // Also get user ID through getUser as fallback
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (!userError && user) {
           setUserId(user.id);
         }
       } catch (error) {
-        console.error('Error getting user:', error);
+        console.error('Error checking authentication:', error);
+        setError('Authentication check failed. Please log in again.');
+        setLoading(false);
       }
     };
-    fetchUserId();
+    
+    checkAuthAndUser();
   }, []);
 
   useEffect(() => {
@@ -237,23 +266,26 @@ export default function MyCourses() {
       
       try {
         console.log('🔑 Getting user authentication info');
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (authError) {
-          console.error('❌ Auth error:', authError);
-          throw new Error(`Authentication failed: ${authError.message}`);
+        if (sessionError || !session) {
+          console.error('❌ Auth session missing or error:', sessionError);
+          setError('Authentication failed. Please log in again.');
+          setLoading(false);
+          return;
         }
         
-        if (user) {
-          console.log('👤 User authenticated:', user.id);
-          setUserId(user.id);
+        if (session.user) {
+          console.log('👤 User authenticated:', session.user.id);
+          setUserId(session.user.id);
+          setIsAuthenticated(true);
           
           console.log('📊 Loading courses data...');
           // Load all data in parallel
           await Promise.all([
             loadAllSupabaseData().then(() => console.log('✅ Supabase data loaded')),
             loadPodcastProgress().then(() => console.log('✅ Podcast progress loaded')),
-            loadUserCourses(user.id).then(() => console.log('✅ User courses loaded'))
+            loadUserCourses(session.user.id).then(() => console.log('✅ User courses loaded'))
           ]);
           console.log('🎉 All courses data loaded successfully');
         } else {
@@ -269,8 +301,10 @@ export default function MyCourses() {
       }
     };
     
-    initializeData();
-  }, []);
+    if (isAuthenticated) {
+      initializeData();
+    }
+  }, [isAuthenticated]);
   
   useEffect(() => {
     // Reload data when userId changes
@@ -280,88 +314,57 @@ export default function MyCourses() {
     }
   }, [userId]);
 
-  // Get course image based on course title
-  const getCourseImage = (courseTitle: string, index: number) => {
-    const title = courseTitle.toLowerCase();
-
-    if (title.includes('question')) {
-      return 'https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    } else if (title.includes('listen')) {
-      return 'https://images.pexels.com/photos/7176319/pexels-photo-7176319.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    } else if (title.includes('time') || title.includes('management')) {
-      return 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    } else if (title.includes('leadership')) {
-      return 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    } else if (title.includes('communication')) {
-      return 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    } else {
-      return 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    }
-  };
-
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-  };
-
-  const handleProgressUpdate = async (podcastId: string, position: number, duration: number) => {
-    if (!userId) return;
-
-    const progressPercent = duration > 0 ? Math.round((position / duration) * 100) : 0;
-
-    const { error } = await supabase
-      .from('podcast_progress')
-      .upsert({
-        user_id: userId,
-        podcast_id: podcastId,
-        playback_position: position,
-        duration: duration,
-        progress_percent: progressPercent,
-        last_played_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,podcast_id'
-      });
-
-    if (error) {
-      console.error('Error updating podcast progress:', error);
-    } else {
-      // Update local state
-      setPodcastProgress(prev => {
-        const existing = prev.find(p => p.podcast_id === podcastId);
-        if (existing) {
-          return prev.map(p => 
-            p.podcast_id === podcastId 
-              ? { ...p, playback_position: position, duration, progress_percent: progressPercent }
-              : p
-          );
-        } else {
-          return [...prev, {
-            id: `temp-${Date.now()}`,
-            user_id: userId,
-            podcast_id: podcastId,
-            playback_position: position,
-            duration,
-            progress_percent: progressPercent
-          }];
+  // Get user profile when userId is available
+  useEffect(() => {
+    if (userId) {
+      const fetchUserProfile = async () => {
+        try {
+          const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+          
+          if (error) {
+            console.error('Error fetching user profile:', error);
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
         }
-      });
+      };
+      
+      fetchUserProfile();
     }
-  };
+  }, [userId]);
 
-  const getProgressForPodcast = (podcastId: string) => {
-    return podcastProgress.find(p => p.podcast_id === podcastId);
-  };
+  // Create a memoized handler for the custom event
+  const handlePlayPodcastEvent = React.useCallback((event: CustomEvent) => {
+    const { podcastId } = event.detail;
+    const podcastToPlay = supabaseData.podcasts.find(p => p.id === podcastId);
+    if (podcastToPlay) {
+      handlePlayPodcast(podcastToPlay);
+    }
+  }, [supabaseData.podcasts]);
 
-  const getCourseProgress = (courseId: string) => {
-    const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === courseId);
-    if (coursePodcasts.length === 0) return 0;
-
-    const totalProgress = coursePodcasts.reduce((sum, podcast) => {
-      const progress = getProgressForPodcast(podcast.id);
-      return sum + (progress?.progress_percent || 0);
-    }, 0);
-
-    return Math.round(totalProgress / coursePodcasts.length);
-  };
+  // Add event listener for custom play-podcast event
+  useEffect(() => {
+    window.addEventListener('play-podcast', handlePlayPodcastEvent as EventListener);
+    
+    return () => {
+      window.removeEventListener('play-podcast', handlePlayPodcastEvent as EventListener);
+    };
+  }, [handlePlayPodcastEvent]);
+      
+  // Enhance podcasts with category names using useMemo for better performance
+  const enhancedPodcasts = React.useMemo(() => {
+    return supabaseData.podcasts.map((podcast: any) => {
+      const category = supabaseData.categories.find((cat: any) => cat.id === podcast.category_id);
+      return {
+        ...podcast,
+        category_name: category ? category.name : podcast.category || 'Uncategorized'
+      };
+    });
+  }, [supabaseData.podcasts, supabaseData.categories]);
 
   // Build course hierarchy for display - only for assigned courses
   const courseHierarchy = React.useMemo(() => {
@@ -384,7 +387,7 @@ export default function MyCourses() {
     }));
   }, [supabaseData.courses, supabaseData.categories, supabaseData.podcasts, supabaseData.userCourses]);
 
-  const handlePodcastPlay = (podcast: Podcast) => {
+  const handlePlayPodcast = (podcast: any) => {
     const relatedPodcasts = supabaseData.podcasts.filter(p => 
       p.course_id === podcast.course_id && p.id !== podcast.id
     );
@@ -545,7 +548,7 @@ export default function MyCourses() {
                         <div
                           key={podcast.id}
                           className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                          onClick={() => handlePodcastPlay(podcast)}
+                          onClick={() => handlePlayPodcast(podcast)}
                         >
                           <div className="flex items-center flex-1">
                             <Play className="h-4 w-4 text-blue-600 mr-2" />
@@ -580,6 +583,94 @@ export default function MyCourses() {
     );
   };
 
+  const getProgressForPodcast = (podcastId: string) => {
+    return podcastProgress.find(p => p.podcast_id === podcastId);
+  };
+
+  const getCourseProgress = (courseId: string) => {
+    const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === courseId);
+    if (coursePodcasts.length === 0) return 0;
+
+    const totalProgress = coursePodcasts.reduce((sum, podcast) => {
+      const progress = getProgressForPodcast(podcast.id);
+      return sum + (progress?.progress_percent || 0);
+    }, 0);
+
+    return Math.round(totalProgress / coursePodcasts.length);
+  };
+
+  // Get course image based on course title
+  const getCourseImage = (courseTitle: string, index: number) => {
+    const title = courseTitle.toLowerCase();
+
+    if (title.includes('question')) {
+      return 'https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    } else if (title.includes('listen')) {
+      return 'https://images.pexels.com/photos/7176319/pexels-photo-7176319.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    } else if (title.includes('time') || title.includes('management')) {
+      return 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    } else if (title.includes('leadership')) {
+      return 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    } else if (title.includes('communication')) {
+      return 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    } else {
+      return 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    }
+  };
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+  };
+
+  const getFilteredPodcasts = () => {
+    if (!activeCategory) return supabaseData.podcasts;
+    return supabaseData.podcasts.filter(podcast => podcast.category_id === activeCategory);
+  };
+
+  const handleProgressUpdate = async (podcastId: string, position: number, duration: number) => {
+    if (!userId) return;
+
+    const progressPercent = duration > 0 ? Math.round((position / duration) * 100) : 0;
+
+    const { error } = await supabase
+      .from('podcast_progress')
+      .upsert({
+        user_id: userId,
+        podcast_id: podcastId,
+        playback_position: position,
+        duration: duration,
+        progress_percent: progressPercent,
+        last_played_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id,podcast_id'
+      });
+
+    if (error) {
+      console.error('Error updating podcast progress:', error);
+    } else {
+      // Update local state
+      setPodcastProgress(prev => {
+        const existing = prev.find(p => p.podcast_id === podcastId);
+        if (existing) {
+          return prev.map(p => 
+            p.podcast_id === podcastId 
+              ? { ...p, playback_position: position, duration, progress_percent: progressPercent }
+              : p
+          );
+        } else {
+          return [...prev, {
+            id: `temp-${Date.now()}`,
+            user_id: userId,
+            podcast_id: podcastId,
+            playback_position: position,
+            duration,
+            progress_percent: progressPercent
+          }];
+        }
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -593,6 +684,17 @@ export default function MyCourses() {
       <div className="p-6">
         <div className="text-center py-12">
           <div className="text-red-600">Error loading courses: {error}</div>
+          {error.includes('Authentication') && (
+            <button
+              onClick={() => {
+                // Redirect to login page
+                window.location.href = '/login';
+              }}
+              className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              Go to Login
+            </button>
+          )}
         </div>
         
         {/* Debug component for troubleshooting */}
