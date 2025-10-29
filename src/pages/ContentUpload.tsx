@@ -65,11 +65,8 @@ export default function ContentUpload() {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [contentType, setContentType] = useState<'audio' | 'video' | 'docs' | 'images' | 'templates'>('audio');
   const [selectedCourse, setSelectedCourse] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [newCourseTitle, setNewCourseTitle] = useState('');
   const [newCourseLevel, setNewCourseLevel] = useState<'Basics' | 'Intermediate' | 'Advanced'>('Basics');
-  const [newCategoryTitle, setNewCategoryTitle] = useState('');
-  const [newCategoryLevel, setNewCategoryLevel] = useState<'Basics' | 'Intermediate' | 'Advanced'>('Basics');
   
   // Assignment form state
   const [assignmentTitle, setAssignmentTitle] = useState('');
@@ -318,98 +315,45 @@ export default function ContentUpload() {
     }
 
     try {
-      console.log('Creating course with title:', newCourseTitle, 'and level:', newCourseLevel);
-      
+      console.log('Creating course:', {
+        title: newCourseTitle,
+        level: newCourseLevel
+      });
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('User not authenticated');
       }
 
+      // Create the course
       const { data, error } = await supabaseHelpers.createCourse({
         title: newCourseTitle,
-        description: `Course: ${newCourseTitle}`,
-        company_id: null,
-        image_url: null,
-        level: newCourseLevel
+        level: newCourseLevel,
+        created_by: user.id
       });
-      
-      if (error) {
-        console.error('Error creating course:', error);
-        throw error;
-      }
-      
+
+      if (error) throw error;
+
       console.log('Course created successfully:', data);
-      
+
+      // Reset form
       setNewCourseTitle('');
       setNewCourseLevel('Basics');
+
+      // Reload data to show the new course
       await loadSupabaseData();
-      alert(`Course created successfully with ${newCourseLevel} level!`);
-      
+
+      alert('Course created successfully!');
+
     } catch (error) {
       console.error('Failed to create course:', error);
       alert('Failed to create course: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
-  const handleCreateCategory = async () => {
-    if (!newCategoryTitle.trim() || !selectedCourse) {
-      alert('Please enter a category name and select a course');
-      return;
-    }
-
-    // Get the course level to inherit it for the category
-    const selectedCourseData = supabaseData.courses.find(course => course.id === selectedCourse);
-    const courseLevel = selectedCourseData?.level || 'Basics';
-
-    try {
-      console.log('Creating category:', {
-        name: newCategoryTitle,
-        course_id: selectedCourse,
-        level: courseLevel
-      });
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      // Create the category with level inherited from course
-      const { data, error } = await supabase
-        .from('content_categories')
-        .insert({
-          name: newCategoryTitle,
-          course_id: selectedCourse,
-          level: courseLevel,
-          created_by: user.id
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating category:', error);
-        throw error;
-      }
-      
-      console.log('Category created successfully:', data);
-      
-      // Reset form
-      setNewCategoryTitle('');
-      setNewCategoryLevel('Basics');
-      
-      // Reload data to show the new category
-      await loadSupabaseData();
-      
-      alert('Category created successfully!');
-      
-    } catch (error) {
-      console.error('Failed to create category:', error);
-      alert('Failed to create category: ' + (error instanceof Error ? error.message : 'Unknown error'));
-    }
-  };
-
   const handleUpload = async () => {
-    if (!contentTitle || !selectedCourse || !selectedCategory) {
-      alert('Please fill in all required fields: title, course, and category');
+    if (!contentTitle || !selectedCourse) {
+      alert('Please fill in all required fields: title and course');
       return;
     }
 
@@ -464,11 +408,11 @@ export default function ContentUpload() {
         // Create podcast record
         const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
           title: contentTitle,
+          description: contentDescription,
           course_id: selectedCourse,
-          category: selectedCategory,
           mp3_url: publicUrl,
-          is_youtube_video: false,
-          created_by: user.id
+          created_by: user.id,
+          is_youtube_video: false
         });
 
         if (podcastError) {
@@ -479,16 +423,14 @@ export default function ContentUpload() {
         console.log('Podcast created successfully:', podcastData);
         alert('Audio file uploaded successfully!');
       } else if (contentType === 'video' && youtubeUrl) {
-        // Create YouTube video podcast record
-        console.log('Creating YouTube video podcast record...');
-        
+        // Create podcast record for YouTube video
         const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
           title: contentTitle,
+          description: contentDescription,
           course_id: selectedCourse,
-          category: selectedCategory,
           video_url: youtubeUrl,
-          is_youtube_video: true,
-          created_by: user.id
+          created_by: user.id,
+          is_youtube_video: true
         });
 
         if (podcastError) {
@@ -545,7 +487,6 @@ export default function ContentUpload() {
       setSelectedFile(null);
       setYoutubeUrl('');
       setSelectedCourse('');
-      setSelectedCategory('');
       
       // Reload data
       await loadSupabaseData();
@@ -640,7 +581,6 @@ export default function ContentUpload() {
       // Clear form if the deleted course was selected
       if (selectedCourse === courseId) {
         setSelectedCourse('');
-        setSelectedCategory('');
       }
       
       alert('Course deleted successfully!');
@@ -897,40 +837,6 @@ export default function ContentUpload() {
                 </div>
 
                 <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-white mb-2">
-                    Category <span className="text-red-500">*</span>
-                  </label>
-                  
-                  {/* Category Selection */}
-                  <div className="space-y-3">
-                    <select
-                      id="category"
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
-                    >
-                      <option value="">Choose a category...</option>
-                      {/* Show course-specific categories with levels */}
-                      {(supabaseData.categories || [])
-                        .filter(cat => cat.course_id === selectedCourse && cat.level)
-                        .map((category) => (
-                          <option key={category.id} value={category.name}>
-                            {category.name} ({category.level})
-                          </option>
-                        ))}
-                      {/* Show predefined categories as fallback */}
-                      {predefinedCategories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <p className="mt-1 text-xs text-[#a0a0a0]">Select a category for your content</p>
-                </div>
-
-                <div>
                   <label htmlFor="content-type" className="block text-sm font-medium text-white mb-2">
                     Content Type
                   </label>
@@ -998,7 +904,6 @@ export default function ContentUpload() {
                       setSelectedFile(null);
                       setYoutubeUrl('');
                       setSelectedCourse('');
-                      setSelectedCategory('');
                     }}
                     className="flex-1 py-2 px-4 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
                   >
@@ -1011,7 +916,6 @@ export default function ContentUpload() {
                       isUploading || 
                       !contentTitle || 
                       !selectedCourse || 
-                      !selectedCategory || 
                       (contentType === 'audio' && !selectedFile) || 
                       (contentType === 'video' && !youtubeUrl) || 
                       ((contentType === 'docs' || contentType === 'images' || contentType === 'templates') && !selectedFile)
