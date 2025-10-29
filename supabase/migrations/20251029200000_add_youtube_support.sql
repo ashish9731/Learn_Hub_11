@@ -1,11 +1,16 @@
 /*
   # Add YouTube video support to podcasts table
 
-  1. Add video_url column to store YouTube video URLs
-  2. Add is_youtube_video column to distinguish between uploaded podcasts and YouTube videos
-  3. Update constraints to allow either mp3_url or video_url to be populated
-  4. Update RLS policies to include the new columns
+  1. Make mp3_url column nullable to allow YouTube videos
+  2. Add video_url column to store YouTube video URLs
+  3. Add is_youtube_video column to distinguish between uploaded podcasts and YouTube videos
+  4. Update constraints to allow either mp3_url or video_url to be populated
+  5. Update RLS policies to include the new columns
 */
+
+-- Make mp3_url column nullable to allow YouTube videos
+ALTER TABLE podcasts 
+ALTER COLUMN mp3_url DROP NOT NULL;
 
 -- Add video_url column to podcasts table
 ALTER TABLE podcasts 
