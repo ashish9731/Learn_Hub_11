@@ -183,6 +183,24 @@ export default function ContentUpload() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file type based on content type
+      if (contentType === 'podcast') {
+        const validAudioTypes = ['.mp3', '.wav', '.aac', '.m4a'];
+        const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+        if (!validAudioTypes.includes(fileExtension)) {
+          alert(`Invalid file type for audio. Please upload one of: ${validAudioTypes.join(', ')}`);
+          return;
+        }
+      } else if (contentType === 'document') {
+        // For documents, we allow all types as specified in requirements
+        // Documents (.pdf, .docx, .pptx, .xlsx, .txt) or Images (.jpg, .jpeg, .png, .svg, .gif) or Templates (any)
+        // We'll just show a warning if it doesn't match common extensions
+        const validExtensions = ['.pdf', '.docx', '.pptx', '.xlsx', '.txt', '.jpg', '.jpeg', '.png', '.svg', '.gif'];
+        const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+        if (!validExtensions.includes(fileExtension)) {
+          console.log(`File extension ${fileExtension} may not be in the recommended list, but templates can be any type.`);
+        }
+      }
       setSelectedFile(file);
     }
   };
@@ -236,19 +254,19 @@ export default function ContentUpload() {
                   <Headphones className="mx-auto h-12 w-12 text-[#a0a0a0]" />
                   <div className="flex text-sm text-[#a0a0a0]">
                     <label htmlFor="file-upload-podcast" className="relative cursor-pointer bg-[#1e1e1e] rounded-md font-medium text-[#8b5cf6] hover:text-[#7c3aed] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#8b5cf6]">
-                      <span>Upload a podcast</span>
+                      <span>Upload an audio file</span>
                       <input 
                         id="file-upload-podcast" 
                         name="file-upload" 
                         type="file" 
                         className="sr-only"
                         onChange={handleFileSelect}
-                        accept=".mp3,.mp4,.mov,.wav"
+                        accept=".mp3,.wav,.aac,.m4a"
                       />
                     </label>
                     <p className="pl-1">or drag and drop</p>
                   </div>
-                  <p className="text-xs text-[#a0a0a0]">MP3, MP4, MOV, WAV files supported</p>
+                  <p className="text-xs text-[#a0a0a0]">MP3, WAV, AAC, M4A files supported</p>
                   {selectedFile && (
                     <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
                   )}
@@ -288,19 +306,19 @@ export default function ContentUpload() {
                 <FileText className="mx-auto h-12 w-12 text-[#a0a0a0]" />
                 <div className="flex text-sm text-[#a0a0a0]">
                   <label htmlFor="file-upload-document" className="relative cursor-pointer bg-[#1e1e1e] rounded-md font-medium text-[#8b5cf6] hover:text-[#7c3aed] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#8b5cf6]">
-                    <span>Upload a document</span>
+                    <span>Upload a document/image/template</span>
                     <input 
                       id="file-upload-document" 
                       name="file-upload" 
                       type="file" 
                       className="sr-only"
                       onChange={handleFileSelect}
-                      accept=".pdf,.doc,.docx,.txt"
+                      accept=".pdf,.docx,.pptx,.xlsx,.txt,.jpg,.jpeg,.png,.svg,.gif"
                     />
                   </label>
                   <p className="pl-1">or drag and drop</p>
                 </div>
-                <p className="text-xs text-[#a0a0a0]">PDF, DOC, DOCX, TXT files supported</p>
+                <p className="text-xs text-[#a0a0a0]">PDF, DOCX, PPTX, XLSX, TXT, JPG, JPEG, PNG, SVG, GIF files supported</p>
                 {selectedFile && (
                   <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
                 )}
@@ -318,8 +336,20 @@ export default function ContentUpload() {
       return;
     }
 
+    // Automatically determine course level from title
+    let determinedLevel: 'Basics' | 'Intermediate' | 'Advanced' = 'Basics';
+    const lowerTitle = newCourseTitle.toLowerCase();
+    
+    if (lowerTitle.includes('basic') || lowerTitle.includes('basics') || lowerTitle.includes('beginner')) {
+      determinedLevel = 'Basics';
+    } else if (lowerTitle.includes('intermediate') || lowerTitle.includes('inter') || lowerTitle.includes('mid')) {
+      determinedLevel = 'Intermediate';
+    } else if (lowerTitle.includes('advanced') || lowerTitle.includes('pro') || lowerTitle.includes('expert')) {
+      determinedLevel = 'Advanced';
+    }
+
     try {
-      console.log('Creating course with title:', newCourseTitle);
+      console.log('Creating course with title:', newCourseTitle, 'and level:', determinedLevel);
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -331,7 +361,7 @@ export default function ContentUpload() {
         description: `Course: ${newCourseTitle}`,
         company_id: null,
         image_url: null,
-        level: newCourseLevel
+        level: determinedLevel
       });
       
       if (error) {
@@ -344,7 +374,7 @@ export default function ContentUpload() {
       setNewCourseTitle('');
       setNewCourseLevel('Basics');
       await loadSupabaseData();
-      alert('Course created successfully!');
+      alert(`Course created successfully with ${determinedLevel} level!`);
       
     } catch (error) {
       console.error('Failed to create course:', error);
@@ -358,11 +388,15 @@ export default function ContentUpload() {
       return;
     }
 
+    // Get the course level to inherit it for the category
+    const selectedCourseData = supabaseData.courses.find(course => course.id === selectedCourse);
+    const courseLevel = selectedCourseData?.level || 'Basics';
+
     try {
       console.log('Creating category:', {
         name: newCategoryTitle,
         course_id: selectedCourse,
-        level: newCategoryLevel
+        level: courseLevel
       });
       
       const { data: { user } } = await supabase.auth.getUser();
@@ -370,13 +404,13 @@ export default function ContentUpload() {
         throw new Error('User not authenticated');
       }
 
-      // Create the category with level
+      // Create the category with level inherited from course
       const { data, error } = await supabase
         .from('content_categories')
         .insert({
           name: newCategoryTitle,
           course_id: selectedCourse,
-          level: newCategoryLevel,
+          level: courseLevel,
           created_by: user.id
         })
         .select()
@@ -792,18 +826,28 @@ export default function ContentUpload() {
 
                 <div>
                   <label htmlFor="course-level" className="block text-sm font-medium text-white mb-2">
-                    Course Level
+                    Course Level (Automatically Determined)
                   </label>
-                  <select
-                    id="course-level"
-                    value={newCourseLevel}
-                    onChange={(e) => setNewCourseLevel(e.target.value as 'Basics' | 'Intermediate' | 'Advanced')}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
-                  >
-                    <option value="Basics">Basics</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                  </select>
+                  <div className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm bg-[#252525] text-white">
+                    {newCourseTitle ? (
+                      (() => {
+                        const lowerTitle = newCourseTitle.toLowerCase();
+                        if (lowerTitle.includes('basic') || lowerTitle.includes('basics') || lowerTitle.includes('beginner')) {
+                          return 'Basics';
+                        } else if (lowerTitle.includes('intermediate') || lowerTitle.includes('inter') || lowerTitle.includes('mid')) {
+                          return 'Intermediate';
+                        } else if (lowerTitle.includes('advanced') || lowerTitle.includes('pro') || lowerTitle.includes('expert')) {
+                          return 'Advanced';
+                        }
+                        return 'Basics';
+                      })()
+                    ) : (
+                      'Basics (default)'
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-[#a0a0a0]">
+                    Level is automatically determined from course title keywords
+                  </p>
                 </div>
 
                 <div className="flex space-x-3">
@@ -909,24 +953,21 @@ export default function ContentUpload() {
                         
                         <div>
                           <label className="block text-xs font-medium text-[#a0a0a0] mb-1">
-                            Category Level
+                            Category Level (Inherited from Course)
                           </label>
-                          <div className="grid grid-cols-3 gap-2">
-                            {(['Basics', 'Intermediate', 'Advanced'] as const).map((level) => (
-                              <button
-                                key={level}
-                                type="button"
-                                onClick={() => setNewCategoryLevel(level)}
-                                className={`py-1 px-2 border rounded text-xs font-medium ${
-                                  newCategoryLevel === level
-                                    ? 'border-[#8b5cf6] bg-[#8b5cf6] text-white'
-                                    : 'border-[#333333] bg-[#1e1e1e] text-[#a0a0a0] hover:bg-[#333333]'
-                                }`}
-                              >
-                                {level}
-                              </button>
-                            ))}
+                          <div className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm bg-[#1e1e1e] text-white text-sm">
+                            {selectedCourse ? (
+                              (() => {
+                                const course = supabaseData.courses.find(c => c.id === selectedCourse);
+                                return course?.level || 'Basics';
+                              })()
+                            ) : (
+                              'Select a course first'
+                            )}
                           </div>
+                          <p className="mt-1 text-xs text-[#a0a0a0]">
+                            Category level is automatically inherited from the selected course
+                          </p>
                         </div>
                         
                         <button
@@ -954,9 +995,14 @@ export default function ContentUpload() {
                     onChange={(e) => setContentType(e.target.value as 'podcast' | 'document')}
                     className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
                   >
-                    <option value="podcast">Podcast</option>
-                    <option value="document">Document</option>
+                    <option value="podcast">Audio/Video</option>
+                    <option value="document">Document/Image/Template</option>
                   </select>
+                  <p className="mt-1 text-xs text-[#a0a0a0]">
+                    {contentType === 'podcast' 
+                      ? 'Audio files (.mp3, .wav, .aac, .m4a) or YouTube videos' 
+                      : 'Documents (.pdf, .docx, .pptx, .xlsx, .txt) or Images (.jpg, .jpeg, .png, .svg, .gif) or Templates (any)'}
+                  </p>
                 </div>
 
                 <div>

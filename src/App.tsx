@@ -94,6 +94,7 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
 import ContentUpload from './pages/ContentUpload';
+import CourseAssignmentCreation from './pages/CourseAssignmentCreation';
 import Companies from './pages/Companies';
 import Admins from './pages/Admins';
 import Users from './pages/Users';
@@ -331,6 +332,7 @@ function AppContent() {
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/analytics" element={<Analytics />} />
                     <Route path="/content" element={<ContentUpload />} />
+                    <Route path="/course-assignment" element={<CourseAssignmentCreation />} />
                     <Route path="/companies" element={<Companies />} />
                     <Route path="/admins" element={<Admins />} />
                     <Route path="/users" element={<Users />} />

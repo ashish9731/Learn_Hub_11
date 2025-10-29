@@ -3,15 +3,15 @@ import {
   BookOpen, 
   Headphones, 
   FileText, 
-  Heart, 
-  Clock, 
-  CheckCircle, 
-  TrendingUp, 
-  ChevronDown, 
-  ChevronRight,
+  Image, 
+  File,
   Play,
   Pause,
   RotateCcw,
+  ChevronDown,
+  ChevronRight,
+  CheckCircle,
+  Clock,
   BarChart3,
   X
 } from 'lucide-react';
@@ -19,8 +19,7 @@ import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import { useRealtimeSync } from '../../hooks/useSupabase';
 import { useNavigate } from 'react-router-dom';
-import DebugUserCourses from '../../components/Debug/DebugUserCourses';
-import { getUserQuizAttempts, getQuizAttemptDetails } from '../../services/quizService';
+import { stabilityAI } from '../../services/stabilityai';
 
 interface Course {
   id: string;
@@ -47,6 +46,8 @@ interface Podcast {
   category_id: string;
   category: string;
   mp3_url: string;
+  video_url: string | null;
+  is_youtube_video: boolean;
   created_by: string | null;
   created_at: string;
 }
@@ -61,51 +62,49 @@ interface PDF {
 }
 
 interface UserCourse {
-  id: string;
   user_id: string;
   course_id: string;
-  assigned_by: string;
+  assigned_by: string | null;
   assigned_at: string;
   due_date: string | null;
-  completed: boolean;
-  completion_date: string | null;
   courses: Course;
 }
 
-interface QuizAttempt {
-  id: string;
-  started_at: string;
-  completed_at: string | null;
-  score: number | null;
-  total_questions: number | null;
-  passed: boolean | null;
-  module_quizzes?: any;
-  course_quizzes?: any;
-}
+// Add this helper function to determine file type from URL
+const getFileType = (url: string): 'pdf' | 'image' | 'template' => {
+  const extension = url.split('.').pop()?.toLowerCase() || '';
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
+  const pdfExtensions = ['pdf'];
+  
+  if (imageExtensions.includes(extension)) {
+    return 'image';
+  } else if (pdfExtensions.includes(extension)) {
+    return 'pdf';
+  } else {
+    return 'template';
+  }
+};
+
+// Add this helper function to get file extension
+const getFileExtension = (url: string): string => {
+  return url.split('.').pop()?.toUpperCase() || 'FILE';
+};
 
 export default function UserDashboard({ userEmail = '' }: { userEmail?: string }) {
   const [userId, setUserId] = useState<string>('');
   const [podcastProgress, setPodcastProgress] = useState<Record<string, number>>({});
   const [podcastDurations, setPodcastDurations] = useState<Record<string, number>>({});
-  const [learningMetrics, setLearningMetrics] = useState({
-    totalHours: 0,
-    completedCourses: 0,
-    inProgressCourses: 0,
-    averageCompletion: 0
-  });
   const [supabaseData, setSupabaseData] = useState<{
     courses: Course[];
     categories: Category[];
     podcasts: Podcast[];
     pdfs: PDF[];
-    likedPodcasts: string[];
     userCourses: UserCourse[];
   }>({
     courses: [],
     categories: [],
     podcasts: [],
     pdfs: [],
-    likedPodcasts: [],
     userCourses: []
   });
   const [expandedCourses, setExpandedCourses] = useState<Record<string, boolean>>({});
@@ -117,35 +116,11 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   const [isPodcastPlayerOpen, setIsPodcastPlayerOpen] = useState(false);
   const [isPodcastPlayerMinimized, setIsPodcastPlayerMinimized] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
-  const [selectedQuizAttempt, setSelectedQuizAttempt] = useState<string | null>(null);
-  const [quizAttemptDetails, setQuizAttemptDetails] = useState<any>(null);
-  const [showQuizResults, setShowQuizResults] = useState(false);
-  const [activeTab, setActiveTab] = useState('basics');
+  const [activeModule, setActiveModule] = useState('dashboard');
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [generatedImageCache, setGeneratedImageCache] = useState<Record<string, string>>({});
   const navigate = useNavigate();
-
-  // Load user liked podcasts
-  const loadUserLikedPodcasts = useCallback(async (currentUserId: string | null) => {
-    try {
-      if (!currentUserId) return [];
-      
-      const { data, error } = await supabase
-        .from('podcast_likes')
-        .select('podcast_id')
-        .eq('user_id', currentUserId);
-      
-      if (error) {
-        console.error('Error fetching podcast likes:', error);
-        return [];
-      }
-      
-      // Return an empty array if data is null or undefined
-      return (data || []).map(like => like.podcast_id);
-    } catch (error) {
-      console.error('Error loading liked podcasts:', error);
-      return [];
-    }
-  }, []);
 
   // Load podcast progress
   const loadPodcastProgress = useCallback(async () => {
@@ -159,19 +134,12 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       
       if (error) {
         console.error('Error loading podcast progress:', error);
-        // Check if it's an auth error
-        if (error.message && error.message.includes('Auth')) {
-          setError('Authentication failed. Please log in again.');
-          return;
-        }
-        // Set empty progress if query fails
         setPodcastProgress({});
         setPodcastDurations({});
         return;
       }
       
       if (data && data.length > 0) {
-        // Create a map of podcast_id to progress_percent
         const progressMap: Record<string, any> = {};
         const durationMap: Record<string, number> = {};
         
@@ -184,170 +152,13 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         setPodcastProgress(progressMap);
         setPodcastDurations(durationMap);
       } else {
-        // Set empty progress if no data
         setPodcastProgress({});
         setPodcastDurations({});
       }
     } catch (error) {
       console.error('Exception loading podcast progress:', error);
-      // Set empty progress if exception occurs
       setPodcastProgress({});
       setPodcastDurations({});
-    }
-  }, [userId]);
-
-  // Load learning metrics fallback
-  const loadLearningMetricsFallback = useCallback(async (userId: string) => {
-    try {
-      // Try to calculate metrics manually
-      const { data: progressData } = await supabase
-        .from('podcast_progress')
-        .select('*')
-        .eq('user_id', userId);
-
-      const { data: coursesData } = await supabase
-        .from('user_courses')
-        .select('*')
-        .eq('user_id', userId);
-
-      // Calculate total hours with partial minutes (show even 10 seconds)
-      let totalHours = 0;
-      (progressData || []).forEach(progress => {
-        const duration = typeof progress.duration === 'string' ? parseFloat(progress.duration) : (progress.duration || 0);
-        const progressPercent = progress.progress_percent || 0;
-        // Calculate hours with decimal precision (don't round to nearest minute)
-        const hours = (duration * (progressPercent / 100)) / 3600;
-        totalHours += hours;
-      });
-
-      setLearningMetrics({
-        totalHours: parseFloat(totalHours.toFixed(2)), // Show 2 decimal places for partial hours
-        completedCourses: (coursesData || []).filter(uc => uc.completed).length,
-        inProgressCourses: (progressData || []).filter(p => (p.progress_percent || 0) > 0 && (p.progress_percent || 0) < 100).length,
-        averageCompletion: (progressData || []).length > 0 ? 
-          (progressData || []).reduce((sum, p) => sum + (p.progress_percent || 0), 0) / (progressData || []).length : 0
-      });
-    } catch (fallbackError) {
-      console.error('Fallback metrics calculation failed:', fallbackError);
-      // Set default metrics as last resort
-      setLearningMetrics({
-        totalHours: 0,
-        completedCourses: 0,
-        inProgressCourses: 0,
-        averageCompletion: 0
-      });
-    }
-  }, []);
-
-  // Load learning metrics
-  const loadLearningMetrics = useCallback(async (userId: string) => {
-    try {
-      // Use the current user metrics function (no parameters)
-      const { data, error } = await supabase.rpc('get_current_user_metrics');
-      
-      if (error) {
-        console.error('Error fetching current user metrics via RPC:', error);
-        // Check if it's an auth error
-        if (error.message && error.message.includes('Auth')) {
-          setError('Authentication failed. Please log in again.');
-          return;
-        }
-        // Fallback to manual calculation
-        await loadLearningMetricsFallback(userId);
-      } else if (data && data.length > 0) {
-        const metrics = data[0];
-        // Parse total hours with decimal precision
-        const totalHours = typeof metrics.total_hours === 'string' ? 
-          parseFloat(metrics.total_hours) : (metrics.total_hours || 0);
-        
-        setLearningMetrics({
-          totalHours: parseFloat(totalHours.toFixed(2)), // Show 2 decimal places for partial hours
-          completedCourses: parseInt(metrics.completed_courses) || 0,
-          inProgressCourses: parseInt(metrics.in_progress_courses) || 0,
-          averageCompletion: parseFloat(metrics.average_completion) || 0
-        });
-      } else {
-        await loadLearningMetricsFallback(userId);
-      }
-    } catch (error) {
-      console.error('Error loading learning metrics:', error);
-      await loadLearningMetricsFallback(userId);
-    }
-  }, [loadLearningMetricsFallback]);
-
-  // Function to load user courses
-  const loadUserCourses = useCallback(async () => {
-    if (!userId) return;
-    
-    try {
-      console.log('Loading user courses for userId:', userId);
-      
-      // Get user courses with course details
-      const { data: userCoursesData, error } = await supabase
-        .from('user_courses')
-        .select(`
-          *,
-          courses (
-            id,
-            title,
-            description,
-            company_id,
-            image_url,
-            created_at
-          )
-        `)
-        .eq('user_id', userId);
-
-      if (error) {
-        console.error('Error loading user courses:', error);
-        // Check if it's an auth error
-        if (error.message && error.message.includes('Auth')) {
-          setError('Authentication failed. Please log in again.');
-          return;
-        }
-        return;
-      }
-
-      console.log('User courses loaded:', userCoursesData);
-      
-      // Update supabaseData with user courses
-      setSupabaseData(prev => ({
-        ...prev,
-        userCourses: userCoursesData || []
-      }));
-
-      // Load podcast progress for metrics calculation
-      const { data: progressData } = await supabase
-        .from('podcast_progress')
-        .select('*')
-        .eq('user_id', userId);
-
-      // Calculate total hours with partial minutes (show even 10 seconds)
-      let totalHours = 0;
-      (progressData || []).forEach(progress => {
-        const duration = typeof progress.duration === 'string' ? parseFloat(progress.duration) : (progress.duration || 0);
-        const progressPercent = progress.progress_percent || 0;
-        // Calculate hours with decimal precision (don't round to nearest minute)
-        const hours = (duration * (progressPercent / 100)) / 3600;
-        totalHours += hours;
-      });
-
-      setLearningMetrics({
-        totalHours: parseFloat(totalHours.toFixed(2)), // Show 2 decimal places for partial hours
-        completedCourses: (userCoursesData || []).filter(uc => uc.completed).length,
-        inProgressCourses: (progressData || []).filter(p => (p.progress_percent || 0) > 0 && (p.progress_percent || 0) < 100).length,
-        averageCompletion: (progressData || []).length > 0 ? 
-          (progressData || []).reduce((sum, p) => sum + (p.progress_percent || 0), 0) / (progressData || []).length : 0
-      });
-    } catch (fallbackError) {
-      console.error('Fallback metrics calculation failed:', fallbackError);
-      // Set default metrics as last resort
-      setLearningMetrics({
-        totalHours: 0,
-        completedCourses: 0,
-        inProgressCourses: 0,
-        averageCompletion: 0
-      });
     }
   }, [userId]);
 
@@ -358,7 +169,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       
       setError(null);
       
-      // Load all data first
+      // Load all data in parallel
       const [categoriesData, podcastsData, pdfsData, userCoursesData] = await Promise.all([
         supabaseHelpers.getContentCategories(), 
         supabaseHelpers.getPodcasts(),
@@ -376,7 +187,6 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         
         if (error) {
           console.error('Error fetching courses with RLS:', error);
-          // Fallback to empty array
           coursesData = [];
         } else {
           coursesData = data || [];
@@ -386,19 +196,11 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         coursesData = [];
       }
       
-      // Load liked podcasts separately to avoid the error
-      const likedPodcastsData = await loadUserLikedPodcasts(userId);
-      
       // Filter courses to show only courses assigned to this specific user
       const assignedCourseIds = new Set(userCoursesData.map(uc => uc.course_id));
       const assignedCourses = (coursesData || []).filter(course => 
         assignedCourseIds.has(course.id)
       );
-      
-      console.log('Assigned courses for user:', assignedCourses);
-      console.log('User courses data:', userCoursesData);
-      console.log('All courses data:', coursesData);
-      console.log('Assigned course IDs:', Array.from(assignedCourseIds));
       
       setSupabaseData(prev => ({
         ...prev,
@@ -406,47 +208,29 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         categories: categoriesData || [],
         podcasts: podcastsData,
         pdfs: pdfsData,
-        likedPodcasts: likedPodcastsData,
         userCourses: userCoursesData || []
       }));
     } catch (err) {
       console.error('Failed to load user data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load user data');
     }
-    // Note: We don't set loading state here, it's handled by the main useEffect
-  }, [userId, loadUserLikedPodcasts]);
+  }, [userId]);
 
   // Real-time sync for all relevant tables
-  useRealtimeSync('user-courses', loadUserCourses);
+  useRealtimeSync('user-courses', loadUserData);
   useRealtimeSync('courses', loadUserData);
   useRealtimeSync('podcasts', loadUserData);
   useRealtimeSync('content-categories', loadUserData);
   useRealtimeSync('pdfs', loadUserData);
   useRealtimeSync('podcast-progress', loadPodcastProgress);
-  useRealtimeSync('podcast-assignments', loadUserCourses);
-  useRealtimeSync('user-profiles', loadUserData);
-  useRealtimeSync('users', loadUserData);
-  useRealtimeSync('companies', loadUserData);
-  useRealtimeSync('podcast-likes', loadUserData);
-  useRealtimeSync('logos', loadUserData);
-  useRealtimeSync('activity-logs', loadUserData);
-  useRealtimeSync('temp-passwords', loadUserData);
-  useRealtimeSync('user-registrations', loadUserData);
-  useRealtimeSync('approval-logs', loadUserData);
-  useRealtimeSync('audit-logs', loadUserData);
-  useRealtimeSync('chat-history', loadUserData);
-  useRealtimeSync('contact-messages', loadUserData);
-  useRealtimeSync('documents', loadUserData);
 
   // Get user ID on component mount
   useEffect(() => {
     const checkAuthAndUser = async () => {
       try {
-        // First check if user is authenticated
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError || !session) {
-          console.error('Auth session missing or error:', sessionError);
           setError('Authentication failed. Please log in again.');
           setLoading(false);
           return;
@@ -454,12 +238,6 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         
         setIsAuthenticated(true);
         setUserId(session.user.id);
-        
-        // Also get user ID through getUser as fallback
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (!userError && user) {
-          setUserId(user.id);
-        }
       } catch (error) {
         console.error('Error checking authentication:', error);
         setError('Authentication check failed. Please log in again.');
@@ -472,43 +250,31 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
 
   useEffect(() => {
     const initializeDashboard = async () => {
-      console.log('🚀 Initializing User Dashboard');
       setLoading(true);
       setError(null);
       
       try {
-        console.log('🔑 Getting user authentication info');
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError || !session) {
-          console.error('❌ Auth session missing or error:', sessionError);
           setError('Authentication failed. Please log in again.');
           setLoading(false);
           return;
         }
         
         if (session.user) {
-          console.log('👤 User authenticated:', session.user.id);
           setUserId(session.user.id);
           setIsAuthenticated(true);
           
-          console.log('📊 Loading dashboard data...');
           // Load all data in parallel
           await Promise.all([
-            loadUserCourses().then(() => console.log('✅ User courses loaded')),
-            loadUserData().then(() => console.log('✅ User data loaded')),
-            loadPodcastProgress().then(() => console.log('✅ Podcast progress loaded')),
-            loadLearningMetrics(session.user.id).then(() => console.log('✅ Learning metrics loaded'))
+            loadUserData(),
+            loadPodcastProgress()
           ]);
-          console.log('🎉 All dashboard data loaded successfully');
-        } else {
-          console.log('⚠️ No user authenticated');
         }
       } catch (error) {
-        console.error('💥 Error initializing dashboard:', error);
         setError(error instanceof Error ? error.message : 'Failed to initialize dashboard');
       } finally {
-        console.log('🏁 Setting loading to false');
         setLoading(false);
       }
     };
@@ -521,10 +287,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   // Load user data when userId is available
   useEffect(() => {
     if (userId) {
-      loadUserCourses(); // Load user courses first
-      loadUserData(); // Load all data
+      loadUserData();
       loadPodcastProgress();
-      loadLearningMetrics(userId);
     }
   }, [userId]);
   
@@ -552,51 +316,17 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       fetchUserProfile();
     }
   }, [userId]);
-  
-  // Create a memoized handler for the custom event
-  const handlePlayPodcastEvent = useCallback((event: CustomEvent) => {
-    const { podcastId } = event.detail;
-    const podcastToPlay = supabaseData.podcasts.find(p => p.id === podcastId);
-    if (podcastToPlay) {
-      handlePlayPodcast(podcastToPlay);
-    }
-  }, [supabaseData.podcasts]);
 
-  // Add event listener for custom play-podcast event
-  useEffect(() => {
-    window.addEventListener('play-podcast', handlePlayPodcastEvent as EventListener);
-    
-    return () => {
-      window.removeEventListener('play-podcast', handlePlayPodcastEvent as EventListener);
-    };
-  }, [handlePlayPodcastEvent]);
-      
-  // Enhance podcasts with category names using useMemo for better performance
-  const enhancedPodcasts = React.useMemo(() => {
-    return supabaseData.podcasts.map((podcast: any) => {
-      const category = supabaseData.categories.find((cat: any) => cat.id === podcast.category_id);
-      return {
-        ...podcast,
-        category_name: category ? category.name : podcast.category || 'Uncategorized'
-      };
-    });
-  }, [supabaseData.podcasts, supabaseData.categories]);
-
-  // Build course hierarchy for display - only for assigned courses
+  // Build course hierarchy for display with better categorization
   const courseHierarchy = React.useMemo(() => {
-    // Get assigned course IDs
     const assignedCourseIds = new Set(supabaseData.userCourses.map(uc => uc.course_id));
-    
-    // Filter courses to show only assigned courses
     const assignedCourses = supabaseData.courses.filter(course => 
       assignedCourseIds.has(course.id)
     );
     
     return assignedCourses.map(course => {
-      // Get categories for this course
       const courseCategories = supabaseData.categories.filter(cat => cat.course_id === course.id);
       
-      // Get podcasts for each category
       const categoriesWithPodcasts = courseCategories.map(category => {
         const categoryPodcasts = supabaseData.podcasts.filter(
           podcast => podcast.category_id === category.id
@@ -607,53 +337,38 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         };
       });
       
-      // Get uncategorized podcasts (directly assigned to course)
       const uncategorizedPodcasts = supabaseData.podcasts.filter(
         podcast => podcast.course_id === course.id && !podcast.category_id
       );
+      
+      const coursePDFs = supabaseData.pdfs.filter(pdf => pdf.course_id === course.id);
+      
+      // Categorize documents by file type
+      const documents = coursePDFs.map(pdf => ({
+        ...pdf,
+        fileType: getFileType(pdf.pdf_url),
+        fileExtension: getFileExtension(pdf.pdf_url)
+      }));
+      
+      const pdfDocuments = documents.filter(doc => doc.fileType === 'pdf');
+      const imageDocuments = documents.filter(doc => doc.fileType === 'image');
+      const templateDocuments = documents.filter(doc => doc.fileType === 'template');
       
       return {
         ...course,
         categories: categoriesWithPodcasts,
         uncategorizedPodcasts,
+        coursePDFs: documents,
+        pdfDocuments,
+        imageDocuments,
+        templateDocuments,
         totalPodcasts: categoriesWithPodcasts.reduce(
           (sum, cat) => sum + cat.podcasts.length, 0
-        ) + uncategorizedPodcasts.length
+        ) + uncategorizedPodcasts.length,
+        totalDocuments: documents.length
       };
     });
-  }, [supabaseData.courses, supabaseData.categories, supabaseData.podcasts, supabaseData.userCourses]);
-
-  // Group podcasts by level (Basics, Intermediate, Advanced)
-  const podcastsByLevel = React.useMemo(() => {
-    // Get all podcasts assigned to user's courses
-    const assignedCourseIds = new Set(supabaseData.userCourses.map(uc => uc.course_id));
-    const userPodcasts = supabaseData.podcasts.filter(podcast => 
-      assignedCourseIds.has(podcast.course_id)
-    );
-    
-    // Group podcasts by their category level
-    const groupedPodcasts: Record<string, any[]> = {
-      'Basics': [],
-      'Intermediate': [],
-      'Advanced': []
-    };
-    
-    userPodcasts.forEach(podcast => {
-      // Find the category for this podcast
-      const category = supabaseData.categories.find(cat => cat.id === podcast.category_id);
-      
-      // Only include podcasts that have a category with a valid level
-      if (category && category.level && groupedPodcasts[category.level]) {
-        groupedPodcasts[category.level].push({
-          ...podcast,
-          category_name: category.name
-        });
-      }
-      // If category has no level or invalid level, we don't include it
-    });
-    
-    return groupedPodcasts;
-  }, [supabaseData.podcasts, supabaseData.categories, supabaseData.userCourses]);
+  }, [supabaseData.courses, supabaseData.categories, supabaseData.podcasts, supabaseData.pdfs, supabaseData.userCourses]);
 
   // Toggle course expansion
   const toggleCourseExpansion = (courseId: string) => {
@@ -671,129 +386,83 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     }));
   };
 
-  // Calculate metrics from current data
-  const metrics = React.useMemo(() => {
-    const assignedCourses = supabaseData.userCourses || [];
-    
-    // Calculate courses with progress (any podcast with > 0 progress)
-    const coursesWithProgress = assignedCourses.filter(uc => {
-      // Check if any podcasts in this course have progress (> 0)
-      const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === uc.course_id);
-      return coursePodcasts.some(podcast => {
-        const progress = podcastProgress[podcast.id] || 0;
-        return progress > 0; // Any progress, even 10 seconds
-      });
-    }).length;
+  // Handle course selection
+  const handleSelectCourse = (course: Course) => {
+    setSelectedCourse(course);
+    setActiveModule('dashboard');
+  };
 
-    // Calculate completed courses (all podcasts 100% complete)
-    const completedCourses = assignedCourses.filter(uc => {
-      // Check if ALL podcasts in this course are 100% complete
-      const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === uc.course_id);
-      if (coursePodcasts.length === 0) return false;
-      return coursePodcasts.every(podcast => {
-        const progress = podcastProgress[podcast.id] || 0;
-        return progress === 100;
-      });
-    }).length;
+  // Generate course image using StabilityAI
+  const generateCourseImage = async (course: Course) => {
+    if (!stabilityAI.isConfigured()) {
+      console.warn('StabilityAI not configured');
+      return null;
+    }
 
-    // Calculate total hours with partial minutes (show even 10 seconds)
-    let totalHours = 0;
-    Object.keys(podcastProgress).forEach(podcastId => {
-      const progressPercent = podcastProgress[podcastId] || 0;
-      if (progressPercent > 0) {
-        const duration = podcastDurations[podcastId] || 0;
-        // Calculate hours with decimal precision (don't round to nearest minute)
-        const hours = (duration * (progressPercent / 100)) / 3600;
-        totalHours += hours;
+    // Check if image is already cached
+    if (generatedImageCache[course.id]) {
+      return generatedImageCache[course.id];
+    }
+
+    setIsGeneratingImage(true);
+    try {
+      const base64Image = await stabilityAI.generateCourseImage(course.title);
+      if (base64Image) {
+        // Cache the generated image
+        setGeneratedImageCache(prev => ({
+          ...prev,
+          [course.id]: base64Image
+        }));
+        return base64Image;
       }
-    });
+      return null;
+    } catch (error) {
+      console.error('Error generating course image:', error);
+      return null;
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
 
-    return {
-      totalCoursesAvailable: assignedCourses.length,
-      completedCourses: completedCourses,
-      coursesInProgress: coursesWithProgress,
-      totalHoursCompleted: parseFloat(totalHours.toFixed(2)) // Show 2 decimal places for partial hours
-    };
-  }, [supabaseData.userCourses, supabaseData.podcasts, podcastProgress, podcastDurations]);
+  // Find the selected course in courseHierarchy
+  const selectedCourseHierarchy = courseHierarchy.find(c => c.id === selectedCourse?.id);
 
+  // Handle play podcast
+  const handlePlayPodcast = (podcast: Podcast) => {
+    setCurrentPodcast(podcast);
+    setIsPodcastPlayerOpen(true);
+    setIsPodcastPlayerMinimized(false);
+  };
+
+  // Handle progress update
   const handleProgressUpdate = (progress: number, duration: number, currentTime: number) => {
     if (!userId) return;
-    
-    // Save progress to Supabase
     supabaseHelpers.savePodcastProgress(userId, currentPodcast?.id || '', currentTime, duration);
   };
 
-  const handlePlayPodcast = (podcast: any) => {
-    console.log("Playing podcast in dashboard:", podcast);
-    setCurrentPodcast(podcast);
-    setIsPodcastPlayerOpen(true);
-    setIsPodcastPlayerMinimized(false); 
+  // Calculate total play time for a course
+  const calculateTotalPlayTime = (courseId: string) => {
+    const course = courseHierarchy.find(c => c.id === courseId);
+    if (!course) return '0h 0m';
     
-    // Get related podcasts for this podcast
-    const relatedPodcasts = enhancedPodcasts.filter(p => 
-      p.id !== podcast.id &&
-      (p.course_id === podcast.course_id || 
-       p.category_id === podcast.category_id ||
-       p.category === podcast.category)
-    ).slice(0, 5);
+    const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === courseId);
+    let totalSeconds = 0;
     
-    // Update the podcast with related podcasts
-    setCurrentPodcast({
-      ...podcast, 
-      relatedPodcasts
+    coursePodcasts.forEach(podcast => {
+      const duration = podcastDurations[podcast.id] || 0;
+      totalSeconds += duration;
     });
-  };
-
-  // Load quiz attempts
-  const loadQuizAttempts = useCallback(async () => {
-    if (!userId) return;
     
-    try {
-      // Get assigned courses for the user
-      const { data: userCourses } = await supabase
-        .from('user_courses')
-        .select('course_id');
-      
-      const courseIds = userCourses?.map(uc => uc.course_id) || [];
-      
-      if (courseIds.length === 0) return;
-      
-      const allAttempts: any[] = [];
-      
-      // Get quiz attempts for each course
-      for (const courseId of courseIds) {
-        const { moduleAttempts, courseAttempts } = await getUserQuizAttempts(userId, courseId);
-        allAttempts.push(...moduleAttempts, ...courseAttempts);
-      }
-      
-      // Sort attempts by date
-      const sortedAttempts = allAttempts
-        .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
-      
-      setQuizAttempts(sortedAttempts);
-    } catch (error) {
-      console.error('Error loading quiz attempts:', error);
-    }
-  }, [userId]);
-
-  // Load quiz attempt details
-  const loadQuizAttemptDetails = async (attemptId: string) => {
-    try {
-      const details = await getQuizAttemptDetails(attemptId);
-      setQuizAttemptDetails(details);
-      setSelectedQuizAttempt(attemptId);
-      setShowQuizResults(true);
-    } catch (error) {
-      console.error('Error loading quiz attempt details:', error);
-    }
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
   };
 
-  // Add quiz attempts loading to the main data loading
-  useEffect(() => {
-    if (userId) {
-      loadQuizAttempts();
-    }
-  }, [userId, loadQuizAttempts]);
+  // Calculate completed podcasts for a course
+  const calculateCompletedPodcasts = (courseId: string) => {
+    const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === courseId);
+    return coursePodcasts.filter(podcast => (podcastProgress[podcast.id] || 0) >= 100).length;
+  };
 
   if (loading) {
     return (
@@ -816,399 +485,756 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
             <p className="text-red-600">Error: {error}</p>
-            {error.includes('Authentication') && (
-              <button
-                onClick={() => {
-                  // Redirect to login page
-                  window.location.href = '/login';
-                }}
-                className="mt-2 text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-              >
-                Go to Login
-              </button>
-            )}
             <button 
-              onClick={() => {
-                // Try to reload
-                window.location.reload();
-              }}
-              className="mt-2 text-sm text-red-700 hover:text-red-500 ml-4"
+              onClick={() => window.location.reload()}
+              className="mt-2 text-sm text-red-700 hover:text-red-500"
             >
               Try again
             </button>
-          </div>
-          
-          {/* Debug component for troubleshooting */}
-          <div className="mt-8">
-            <h3 className="text-lg font-bold mb-4">Debug Information</h3>
-            <DebugUserCourses />
           </div>
         </div>
       </div>
     );
   }
 
+  // If no course is selected, show course selection
+  if (!selectedCourse) {
+    return (
+      <div className="py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-white">Select a Course</h1>
+            <p className="mt-1 text-sm text-[#a0a0a0]">
+              Choose a course to begin your learning journey
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {courseHierarchy.map((course) => (
+              <div 
+                key={course.id} 
+                className="bg-[#1e1e1e] rounded-lg border border-[#333333] overflow-hidden cursor-pointer hover:bg-[#252525]"
+                onClick={() => handleSelectCourse(course)}
+              >
+                {course.image_url ? (
+                  <img 
+                    src={course.image_url} 
+                    alt={course.title} 
+                    className="w-full h-48 object-cover"
+                  />
+                ) : generatedImageCache[course.id] ? (
+                  <img 
+                    src={`data:image/png;base64,${generatedImageCache[course.id]}`} 
+                    alt={course.title} 
+                    className="w-full h-48 object-cover"
+                  />
+                ) : (
+                  <div className="bg-[#252525] h-48 flex items-center justify-center">
+                    <BookOpen className="h-12 w-12 text-[#a0a0a0]" />
+                  </div>
+                )}
+                <div className="p-4">
+                  <h3 className="text-lg font-medium text-white">{course.title}</h3>
+                  <p className="mt-2 text-sm text-[#a0a0a0] line-clamp-2">
+                    {course.description}
+                  </p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      course.level === 'Basics' 
+                        ? 'bg-green-900/30 text-green-400' 
+                        : course.level === 'Intermediate' 
+                          ? 'bg-yellow-900/30 text-yellow-400' 
+                          : 'bg-red-900/30 text-red-400'
+                    }`}>
+                      {course.level}
+                    </span>
+                    <span className="text-sm text-[#a0a0a0]">
+                      {course.totalPodcasts + course.totalDocuments} items
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {courseHierarchy.length === 0 && (
+            <div className="text-center py-12">
+              <BookOpen className="mx-auto h-12 w-12 text-[#a0a0a0]" />
+              <h3 className="mt-2 text-sm font-medium text-white">No courses assigned</h3>
+              <p className="mt-1 text-sm text-[#a0a0a0]">
+                You don't have any courses assigned yet. Contact your administrator.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Course detail view
   return (
     <div className="py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" key="dashboard-header">
-        {/* Debug component for troubleshooting - only shown in development */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-6">
-            <h3 className="text-lg font-bold mb-4">Debug Information</h3>
-            <DebugUserCourses />
-          </div>
-        )}
-        
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="mt-1 text-sm text-[#a0a0a0]">
-            Welcome back! Here's your learning progress overview.
-          </p>
-        </div>
-
-        {/* Overall Progress Section */}
-        <div className="p-6 bg-[#1e1e1e] shadow-lg rounded-lg border border-[#333333] mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-[#8b5cf6]">{metrics.totalCoursesAvailable}</div>
-              <div className="text-sm text-gray-300">Courses Available</div>
-              <div className="text-xs text-gray-400 mt-1">
-                {metrics.totalCoursesAvailable} courses assigned
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-[#8b5cf6]">
-                {metrics.completedCourses}
-              </div>
-              <div className="text-sm text-gray-300">
-                {metrics.completedCourses > 0 ? 'Courses Completed' : 'Courses In Progress'}
-              </div>
-              <div className="text-xs text-gray-400 mt-1">
-                {metrics.coursesInProgress} in progress
-              </div>
-              {(metrics.coursesInProgress > 0 || Object.keys(podcastProgress).length > 0) && (
-                <div className="mt-2 w-full bg-[#333333] rounded-full h-1.5">
-                  <div
-                    className="bg-[#8b5cf6] h-1.5 rounded-full transition-all duration-300" 
-                    style={{ 
-                      width: `${Math.min(
-                        Object.keys(podcastProgress).length > 0 ? 
-                        Math.max(5, (metrics.coursesInProgress / (metrics.totalCoursesAvailable || 1)) * 100) : 0, 
-                        100
-                      )}%` 
-                    }}
-                  ></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Hero Section with Course Image */}
+        <div className="bg-[#1e1e1e] rounded-lg border border-[#333333] p-6 mb-8">
+          <div className="flex flex-col md:flex-row">
+            <div className="md:w-1/4 mb-4 md:mb-0 md:mr-6">
+              {selectedCourse?.image_url ? (
+                <img 
+                  src={selectedCourse.image_url} 
+                  alt={selectedCourse.title} 
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+              ) : generatedImageCache[selectedCourse?.id || ''] ? (
+                <img 
+                  src={`data:image/png;base64,${generatedImageCache[selectedCourse?.id || '']}`} 
+                  alt={selectedCourse?.title} 
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+              ) : (
+                <div className="bg-[#252525] h-48 rounded-lg flex items-center justify-center">
+                  <BookOpen className="h-12 w-12 text-[#a0a0a0]" />
                 </div>
               )}
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-[#8b5cf6]">{metrics.totalHoursCompleted.toFixed(1)}</div>
-              <div className="text-sm text-gray-300">Hours Completed</div>
-              {(metrics.totalHoursCompleted > 0 || Object.keys(podcastProgress).length > 0) && (
-                <div className="mt-2 w-full bg-[#333333] rounded-full h-1.5">
-                  <div 
-                    className="bg-[#8b5cf6] h-1.5 rounded-full" 
-                    style={{ 
-                      width: `${Object.keys(podcastProgress).length > 0 ? 
-                        Math.max(5, Math.min(metrics.totalHoursCompleted * 10, 100)) : 0}%` 
-                    }}
-                  ></div>
-                </div>
-              )}
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-[#8b5cf6]">{quizAttempts.filter(q => q.passed).length}</div>
-              <div className="text-sm text-gray-300">Quizzes Passed</div>
-              <div className="text-xs text-gray-400 mt-1">
-                {quizAttempts.length} total attempts
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Quiz Results Modal */}
-      {showQuizResults && quizAttemptDetails && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">
-                {quizAttemptDetails.module_quizzes?.title || quizAttemptDetails.course_quizzes?.title}
-              </h2>
-              <button
-                onClick={() => setShowQuizResults(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <div className="flex justify-between items-center">
-                <div>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                    quizAttemptDetails.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {quizAttemptDetails.passed ? 'Passed' : 'Failed'}
-                  </span>
-                  <p className="mt-2 text-gray-600">
-                    Score: {quizAttemptDetails.score}% ({quizAttemptDetails.correct_answers}/{quizAttemptDetails.total_questions} correct)
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">
-                    Started: {new Date(quizAttemptDetails.started_at).toLocaleDateString()}
-                  </p>
-                  {quizAttemptDetails.completed_at && (
-                    <p className="text-sm text-gray-500">
-                      Completed: {new Date(quizAttemptDetails.completed_at).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold">Quiz Results</h3>
-              {quizAttemptDetails.questions.map((question: any, index: number) => (
-                <div 
-                  key={index} 
-                  className={`p-4 rounded-lg border ${
-                    question.selected_is_correct 
-                      ? 'border-green-200 bg-green-50' 
-                      : 'border-red-200 bg-red-50'
-                  }`}
+              <div className="mt-4">
+                <button
+                  onClick={async () => {
+                    if (selectedCourse) {
+                      const base64Image = await generateCourseImage(selectedCourse);
+                      if (base64Image) {
+                        // Update the course with the generated image in Supabase
+                        try {
+                          const { data, error } = await supabase
+                            .from('courses')
+                            .update({ image_url: `data:image/png;base64,${base64Image}` })
+                            .eq('id', selectedCourse.id);
+                          
+                          if (error) {
+                            console.error('Error updating course image:', error);
+                          } else {
+                            // Refresh the course data
+                            loadUserData();
+                          }
+                        } catch (error) {
+                          console.error('Error saving course image:', error);
+                        }
+                      }
+                    }
+                  }}
+                  disabled={isGeneratingImage || !stabilityAI.isConfigured()}
+                  className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-gray-900">Question {index + 1}: {question.question_text}</h4>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      question.difficulty === 'easy' 
-                        ? 'bg-green-100 text-green-800' 
-                        : question.difficulty === 'medium' 
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : 'bg-red-100 text-red-800'
-                    }`}>
-                      {question.difficulty}
-                    </span>
-                  </div>
-                  
-                  <div className="mt-3">
-                    <p className="text-sm font-medium text-gray-700">Your Answer:</p>
-                    <p className={`mt-1 ${question.selected_is_correct ? 'text-green-700' : 'text-red-700'}`}>
-                      {question.selected_answer}
-                    </p>
-                    {!question.selected_is_correct && (
-                      <>
-                        <p className="text-sm font-medium text-gray-700 mt-2">Correct Answer:</p>
-                        <p className="mt-1 text-green-700">{question.correct_answer}</p>
-                      </>
-                    )}
-                  </div>
-                  
-                  <div className="mt-3">
-                    <p className="text-sm font-medium text-gray-700">Explanation:</p>
-                    <p className="mt-1 text-gray-600">
-                      {question.selected_is_correct 
-                        ? question.explanation 
-                        : question.correct_explanation}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setShowQuizResults(false)}
-                className="px-4 py-2 bg-gray-200 rounded-md text-gray-700 hover:bg-gray-300"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Quiz Results Section */}
-      {quizAttempts.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-          <div className="bg-[#1e1e1e] shadow-lg rounded-lg border border-[#333333] p-6">
-            <h3 className="text-lg font-medium text-white mb-4">Quiz Results</h3>
-            <div className="space-y-3">
-              {quizAttempts.map((attempt) => (
-                <div 
-                  key={attempt.id} 
-                  className="flex items-center justify-between p-3 bg-[#252525] rounded-lg cursor-pointer hover:bg-[#333333]"
-                  onClick={() => loadQuizAttemptDetails(attempt.id)}
-                >
-                  <div>
-                    <h4 className="text-sm font-medium text-white">
-                      {attempt.module_quizzes?.title || attempt.course_quizzes?.title}
-                    </h4>
-                    <p className="text-xs text-gray-400">
-                      {attempt.module_quizzes 
-                        ? `Module: ${attempt.module_quizzes.content_categories?.name || 'Unknown'}` 
-                        : 'Final Course Quiz'}
-                    </p>
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      attempt.passed 
-                        ? 'bg-green-900/30 text-green-400' 
-                        : attempt.completed_at 
-                          ? 'bg-red-900/30 text-red-400' 
-                          : 'bg-yellow-900/30 text-yellow-400'
-                    }`}>
-                      {attempt.passed 
-                        ? 'Passed' 
-                        : attempt.completed_at 
-                          ? 'Failed' 
-                          : 'In Progress'}
-                    </span>
-                    {attempt.score !== null && (
-                      <span className="ml-2 text-sm text-gray-300">{attempt.score}%</span>
-                    )}
-                    <ChevronRight className="h-4 w-4 text-gray-400 ml-2" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Weekly Progress Charts */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Weekly Progress Comparison */}
-          <div className="bg-[#1e1e1e] shadow-lg rounded-lg border border-[#333333] p-6">
-            <h3 className="text-lg font-medium text-white mb-4 flex items-center">
-              <BarChart3 className="h-5 w-5 text-[#8b5cf6] mr-2" />
-              Weekly Learning Progress
-            </h3>
-            <div className="h-64 flex items-center justify-center text-[#a0a0a0]">
-              <p>Progress data will appear here as you complete courses</p>
-            </div>
-          </div>
-          
-          {/* Learning Engagement Trend */}
-          <div className="bg-[#1e1e1e] shadow-lg rounded-lg border border-[#333333] p-6">
-            <h3 className="text-lg font-medium text-white mb-4 flex items-center">
-              <TrendingUp className="h-5 w-5 text-[#8b5cf6] mr-2" />
-              Learning Engagement Trend
-            </h3>
-            <div className="h-64 flex items-center justify-center text-[#a0a0a0]">
-              <p>Engagement data will appear here as you interact with courses</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Podcasts by Level Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-        <div className="bg-[#1e1e1e] shadow-lg rounded-lg border border-[#333333] p-6">
-          <h3 className="text-lg font-medium text-white mb-4">Podcasts by Level</h3>
-          
-          {/* Level Tabs */}
-          <div className="flex space-x-4 mb-6 border-b border-[#333333]">
-            {['Basics', 'Intermediate', 'Advanced'].map((level) => (
-              <button
-                key={level}
-                className={`pb-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === level.toLowerCase()
-                    ? 'border-[#8b5cf6] text-[#8b5cf6]'
-                    : 'border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300'
-                }`}
-                onClick={() => setActiveTab(level.toLowerCase())}
-              >
-                {level} ({podcastsByLevel[level]?.length || 0})
-              </button>
-            ))}
-          </div>
-          
-          {/* Podcasts List */}
-          <div className="space-y-4">
-            {podcastsByLevel[activeTab.charAt(0).toUpperCase() + activeTab.slice(1)]?.map((podcast) => (
-              <div 
-                key={podcast.id} 
-                className="flex items-center justify-between p-4 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
-                onClick={() => handlePlayPodcast(podcast)}
-              >
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10 bg-[#8b5cf6] rounded-lg flex items-center justify-center">
-                    <Headphones className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="ml-4">
-                    <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
-                    <p className="text-xs text-gray-400">{podcast.category_name}</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  {podcastProgress[podcast.id] > 0 && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#8b5cf6]/20 text-[#8b5cf6] mr-2">
-                      {Math.round(podcastProgress[podcast.id] || 0)}%
-                    </span>
-                  )}
-                  <Play className="h-4 w-4 text-gray-400" />
-                </div>
-              </div>
-            ))}
-            
-            {(!podcastsByLevel[activeTab.charAt(0).toUpperCase() + activeTab.slice(1)] || 
-              podcastsByLevel[activeTab.charAt(0).toUpperCase() + activeTab.slice(1)]?.length === 0) && (
-              <div className="text-center py-8">
-                <Headphones className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-300">No podcasts assigned</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  No podcasts have been assigned to you at the {activeTab} level.
+                  {isGeneratingImage ? 'Generating...' : 'Generate Course Image'}
+                </button>
+                <p className="mt-2 text-xs text-[#a0a0a0]">
+                  {stabilityAI.isConfigured() 
+                    ? 'Generate a professional image based on course name' 
+                    : 'StabilityAI not configured'}
                 </p>
               </div>
-            )}
+            </div>
+            <div className="md:w-3/4">
+              <h1 className="text-3xl font-bold text-white">{selectedCourse?.title}</h1>
+              <p className="mt-2 text-lg text-[#a0a0a0]">{selectedCourse?.description}</p>
+              <div className="mt-4 flex items-center space-x-4">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                  selectedCourse?.level === 'Basics' 
+                    ? 'bg-green-900/30 text-green-400' 
+                    : selectedCourse?.level === 'Intermediate' 
+                      ? 'bg-yellow-900/30 text-yellow-400' 
+                      : 'bg-red-900/30 text-red-400'
+                }`}>
+                  Level: {selectedCourse?.level}
+                </span>
+                <span className="inline-flex items-center text-sm text-[#a0a0a0]">
+                  <BookOpen className="h-4 w-4 mr-1" />
+                  {(selectedCourseHierarchy?.categories.length || 0) + (selectedCourseHierarchy?.uncategorizedPodcasts.length ? 1 : 0)} Modules
+                </span>
+                <span className="inline-flex items-center text-sm text-[#a0a0a0]">
+                  <Clock className="h-4 w-4 mr-1" />
+                  {selectedCourse?.id ? calculateTotalPlayTime(selectedCourse.id) : '0h 0m'}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-        {/* Podcast Player Modal */}
-        {isPodcastPlayerOpen && currentPodcast && !isPodcastPlayerMinimized && (
-          <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-            <div className="bg-[#1e1e1e] rounded-lg p-6 max-w-2xl w-full border border-[#333333]">
-              <h2 className="text-xl font-bold mb-4 text-white">{currentPodcast.title}</h2>
-              <audio
-                src={currentPodcast.mp3_url}
-                controls
-                controlsList="nodownload noplaybackrate"
-                className="w-full"
-                onTimeUpdate={(e) => {
-                  const audio = e.currentTarget;
-                  const progress = Math.round((audio.currentTime / audio.duration) * 100);
-                  handleProgressUpdate(progress, audio.duration, audio.currentTime);
-                }}
-              />
-              <div className="flex justify-end mt-4">
-                <button
-                  onClick={() => {
-                    setIsPodcastPlayerOpen(false);
-                    setCurrentPodcast(null);
-                  }}
-                  className="px-4 py-2 bg-[#252525] rounded-md text-white hover:bg-[#333333]"
-                >
-                  Close
-                </button>
-              </div>
+        {/* Module Navigation */}
+        <div className="bg-[#1e1e1e] rounded-lg border border-[#333333] mb-8 overflow-x-auto">
+          <div className="flex space-x-1 p-1">
+            <button
+              className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                activeModule === 'dashboard'
+                  ? 'bg-[#8b5cf6] text-white'
+                  : 'text-gray-300 hover:bg-[#252525]'
+              }`}
+              onClick={() => setActiveModule('dashboard')}
+            >
+              Dashboard
+            </button>
+            <button
+              className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                activeModule === 'audios'
+                  ? 'bg-[#8b5cf6] text-white'
+                  : 'text-gray-300 hover:bg-[#252525]'
+              }`}
+              onClick={() => setActiveModule('audios')}
+            >
+              Audios
+            </button>
+            <button
+              className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                activeModule === 'videos'
+                  ? 'bg-[#8b5cf6] text-white'
+                  : 'text-gray-300 hover:bg-[#252525]'
+              }`}
+              onClick={() => setActiveModule('videos')}
+            >
+              Videos
+            </button>
+            <button
+              className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                activeModule === 'docs'
+                  ? 'bg-[#8b5cf6] text-white'
+                  : 'text-gray-300 hover:bg-[#252525]'
+              }`}
+              onClick={() => setActiveModule('docs')}
+            >
+              Docs
+            </button>
+            <button
+              className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                activeModule === 'images'
+                  ? 'bg-[#8b5cf6] text-white'
+                  : 'text-gray-300 hover:bg-[#252525]'
+              }`}
+              onClick={() => setActiveModule('images')}
+            >
+              Images
+            </button>
+            <button
+              className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap ${
+                activeModule === 'templates'
+                  ? 'bg-[#8b5cf6] text-white'
+                  : 'text-gray-300 hover:bg-[#252525]'
+              }`}
+              onClick={() => setActiveModule('templates')}
+            >
+              Templates
+            </button>
+          </div>
+        </div>
+
+        {/* Module Content */}
+        {activeModule === 'dashboard' && (
+          <div className="bg-[#1e1e1e] rounded-lg border border-[#333333] p-6">
+            <h2 className="text-xl font-bold text-white mb-6">Course Modules</h2>
+            <div className="space-y-4">
+              {selectedCourseHierarchy?.categories.map((category) => (
+                <div key={category.id} className="border border-[#333333] rounded-lg">
+                  <div 
+                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
+                    onClick={() => toggleCategoryExpansion(category.id)}
+                  >
+                    <div className="flex items-center">
+                      <div className="mr-2">
+                        {expandedCategories[category.id] ? (
+                          <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
+                        )}
+                      </div>
+                      <h3 className="text-lg font-medium text-white">{category.name}</h3>
+                    </div>
+                    <span className="text-sm text-[#a0a0a0]">
+                      {category.podcasts.length} items
+                    </span>
+                  </div>
+                  
+                  {expandedCategories[category.id] && (
+                    <div className="pl-8 pr-4 pb-4">
+                      {category.podcasts.map((podcast) => (
+                        <div 
+                          key={podcast.id} 
+                          className="flex items-center justify-between p-3 bg-[#252525] rounded-lg mb-2 hover:bg-[#333333]"
+                          onClick={() => handlePlayPodcast(podcast)}
+                        >
+                          <div className="flex items-center">
+                            {podcast.is_youtube_video ? (
+                              <Play className="h-4 w-4 text-red-500 mr-3" />
+                            ) : (
+                              <Headphones className="h-4 w-4 text-[#8b5cf6] mr-3" />
+                            )}
+                            <div>
+                              <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
+                              <p className="text-xs text-[#a0a0a0]">
+                                {podcast.is_youtube_video ? 'YouTube Video' : 'Audio Content'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            {podcastProgress[podcast.id] > 0 && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#8b5cf6]/20 text-[#8b5cf6] mr-2">
+                                {Math.round(podcastProgress[podcast.id] || 0)}%
+                              </span>
+                            )}
+                            <Play className="h-4 w-4 text-gray-400" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {(selectedCourseHierarchy?.uncategorizedPodcasts?.length || 0) > 0 && (
+                <div className="border border-[#333333] rounded-lg">
+                  <div 
+                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
+                    onClick={() => toggleCategoryExpansion('uncategorized')}
+                  >
+                    <div className="flex items-center">
+                      <div className="mr-2">
+                        {expandedCategories['uncategorized'] ? (
+                          <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
+                        )}
+                      </div>
+                      <h3 className="text-lg font-medium text-white">Other Content</h3>
+                    </div>
+                    <span className="text-sm text-[#a0a0a0]">
+                      {selectedCourseHierarchy?.uncategorizedPodcasts?.length || 0} items
+                    </span>
+                  </div>
+                  
+                  {expandedCategories['uncategorized'] && (
+                    <div className="pl-8 pr-4 pb-4">
+                      {selectedCourseHierarchy?.uncategorizedPodcasts?.map((podcast) => (
+                        <div 
+                          key={podcast.id} 
+                          className="flex items-center justify-between p-3 bg-[#252525] rounded-lg mb-2 hover:bg-[#333333]"
+                          onClick={() => handlePlayPodcast(podcast)}
+                        >
+                          <div className="flex items-center">
+                            {podcast.is_youtube_video ? (
+                              <Play className="h-4 w-4 text-red-500 mr-3" />
+                            ) : (
+                              <Headphones className="h-4 w-4 text-[#8b5cf6] mr-3" />
+                            )}
+                            <div>
+                              <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
+                              <p className="text-xs text-[#a0a0a0]">
+                                {podcast.is_youtube_video ? 'YouTube Video' : 'Audio Content'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            {podcastProgress[podcast.id] > 0 && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#8b5cf6]/20 text-[#8b5cf6] mr-2">
+                                {Math.round(podcastProgress[podcast.id] || 0)}%
+                              </span>
+                            )}
+                            <Play className="h-4 w-4 text-gray-400" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {(selectedCourseHierarchy?.coursePDFs?.length || 0) > 0 && (
+                <div className="border border-[#333333] rounded-lg">
+                  <div 
+                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
+                    onClick={() => toggleCategoryExpansion('documents')}
+                  >
+                    <div className="flex items-center">
+                      <div className="mr-2">
+                        {expandedCategories['documents'] ? (
+                          <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
+                        )}
+                      </div>
+                      <h3 className="text-lg font-medium text-white">Documents</h3>
+                    </div>
+                    <span className="text-sm text-[#a0a0a0]">
+                      {selectedCourseHierarchy?.coursePDFs?.length || 0} items
+                    </span>
+                  </div>
+                  
+                  {expandedCategories['documents'] && (
+                    <div className="pl-8 pr-4 pb-4">
+                      {selectedCourseHierarchy?.coursePDFs?.map((pdf) => (
+                        <div 
+                          key={pdf.id} 
+                          className="flex items-center justify-between p-3 bg-[#252525] rounded-lg mb-2 hover:bg-[#333333]"
+                          onClick={() => window.open(pdf.pdf_url, '_blank')}
+                        >
+                          <div className="flex items-center">
+                            <FileText className="h-4 w-4 text-purple-500 mr-3" />
+                            <div>
+                              <h4 className="text-sm font-medium text-white">{pdf.title}</h4>
+                              <p className="text-xs text-[#a0a0a0]">PDF Document</p>
+                            </div>
+                          </div>
+                          <File className="h-4 w-4 text-gray-400" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Minimized Podcast Player */}
-        {isPodcastPlayerOpen && currentPodcast && isPodcastPlayerMinimized && (
-          <div className="fixed bottom-0 right-0 bg-[#1e1e1e] shadow-lg rounded-tl-lg p-3 z-50 w-80 border border-[#333333] border-b-0 border-r-0">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium truncate text-white">{currentPodcast.title}</h3>
+        {activeModule === 'audios' && (
+          <div className="bg-[#1e1e1e] rounded-lg border border-[#333333] p-6">
+            <h2 className="text-xl font-bold text-white mb-6">Audio Content</h2>
+            <div className="space-y-4">
+              {selectedCourseHierarchy?.categories.map((category) => (
+                <div key={category.id} className="border border-[#333333] rounded-lg">
+                  <div 
+                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
+                    onClick={() => toggleCategoryExpansion(category.id)}
+                  >
+                    <div className="flex items-center">
+                      <div className="mr-2">
+                        {expandedCategories[category.id] ? (
+                          <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
+                        )}
+                      </div>
+                      <h3 className="text-lg font-medium text-white">{category.name}</h3>
+                    </div>
+                    <span className="text-sm text-[#a0a0a0]">
+                      {(category.podcasts.filter(p => !p.is_youtube_video)).length} audio files
+                    </span>
+                  </div>
+                  
+                  {expandedCategories[category.id] && (
+                    <div className="pl-8 pr-4 pb-4">
+                      {category.podcasts
+                        .filter(podcast => !podcast.is_youtube_video)
+                        .map((podcast) => (
+                          <div 
+                            key={podcast.id} 
+                            className="flex items-center justify-between p-3 bg-[#252525] rounded-lg mb-2 hover:bg-[#333333]"
+                            onClick={() => handlePlayPodcast(podcast)}
+                          >
+                            <div className="flex items-center">
+                              <Headphones className="h-4 w-4 text-[#8b5cf6] mr-3" />
+                              <div>
+                                <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
+                                <p className="text-xs text-[#a0a0a0]">
+                                  Audio Content
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              {podcastProgress[podcast.id] > 0 && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#8b5cf6]/20 text-[#8b5cf6] mr-2">
+                                  {Math.round(podcastProgress[podcast.id] || 0)}%
+                                </span>
+                              )}
+                              <Play className="h-4 w-4 text-gray-400" />
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {(selectedCourseHierarchy?.uncategorizedPodcasts?.filter(podcast => !podcast.is_youtube_video).length || 0) > 0 && (
+                <div className="border border-[#333333] rounded-lg">
+                  <div 
+                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
+                    onClick={() => toggleCategoryExpansion('uncategorized-audios')}
+                  >
+                    <div className="flex items-center">
+                      <div className="mr-2">
+                        {expandedCategories['uncategorized-audios'] ? (
+                          <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
+                        )}
+                      </div>
+                      <h3 className="text-lg font-medium text-white">Other Audio Content</h3>
+                    </div>
+                    <span className="text-sm text-[#a0a0a0]">
+                      {selectedCourseHierarchy?.uncategorizedPodcasts?.filter(p => !p.is_youtube_video).length || 0} items
+                    </span>
+                  </div>
+                  
+                  {expandedCategories['uncategorized-audios'] && (
+                    <div className="pl-8 pr-4 pb-4">
+                      {selectedCourseHierarchy?.uncategorizedPodcasts
+                        ?.filter(podcast => !podcast.is_youtube_video)
+                        .map((podcast) => (
+                          <div 
+                            key={podcast.id} 
+                            className="flex items-center justify-between p-3 bg-[#252525] rounded-lg mb-2 hover:bg-[#333333]"
+                            onClick={() => handlePlayPodcast(podcast)}
+                          >
+                            <div className="flex items-center">
+                              <Headphones className="h-4 w-4 text-[#8b5cf6] mr-3" />
+                              <div>
+                                <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
+                                <p className="text-xs text-[#a0a0a0]">
+                                  Audio Content
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              {podcastProgress[podcast.id] > 0 && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#8b5cf6]/20 text-[#8b5cf6] mr-2">
+                                  {Math.round(podcastProgress[podcast.id] || 0)}%
+                                </span>
+                              )}
+                              <Play className="h-4 w-4 text-gray-400" />
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeModule === 'videos' && (
+          <div className="bg-[#1e1e1e] rounded-lg border border-[#333333] p-6">
+            <h2 className="text-xl font-bold text-white mb-6">Video Content</h2>
+            <div className="space-y-4">
+              {selectedCourseHierarchy?.categories.map((category) => (
+                <div key={category.id} className="border border-[#333333] rounded-lg">
+                  <div 
+                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
+                    onClick={() => toggleCategoryExpansion(category.id)}
+                  >
+                    <div className="flex items-center">
+                      <div className="mr-2">
+                        {expandedCategories[category.id] ? (
+                          <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
+                        )}
+                      </div>
+                      <h3 className="text-lg font-medium text-white">{category.name}</h3>
+                    </div>
+                    <span className="text-sm text-[#a0a0a0]">
+                      {(category.podcasts.filter(p => p.is_youtube_video)).length} videos
+                    </span>
+                  </div>
+                  
+                  {expandedCategories[category.id] && (
+                    <div className="pl-8 pr-4 pb-4">
+                      {category.podcasts
+                        .filter(podcast => podcast.is_youtube_video)
+                        .map((podcast) => (
+                          <div 
+                            key={podcast.id} 
+                            className="flex items-center justify-between p-3 bg-[#252525] rounded-lg mb-2 hover:bg-[#333333]"
+                            onClick={() => window.open(podcast.video_url || '#', '_blank')}
+                          >
+                            <div className="flex items-center">
+                              <Play className="h-4 w-4 text-red-500 mr-3" />
+                              <div>
+                                <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
+                                <p className="text-xs text-[#a0a0a0]">
+                                  YouTube Video
+                                </p>
+                              </div>
+                            </div>
+                            <Play className="h-4 w-4 text-gray-400" />
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {(selectedCourseHierarchy?.uncategorizedPodcasts?.filter(podcast => podcast.is_youtube_video).length || 0) > 0 && (
+                <div className="border border-[#333333] rounded-lg">
+                  <div 
+                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
+                    onClick={() => toggleCategoryExpansion('uncategorized-videos')}
+                  >
+                    <div className="flex items-center">
+                      <div className="mr-2">
+                        {expandedCategories['uncategorized-videos'] ? (
+                          <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
+                        )}
+                      </div>
+                      <h3 className="text-lg font-medium text-white">Other Videos</h3>
+                    </div>
+                    <span className="text-sm text-[#a0a0a0]">
+                      {selectedCourseHierarchy?.uncategorizedPodcasts?.filter(p => p.is_youtube_video).length || 0} items
+                    </span>
+                  </div>
+                  
+                  {expandedCategories['uncategorized-videos'] && (
+                    <div className="pl-8 pr-4 pb-4">
+                      {selectedCourseHierarchy?.uncategorizedPodcasts
+                        ?.filter(podcast => podcast.is_youtube_video)
+                        .map((podcast) => (
+                          <div 
+                            key={podcast.id} 
+                            className="flex items-center justify-between p-3 bg-[#252525] rounded-lg mb-2 hover:bg-[#333333]"
+                            onClick={() => window.open(podcast.video_url || '#', '_blank')}
+                          >
+                            <div className="flex items-center">
+                              <Play className="h-4 w-4 text-red-500 mr-3" />
+                              <div>
+                                <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
+                                <p className="text-xs text-[#a0a0a0]">
+                                  YouTube Video
+                                </p>
+                              </div>
+                            </div>
+                            <Play className="h-4 w-4 text-gray-400" />
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeModule === 'docs' && (
+          <div className="bg-[#1e1e1e] rounded-lg border border-[#333333] p-6">
+            <h2 className="text-xl font-bold text-white mb-6">Documents</h2>
+            <div className="space-y-4">
+              {(selectedCourseHierarchy?.pdfDocuments?.length || 0) > 0 ? (
+                selectedCourseHierarchy?.pdfDocuments?.map((doc) => (
+                  <div 
+                    key={doc.id} 
+                    className="flex items-center justify-between p-4 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
+                    onClick={() => window.open(doc.pdf_url, '_blank')}
+                  >
+                    <div className="flex items-center">
+                      <FileText className="h-5 w-5 text-purple-500 mr-3" />
+                      <div>
+                        <h3 className="text-lg font-medium text-white">{doc.title}</h3>
+                        <p className="text-sm text-[#a0a0a0]">PDF Document</p>
+                      </div>
+                    </div>
+                    <File className="h-5 w-5 text-gray-400" />
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-white">No documents available</h3>
+                  <p className="mt-1 text-sm text-[#a0a0a0]">
+                    There are no documents in this course.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeModule === 'images' && (
+          <div className="bg-[#1e1e1e] rounded-lg border border-[#333333] p-6">
+            <h2 className="text-xl font-bold text-white mb-6">Images & Cheatsheets</h2>
+            <div className="space-y-4">
+              {(selectedCourseHierarchy?.imageDocuments?.length || 0) > 0 ? (
+                selectedCourseHierarchy?.imageDocuments?.map((image) => (
+                  <div 
+                    key={image.id} 
+                    className="flex items-center justify-between p-4 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
+                    onClick={() => window.open(image.pdf_url, '_blank')}
+                  >
+                    <div className="flex items-center">
+                      <Image className="h-5 w-5 text-blue-500 mr-3" />
+                      <div>
+                        <h3 className="text-lg font-medium text-white">{image.title}</h3>
+                        <p className="text-sm text-[#a0a0a0]">{image.fileExtension} Image</p>
+                      </div>
+                    </div>
+                    <Image className="h-5 w-5 text-gray-400" />
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Image className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-white">No images available</h3>
+                  <p className="mt-1 text-sm text-[#a0a0a0]">
+                    There are no images or cheatsheets in this course.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeModule === 'templates' && (
+          <div className="bg-[#1e1e1e] rounded-lg border border-[#333333] p-6">
+            <h2 className="text-xl font-bold text-white mb-6">Templates</h2>
+            <div className="space-y-4">
+              {(selectedCourseHierarchy?.templateDocuments?.length || 0) > 0 ? (
+                selectedCourseHierarchy?.templateDocuments?.map((template) => (
+                  <div 
+                    key={template.id} 
+                    className="flex items-center justify-between p-4 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
+                    onClick={() => window.open(template.pdf_url, '_blank')}
+                  >
+                    <div className="flex items-center">
+                      <File className="h-5 w-5 text-yellow-500 mr-3" />
+                      <div>
+                        <h3 className="text-lg font-medium text-white">{template.title}</h3>
+                        <p className="text-sm text-[#a0a0a0]">{template.fileExtension} Template</p>
+                      </div>
+                    </div>
+                    <File className="h-5 w-5 text-gray-400" />
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <File className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-white">No templates available</h3>
+                  <p className="mt-1 text-sm text-[#a0a0a0]">
+                    There are no templates in this course.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Back to Course Selection */}
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => setSelectedCourse(null)}
+            className="inline-flex items-center px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#1e1e1e] hover:bg-[#252525]"
+          >
+            ← Back to Course Selection
+          </button>
+        </div>
+      </div>
+
+      {/* Podcast Player Modal */}
+      {isPodcastPlayerOpen && currentPodcast && !isPodcastPlayerMinimized && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1e1e1e] rounded-lg p-6 max-w-2xl w-full border border-[#333333]">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">{currentPodcast.title}</h2>
               <button
-                onClick={() => setIsPodcastPlayerMinimized(false)}
-                className="text-[#a0a0a0] hover:text-white"
+                onClick={() => setIsPodcastPlayerMinimized(true)}
+                className="text-gray-400 hover:text-white"
               >
-                Expand
+                <ChevronDown className="h-6 w-6" />
               </button>
             </div>
             <audio
@@ -1222,8 +1248,57 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                 handleProgressUpdate(progress, audio.duration, audio.currentTime);
               }}
             />
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => {
+                  setIsPodcastPlayerOpen(false);
+                  setCurrentPodcast(null);
+                }}
+                className="px-4 py-2 bg-[#252525] rounded-md text-white hover:bg-[#333333]"
+              >
+                Close
+              </button>
+            </div>
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Minimized Podcast Player */}
+      {isPodcastPlayerOpen && currentPodcast && isPodcastPlayerMinimized && (
+        <div className="fixed bottom-0 right-0 bg-[#1e1e1e] shadow-lg rounded-tl-lg p-3 z-50 w-80 border border-[#333333] border-b-0 border-r-0">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium truncate text-white">{currentPodcast.title}</h3>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setIsPodcastPlayerMinimized(false)}
+                className="text-[#a0a0a0] hover:text-white"
+              >
+                Expand
+              </button>
+              <button
+                onClick={() => {
+                  setIsPodcastPlayerOpen(false);
+                  setCurrentPodcast(null);
+                }}
+                className="text-[#a0a0a0] hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <audio
+            src={currentPodcast.mp3_url}
+            controls
+            controlsList="nodownload noplaybackrate"
+            className="w-full"
+            onTimeUpdate={(e) => {
+              const audio = e.currentTarget;
+              const progress = Math.round((audio.currentTime / audio.duration) * 100);
+              handleProgressUpdate(progress, audio.duration, audio.currentTime);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

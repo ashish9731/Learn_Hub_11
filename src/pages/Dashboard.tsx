@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserCog, Users, BookOpen, Play, Clock, BarChart3, Headphones, FileText, Building2 } from 'lucide-react';
+import { UserCog, Users, BookOpen, Play, Clock, BarChart3, Headphones, FileText, Building2, Home } from 'lucide-react';
 import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
 import { useNavigate } from 'react-router-dom';
@@ -413,20 +413,42 @@ export default function Dashboard() {
       .filter((user: any) => user.role === 'admin' && user.company_id === company.id).length
   }));
 
+  // Navigation buttons for Super Admin
+  const navigationButtons = [
+    { name: 'Dashboard', icon: Home, path: '/' },
+    { name: 'All Companies', icon: Building2, path: '/companies' },
+    { name: 'All Admins', icon: UserCog, path: '/admins' },
+    { name: 'All Users', icon: Users, path: '/users' },
+    { name: 'Content Upload', icon: BookOpen, path: '/content' },
+    { name: 'Course Assignment', icon: Play, path: '/course-assignment' },
+    { name: 'Analytics', icon: BarChart3, path: '/analytics' }
+  ];
+
   return (
     <div className="py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="md:flex md:items-center md:justify-between mb-8">
-          <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">Dashboard</h2>
-          </div>
-          <div className="mt-4 flex md:mt-0 md:ml-4">
-            <button
-              onClick={loadSupabaseData}
-              className="inline-flex items-center px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
-            >
-              Refresh Data
-            </button>
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">Super Admin Dashboard</h2>
+          <p className="mt-1 text-sm text-[#a0a0a0]">Manage your learning management system</p>
+        </div>
+
+        {/* Navigation Buttons in Single Row */}
+        <div className="mb-8 overflow-x-auto">
+          <div className="flex space-x-4 pb-2 min-w-max">
+            {navigationButtons.map((button) => (
+              <button
+                key={button.name}
+                onClick={() => navigate(button.path)}
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${
+                  location.pathname === button.path
+                    ? 'bg-[#8b5cf6] text-white'
+                    : 'bg-[#1e1e1e] text-gray-300 hover:bg-[#252525] border border-[#333333]'
+                }`}
+              >
+                <button.icon className="h-5 w-5 mr-2" />
+                {button.name}
+              </button>
+            ))}
           </div>
         </div>
 
