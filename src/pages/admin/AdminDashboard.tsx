@@ -118,9 +118,11 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
       setPodcastProgress(progressData || []);
       
       // Show all courses from Super Admin that are available for assignment
-      // Filter courses to show only those that belong to the admin's company or all courses if no company
+      // Include courses that are either:
+      // 1. Not assigned to any company (NULL company_id) - these are available to all admins
+      // 2. Assigned to the admin's company
       const availableCourses = (coursesData || []).filter((course: Course) => 
-        !companyId || course.company_id === companyId
+        course.company_id === null || course.company_id === companyId
       );
       
       // Also get courses that are already assigned to users in admin's company
