@@ -317,20 +317,8 @@ export default function ContentUpload() {
       return;
     }
 
-    // Automatically determine course level from title
-    let determinedLevel: 'Basics' | 'Intermediate' | 'Advanced' = 'Basics';
-    const lowerTitle = newCourseTitle.toLowerCase();
-    
-    if (lowerTitle.includes('basic') || lowerTitle.includes('basics') || lowerTitle.includes('beginner')) {
-      determinedLevel = 'Basics';
-    } else if (lowerTitle.includes('intermediate') || lowerTitle.includes('inter') || lowerTitle.includes('mid')) {
-      determinedLevel = 'Intermediate';
-    } else if (lowerTitle.includes('advanced') || lowerTitle.includes('pro') || lowerTitle.includes('expert')) {
-      determinedLevel = 'Advanced';
-    }
-
     try {
-      console.log('Creating course with title:', newCourseTitle, 'and level:', determinedLevel);
+      console.log('Creating course with title:', newCourseTitle, 'and level:', newCourseLevel);
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -342,7 +330,7 @@ export default function ContentUpload() {
         description: `Course: ${newCourseTitle}`,
         company_id: null,
         image_url: null,
-        level: determinedLevel
+        level: newCourseLevel
       });
       
       if (error) {
@@ -355,7 +343,7 @@ export default function ContentUpload() {
       setNewCourseTitle('');
       setNewCourseLevel('Basics');
       await loadSupabaseData();
-      alert(`Course created successfully with ${determinedLevel} level!`);
+      alert(`Course created successfully with ${newCourseLevel} level!`);
       
     } catch (error) {
       console.error('Failed to create course:', error);
@@ -811,27 +799,20 @@ export default function ContentUpload() {
 
                 <div>
                   <label htmlFor="course-level" className="block text-sm font-medium text-white mb-2">
-                    Course Level (Automatically Determined)
+                    Course Level
                   </label>
-                  <div className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm bg-[#252525] text-white">
-                    {newCourseTitle ? (
-                      (() => {
-                        const lowerTitle = newCourseTitle.toLowerCase();
-                        if (lowerTitle.includes('basic') || lowerTitle.includes('basics') || lowerTitle.includes('beginner')) {
-                          return 'Basics';
-                        } else if (lowerTitle.includes('intermediate') || lowerTitle.includes('inter') || lowerTitle.includes('mid')) {
-                          return 'Intermediate';
-                        } else if (lowerTitle.includes('advanced') || lowerTitle.includes('pro') || lowerTitle.includes('expert')) {
-                          return 'Advanced';
-                        }
-                        return 'Basics';
-                      })()
-                    ) : (
-                      'Basics (default)'
-                    )}
-                  </div>
+                  <select
+                    id="course-level"
+                    value={newCourseLevel}
+                    onChange={(e) => setNewCourseLevel(e.target.value as 'Basics' | 'Intermediate' | 'Advanced')}
+                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                  >
+                    <option value="Basics">Basic</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
                   <p className="mt-1 text-xs text-[#a0a0a0]">
-                    Level is automatically determined from course title keywords
+                    Select the difficulty level for this course
                   </p>
                 </div>
 

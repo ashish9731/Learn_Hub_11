@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { UserCog, Users, BookOpen, Play, Clock, BarChart3, Headphones, FileText, Building2, Home } from 'lucide-react';
+import { UserCog, Users, BookOpen, Play, Clock, BarChart3, Headphones, FileText, Building2, Home, ArrowLeft } from 'lucide-react';
 import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 interface Company {
@@ -428,8 +428,19 @@ export default function Dashboard() {
     <div className="py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">Super Admin Dashboard</h2>
-          <p className="mt-1 text-sm text-[#a0a0a0]">Manage your learning management system</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">Super Admin Dashboard</h2>
+              <p className="mt-1 text-sm text-[#a0a0a0]">Manage your learning management system</p>
+            </div>
+            <button
+              onClick={() => window.history.back()}
+              className="flex items-center px-4 py-2 bg-[#1e1e1e] text-white rounded-lg hover:bg-[#252525] border border-[#333333] transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Back
+            </button>
+          </div>
         </div>
 
         {/* Navigation Buttons in Single Row */}
