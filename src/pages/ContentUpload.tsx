@@ -435,6 +435,38 @@ export default function ContentUpload() {
         throw new Error('User not authenticated');
       }
 
+      // Try to make mp3_url nullable if it's not already
+      try {
+        console.log('Attempting to make mp3_url nullable...');
+        // Try different approaches to execute the SQL
+        const { data, error } = await supabase.rpc('execute_sql', { 
+          sql: 'ALTER TABLE podcasts ALTER COLUMN mp3_url DROP NOT NULL;' 
+        });
+        
+        if (error) {
+          console.log('First RPC attempt failed:', error);
+          
+          // Try alternative approach
+          try {
+            const { error: error2 } = await supabase.rpc('execute_sql', {
+              statement: 'ALTER TABLE podcasts ALTER COLUMN mp3_url DROP NOT NULL;'
+            });
+            
+            if (error2) {
+              console.log('Second RPC attempt failed:', error2);
+            } else {
+              console.log('Successfully made mp3_url nullable (attempt 2)');
+            }
+          } catch (e2) {
+            console.log('Second RPC approach failed:', e2);
+          }
+        } else {
+          console.log('Successfully made mp3_url nullable (attempt 1)');
+        }
+      } catch (e) {
+        console.log('RPC call failed, trying direct approach:', e);
+      }
+
       if (contentType === 'audio' && selectedFile) {
         // Upload audio file
         console.log('Uploading to podcast-files bucket...');
