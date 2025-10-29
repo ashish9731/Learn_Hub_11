@@ -625,6 +625,31 @@ export default function ContentUpload() {
     );
   };
 
+  const handleDeleteCourse = async (courseId: string) => {
+    if (!window.confirm('Are you sure you want to delete this course? This will also delete all associated content (podcasts, documents, etc.).')) {
+      return;
+    }
+    
+    try {
+      // Delete the course (this will cascade delete associated content)
+      await supabaseHelpers.deleteCourse(courseId);
+      
+      // Reload data to reflect changes
+      await loadSupabaseData();
+      
+      // Clear form if the deleted course was selected
+      if (selectedCourse === courseId) {
+        setSelectedCourse('');
+        setSelectedCategory('');
+      }
+      
+      alert('Course deleted successfully!');
+    } catch (error) {
+      console.error('Failed to delete course:', error);
+      alert('Failed to delete course. Please try again.');
+    }
+  };
+
   // Toggle course expansion
   const toggleCourseExpansion = (courseId: string) => {
     setExpandedCourses(prev => ({
@@ -1051,6 +1076,16 @@ export default function ContentUpload() {
                               </p>
                             </div>
                           </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent expanding/collapsing when clicking delete
+                              handleDeleteCourse(course.id);
+                            }}
+                            className="p-2 text-red-400 hover:text-red-300 rounded-full hover:bg-red-900/20"
+                            title="Delete Course"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
                         
                         {/* Course Content */}
