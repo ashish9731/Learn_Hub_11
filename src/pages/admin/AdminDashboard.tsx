@@ -117,15 +117,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
       setUserProfiles(userProfilesData || []);
       setPodcastProgress(progressData || []);
       
-      // Show all courses from Super Admin that are available for assignment
-      // Include courses that are either:
-      // 1. Not assigned to any company (NULL company_id) - these are available to all admins
-      // 2. Assigned to the admin's company
-      const availableCourses = (coursesData || []).filter((course: Course) => 
-        course.company_id === null || course.company_id === companyId
-      );
-      
-      // Also get courses that are already assigned to users in admin's company
+      // Show courses that are already assigned to users in admin's company
       const adminUsers = companyId 
         ? (usersData || []).filter((user: User) => user.role === 'user' && user.company_id === companyId)
         : (usersData || []).filter((user: User) => user.role === 'user');
@@ -138,6 +130,14 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
       const assignedCourseIds = new Set(adminUserCourses.map((uc: UserCourse) => uc.course_id));
       const assignedCourses = (coursesData || []).filter((course: Course) => 
         assignedCourseIds.has(course.id)
+      );
+      
+      // Show all courses from Super Admin that are available for assignment
+      // Include courses that are either:
+      // 1. Not assigned to any company (NULL company_id) - these are available to all admins
+      // 2. Assigned to the admin's company
+      const availableCourses = (coursesData || []).filter((course: Course) => 
+        course.company_id === null || course.company_id === companyId
       );
       
       // Calculate total hours from podcast progress
@@ -382,27 +382,51 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
             </div>
           </div>
 
-          {/* Available Courses */}
+          {/* Assigned Courses */}
           <div className="bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333]">
             <div className="px-6 py-4 border-b border-[#333333]">
-              <h3 className="text-lg font-medium text-white">Courses From Super Admin</h3>
+              <h3 className="text-lg font-medium text-white">Assigned Courses</h3>
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                {availableCourses.length > 0 ? (
-                  availableCourses.slice(0, 6).map((course: any, index: number) => (
+                {assignedCourses.length > 0 ? (
+                  assignedCourses.slice(0, 6).map((course: any, index: number) => (
                     <div key={course.id} className="flex items-center justify-between p-3 bg-[#252525] rounded-lg">
                       <div>
                         <h4 className="text-sm font-medium text-white">{course.title}</h4>
-                        <p className="text-xs text-[#a0a0a0]">Available for assignment</p>
+                        <p className="text-xs text-[#a0a0a0]">Assigned to users</p>
                       </div>
                       <span className="text-xs text-[#a0a0a0]">Active</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-center text-[#a0a0a0] py-4">No courses available yet</p>
+                  <p className="text-center text-[#a0a0a0] py-4">No courses assigned yet</p>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Available Courses for Assignment */}
+        <div className="bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333] mb-8">
+          <div className="px-6 py-4 border-b border-[#333333]">
+            <h3 className="text-lg font-medium text-white">Courses Available for Assignment</h3>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {availableCourses.length > 0 ? (
+                availableCourses.slice(0, 6).map((course: any, index: number) => (
+                  <div key={course.id} className="flex items-center justify-between p-3 bg-[#252525] rounded-lg">
+                    <div>
+                      <h4 className="text-sm font-medium text-white">{course.title}</h4>
+                      <p className="text-xs text-[#a0a0a0]">Available for assignment</p>
+                    </div>
+                    <span className="text-xs text-[#a0a0a0]">Active</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-[#a0a0a0] py-4">No courses available for assignment</p>
+              )}
             </div>
           </div>
         </div>

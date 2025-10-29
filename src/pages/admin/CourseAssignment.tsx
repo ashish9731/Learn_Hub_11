@@ -292,10 +292,9 @@ export default function CourseAssignment() {
       const adminName = adminProfile?.full_name || currentUser.email;
 
       // Create podcast assignments
-      const assignments = [];
-      
-      // Create podcast assignments
       if (selectedContent.podcasts.length > 0) {
+        const assignments = [];
+        
         for (const userId of selectedUsers) {
           for (const podcastId of selectedContent.podcasts) {
             assignments.push({
@@ -316,25 +315,33 @@ export default function CourseAssignment() {
           });
 
         if (podcastAssignmentError) {
-          throw podcastAssignmentError;
+          console.error('Podcast assignment error:', podcastAssignmentError);
+          throw new Error(`Failed to assign podcasts: ${podcastAssignmentError.message}`);
         }
       }
 
-      // Create course assignments for PDFs (they need course context)
+      // Create course assignments for PDFs and courses (they need course context)
       const courseAssignments = [];
       const allSelectedPdfs = selectedContent.pdfs;
       
-      if (allSelectedPdfs.length > 0) {
-        // Get unique course IDs from selected content
-        const pdfCourseIds = allSelectedPdfs.map(pdfId => {
-          const pdf = supabaseData.pdfs.find((p: PDF) => p.id === pdfId);
-          return pdf?.course_id;
-        }).filter(Boolean);
-        
-        const uniqueCourseIds = [...new Set(pdfCourseIds)];
-        
+      // Get unique course IDs from selected PDFs
+      const pdfCourseIds = allSelectedPdfs.map(pdfId => {
+        const pdf = supabaseData.pdfs.find((p: PDF) => p.id === pdfId);
+        return pdf?.course_id;
+      }).filter(Boolean);
+      
+      // Also get course IDs from selected podcasts
+      const podcastCourseIds = selectedContent.podcasts.map(podcastId => {
+        const podcast = supabaseData.podcasts.find((p: Podcast) => p.id === podcastId);
+        return podcast?.course_id;
+      }).filter(Boolean);
+      
+      // Combine all course IDs and make them unique
+      const allCourseIds = [...new Set([...pdfCourseIds, ...podcastCourseIds])];
+      
+      if (allCourseIds.length > 0) {
         for (const userId of selectedUsers) {
-          for (const courseId of uniqueCourseIds) {
+          for (const courseId of allCourseIds) {
             courseAssignments.push({
               user_id: userId,
               course_id: courseId,
@@ -353,7 +360,8 @@ export default function CourseAssignment() {
           });
 
         if (courseAssignmentError) {
-          throw courseAssignmentError;
+          console.error('Course assignment error:', courseAssignmentError);
+          throw new Error(`Failed to assign courses: ${courseAssignmentError.message}`);
         }
       }
 
