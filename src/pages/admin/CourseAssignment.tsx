@@ -207,10 +207,12 @@ export default function CourseAssignment() {
   };
 
   // Build course hierarchy for content selection
-  // Show only courses that have been assigned to this admin by Super Admin
-  // These are courses where the company_id matches the admin's company_id
+  // Show all courses from Super Admin that are available for assignment
+  // Include courses that are either:
+  // 1. Not assigned to any company (NULL company_id) - these are available to all admins
+  // 2. Assigned to the admin's company
   const courseHierarchy = supabaseData.courses
-    .filter((course: Course) => course.company_id === adminCompanyId)
+    .filter((course: Course) => course.company_id === null || course.company_id === adminCompanyId)
     .map((course: Course) => {
     // Get categories for this course
     const courseCategories = supabaseData.categories.filter((cat: Category) => cat.course_id === course.id);
