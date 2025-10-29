@@ -6,6 +6,7 @@ import { Folder, Play, Clock, BookOpen, Users, BarChart3, FileText, Download } f
 import PodcastPlayer from '../../components/Media/PodcastPlayer';
 import { useNavigate } from 'react-router-dom';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
+import { stabilityAI } from '../../services/stabilityai';
 
 interface Course {
   id: string;
@@ -78,6 +79,404 @@ export default function MyCourses() {
   const [userId, setUserId] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  // State to store generated course images
+  const [courseImages, setCourseImages] = useState<Record<string, string>>({});
+  const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
+
+  // Generate course images when courses change
+  useEffect(() => {
+    const generateImages = async () => {
+      if (!supabaseData.courses || supabaseData.courses.length === 0) return;
+      
+      // Generate images for courses that don't have them yet
+      for (const course of supabaseData.courses) {
+        if (!courseImages[course.id] && !loadingImages[course.id]) {
+          setLoadingImages(prev => ({ ...prev, [course.id]: true }));
+          await generateCourseImage(course.title, course.id);
+          setLoadingImages(prev => ({ ...prev, [course.id]: false }));
+        }
+      }
+    };
+    
+    generateImages();
+  }, [supabaseData.courses]);
+
+  // Get course image based on course title or generated AI image
+  const generateCourseImage = async (courseTitle: string, courseId: string) => {
+    // If we already have a generated image for this course, return it
+    if (courseImages[courseId]) {
+      return courseImages[courseId];
+    }
+    
+    // First, try to get the course from our data to check if it has an image_url
+    const course = supabaseData.courses.find(c => c.id === courseId);
+    
+    // If course already has an image_url, use it
+    if (course?.image_url) {
+      setCourseImages(prev => ({ ...prev, [courseId]: course.image_url! }));
+      return course.image_url;
+    }
+    
+    // If no image_url exists, generate one using Stability AI
+    try {
+      console.log('Generating AI image for course:', courseTitle);
+      const base64Image = await stabilityAI.generateCourseImage(courseTitle);
+      
+      if (base64Image) {
+        // Convert base64 to blob and upload to Supabase storage
+        const binaryString = atob(base64Image);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'image/png' });
+        
+        // Upload to Supabase storage
+        const fileName = `course-images/${courseId}-${Date.now()}.png`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('course-images')
+          .upload(fileName, blob, {
+            cacheControl: '3600',
+            upsert: true
+          });
+        
+        if (uploadError) {
+          console.error('Error uploading AI generated image:', uploadError);
+          const defaultImage = getDefaultImage(courseTitle);
+          setCourseImages(prev => ({ ...prev, [courseId]: defaultImage }));
+          return defaultImage;
+        }
+        
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('course-images')
+          .getPublicUrl(fileName);
+        
+        // Update course with the new image URL
+        try {
+          await supabaseHelpers.updateCourse(courseId, { image_url: publicUrl });
+          console.log('Course image updated successfully');
+        } catch (updateError) {
+          console.error('Error updating course with image URL:', updateError);
+        }
+        
+        setCourseImages(prev => ({ ...prev, [courseId]: publicUrl }));
+        return publicUrl;
+      }
+    } catch (error) {
+      console.error('Error generating AI course image:', error);
+    }
+    
+    // Fallback to default images
+    const defaultImage = getDefaultImage(courseTitle);
+    setCourseImages(prev => ({ ...prev, [courseId]: defaultImage }));
+    return defaultImage;
+  };
+
+  // Get default placeholder image based on course title
+  const getDefaultImage = (courseTitle: string) => {
+    const title = courseTitle.toLowerCase();
+
+    if (title.includes('question')) {
+      return 'https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    } else if (title.includes('listen')) {
+      return 'https://images.pexels.com/photos/7176319/pexels-photo-7176319.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    } else if (title.includes('time') || title.includes('management')) {
+      return 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    } else if (title.includes('leadership')) {
+      return 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    } else if (title.includes('communication')) {
+      return 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    } else {
+      return 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+    }
+  };
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+  };
+
+  const getCourseProgress = (courseId: string) => {
+    const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === courseId);
+    if (coursePodcasts.length === 0) return 0;
+
+    const totalProgress = coursePodcasts.reduce((sum, podcast) => {
+      const progress = getProgressForPodcast(podcast.id);
+      return sum + (progress?.progress_percent || 0);
+    }, 0);
+
+    return Math.round(totalProgress / coursePodcasts.length);
+  };
+
+  const getProgressForPodcast = (podcastId: string) => {
+    return podcastProgress.find(p => p.podcast_id === podcastId);
+  };
+
+  const renderCourseCards = () => {
+    // Check if user has any assigned courses
+    const userCourseIds = supabaseData.userCourses?.map(uc => uc.course_id) || [];
+    const assignedCourses = supabaseData.courses.filter(course => 
+      userCourseIds.includes(course.id)
+    );
+    
+    console.log('Rendering course cards. User course IDs:', userCourseIds);
+    console.log('Assigned courses:', assignedCourses);
+    
+    if (!assignedCourses || assignedCourses.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No courses assigned</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Contact your administrator to get access to courses.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {assignedCourses.map((course, index) => {
+          const courseCategories = supabaseData.categories.filter(cat => cat.course_id === course.id);
+          const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === course.id);
+          const coursePdfs = supabaseData.pdfs.filter(p => p.course_id === course.id);
+          const progress = getCourseProgress(course.id);
+          const courseImage = courseImages[course.id] || getDefaultImage(course.title);
+
+          return (
+            <div
+              key={course.id}
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => navigate(`/user/courses/${course.id}`)}
+            >
+              <div className="aspect-video bg-gray-200 relative">
+                {loadingImages[course.id] ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <img
+                    src={courseImage}
+                    alt={course.title}
+                    className="w-full h-full object-cover"
+                    onError={handleImageError}
+                  />
+                )}
+              </div>
+              
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {course.title}
+                  </h3>
+                  {course.level && (
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      course.level === 'Basics' 
+                        ? 'bg-green-100 text-green-800' 
+                        : course.level === 'Intermediate' 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : 'bg-red-100 text-red-800'
+                    }`}>
+                      {course.level}
+                    </span>
+                  )}
+                </div>
+                
+                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                  {course.description || `This course contains ${courseCategories.length} categories with ${coursePodcasts.length} podcasts and ${coursePdfs.length} documents to help you master the subject.`}
+                </p>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>Progress</span>
+                    <span>{progress}%</span>
+                  </div>
+                  
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <div className="flex items-center">
+                      <Folder className="h-4 w-4 mr-1" />
+                      <span>{courseCategories.length} categories</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Play className="h-4 w-4 mr-1" />
+                      <span>{coursePodcasts.length} podcasts</span>
+                    </div>
+                    <div className="flex items-center">
+                      <FileText className="h-4 w-4 mr-1" />
+                      <span>{coursePdfs.length} documents</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderCategoryCards = () => {
+    if (!selectedCourse) return null;
+
+    const courseCategories = supabaseData.categories.filter(cat => cat.course_id === selectedCourse.id);
+
+    if (courseCategories.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <Folder className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No categories found</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            This course doesn't have any categories yet.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setSelectedCourse(null)}
+            className="text-blue-600 hover:text-blue-800 font-medium"
+          >
+            ← Back to Courses
+          </button>
+          <h2 className="text-xl font-semibold text-gray-900">{selectedCourse.title}</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {courseCategories.map((category) => {
+            const categoryPodcasts = supabaseData.podcasts.filter(p => p.category_id === category.id);
+            
+            return (
+              <div key={category.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4">
+                  <div className="flex items-center">
+                    <Folder className="h-8 w-8 text-white mr-3" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">{category.name}</h3>
+                      <p className="text-blue-100 text-sm">{categoryPodcasts.length} podcasts</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  {category.description && (
+                    <p className="text-gray-600 text-sm mb-4">{category.description}</p>
+                  )}
+
+                  <div className="space-y-2">
+                    {categoryPodcasts.map((podcast) => {
+                      const progress = getProgressForPodcast(podcast.id);
+                      
+                      return (
+                        <div
+                          key={podcast.id}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                          onClick={() => handlePlayPodcast(podcast)}
+                        >
+                          <div className="flex items-center flex-1">
+                            <Play className="h-4 w-4 text-blue-600 mr-2" />
+                            <span className="text-sm font-medium text-gray-900 truncate">
+                              {podcast.title}
+                            </span>
+                          </div>
+                          
+                          {progress && progress.progress_percent > 0 && (
+                            <div className="flex items-center ml-2">
+                              <div className="w-12 bg-gray-200 rounded-full h-1.5 mr-2">
+                                <div
+                                  className="bg-blue-600 h-1.5 rounded-full"
+                                  style={{ width: `${progress.progress_percent}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {progress.progress_percent}%
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const handlePlayPodcast = (podcast: any) => {
+    const relatedPodcasts = supabaseData.podcasts.filter(p => 
+      p.course_id === podcast.course_id && p.id !== podcast.id
+    );
+    
+    setCurrentPodcast({
+      ...podcast,
+      relatedPodcasts
+    });
+    setIsPodcastPlayerOpen(true);
+    setIsPodcastPlayerMinimized(false);
+  };
+
+  const getFilteredPodcasts = () => {
+    if (!activeCategory) return supabaseData.podcasts;
+    return supabaseData.podcasts.filter(podcast => podcast.category_id === activeCategory);
+  };
+
+  const handleProgressUpdate = async (podcastId: string, position: number, duration: number) => {
+    if (!userId) return;
+
+    const progressPercent = duration > 0 ? Math.round((position / duration) * 100) : 0;
+
+    const { error } = await supabase
+      .from('podcast_progress')
+      .upsert({
+        user_id: userId,
+        podcast_id: podcastId,
+        playback_position: position,
+        duration: duration,
+        progress_percent: progressPercent,
+        last_played_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id,podcast_id'
+      });
+
+    if (error) {
+      console.error('Error updating podcast progress:', error);
+    } else {
+      // Update local state
+      setPodcastProgress(prev => {
+        const existing = prev.find(p => p.podcast_id === podcastId);
+        if (existing) {
+          return prev.map(p => 
+            p.podcast_id === podcastId 
+              ? { ...p, playback_position: position, duration, progress_percent: progressPercent }
+              : p
+          );
+        } else {
+          return [...prev, {
+            id: `temp-${Date.now()}`,
+            user_id: userId,
+            podcast_id: podcastId,
+            playback_position: position,
+            duration,
+            progress_percent: progressPercent
+          }];
+        }
+      });
+    }
+  };
 
   // Function declarations (hoisted)
   async function loadUserCourses(userId: string) {
@@ -399,303 +798,6 @@ export default function MyCourses() {
         }))
     }));
   }, [supabaseData.courses, supabaseData.categories, supabaseData.podcasts, supabaseData.userCourses]);
-
-  const handlePlayPodcast = (podcast: any) => {
-    const relatedPodcasts = supabaseData.podcasts.filter(p => 
-      p.course_id === podcast.course_id && p.id !== podcast.id
-    );
-    
-    setCurrentPodcast({
-      ...podcast,
-      relatedPodcasts
-    });
-    setIsPodcastPlayerOpen(true);
-    setIsPodcastPlayerMinimized(false);
-  };
-
-  const renderCourseCards = () => {
-    // Check if user has any assigned courses
-    const userCourseIds = supabaseData.userCourses?.map(uc => uc.course_id) || [];
-    const assignedCourses = supabaseData.courses.filter(course => 
-      userCourseIds.includes(course.id)
-    );
-    
-    console.log('Rendering course cards. User course IDs:', userCourseIds);
-    console.log('Assigned courses:', assignedCourses);
-    
-    if (!assignedCourses || assignedCourses.length === 0) {
-      return (
-        <div className="text-center py-12">
-          <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No courses assigned</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Contact your administrator to get access to courses.
-          </p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {assignedCourses.map((course, index) => {
-          const courseCategories = supabaseData.categories.filter(cat => cat.course_id === course.id);
-          const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === course.id);
-          const coursePdfs = supabaseData.pdfs.filter(p => p.course_id === course.id);
-          const progress = getCourseProgress(course.id);
-
-          return (
-            <div
-              key={course.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate(`/user/courses/${course.id}`)}
-            >
-              <div className="aspect-video bg-gray-200">
-                <img
-                  src={getCourseImage(course.title, index)}
-                  alt={course.title}
-                  className="w-full h-full object-cover"
-                  onError={handleImageError}
-                />
-              </div>
-              
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {course.title}
-                  </h3>
-                  {course.level && (
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      course.level === 'Basics' 
-                        ? 'bg-green-100 text-green-800' 
-                        : course.level === 'Intermediate' 
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : 'bg-red-100 text-red-800'
-                    }`}>
-                      {course.level}
-                    </span>
-                  )}
-                </div>
-                
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                  {course.description || `This course contains ${courseCategories.length} categories with ${coursePodcasts.length} podcasts and ${coursePdfs.length} documents to help you master the subject.`}
-                </p>
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Progress</span>
-                    <span>{progress}%</span>
-                  </div>
-                  
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <Folder className="h-4 w-4 mr-1" />
-                      <span>{courseCategories.length} categories</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Play className="h-4 w-4 mr-1" />
-                      <span>{coursePodcasts.length} podcasts</span>
-                    </div>
-                    <div className="flex items-center">
-                      <FileText className="h-4 w-4 mr-1" />
-                      <span>{coursePdfs.length} documents</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const renderCategoryCards = () => {
-    if (!selectedCourse) return null;
-
-    const courseCategories = supabaseData.categories.filter(cat => cat.course_id === selectedCourse.id);
-
-    if (courseCategories.length === 0) {
-      return (
-        <div className="text-center py-12">
-          <Folder className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No categories found</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            This course doesn't have any categories yet.
-          </p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => setSelectedCourse(null)}
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            ← Back to Courses
-          </button>
-          <h2 className="text-xl font-semibold text-gray-900">{selectedCourse.title}</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courseCategories.map((category) => {
-            const categoryPodcasts = supabaseData.podcasts.filter(p => p.category_id === category.id);
-            
-            return (
-              <div key={category.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4">
-                  <div className="flex items-center">
-                    <Folder className="h-8 w-8 text-white mr-3" />
-                    <div>
-                      <h3 className="text-lg font-semibold text-white">{category.name}</h3>
-                      <p className="text-blue-100 text-sm">{categoryPodcasts.length} podcasts</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4">
-                  {category.description && (
-                    <p className="text-gray-600 text-sm mb-4">{category.description}</p>
-                  )}
-
-                  <div className="space-y-2">
-                    {categoryPodcasts.map((podcast) => {
-                      const progress = getProgressForPodcast(podcast.id);
-                      
-                      return (
-                        <div
-                          key={podcast.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                          onClick={() => handlePlayPodcast(podcast)}
-                        >
-                          <div className="flex items-center flex-1">
-                            <Play className="h-4 w-4 text-blue-600 mr-2" />
-                            <span className="text-sm font-medium text-gray-900 truncate">
-                              {podcast.title}
-                            </span>
-                          </div>
-                          
-                          {progress && progress.progress_percent > 0 && (
-                            <div className="flex items-center ml-2">
-                              <div className="w-12 bg-gray-200 rounded-full h-1.5 mr-2">
-                                <div
-                                  className="bg-blue-600 h-1.5 rounded-full"
-                                  style={{ width: `${progress.progress_percent}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-xs text-gray-500">
-                                {progress.progress_percent}%
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  const getProgressForPodcast = (podcastId: string) => {
-    return podcastProgress.find(p => p.podcast_id === podcastId);
-  };
-
-  const getCourseProgress = (courseId: string) => {
-    const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === courseId);
-    if (coursePodcasts.length === 0) return 0;
-
-    const totalProgress = coursePodcasts.reduce((sum, podcast) => {
-      const progress = getProgressForPodcast(podcast.id);
-      return sum + (progress?.progress_percent || 0);
-    }, 0);
-
-    return Math.round(totalProgress / coursePodcasts.length);
-  };
-
-  // Get course image based on course title
-  const getCourseImage = (courseTitle: string, index: number) => {
-    const title = courseTitle.toLowerCase();
-
-    if (title.includes('question')) {
-      return 'https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    } else if (title.includes('listen')) {
-      return 'https://images.pexels.com/photos/7176319/pexels-photo-7176319.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    } else if (title.includes('time') || title.includes('management')) {
-      return 'https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    } else if (title.includes('leadership')) {
-      return 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    } else if (title.includes('communication')) {
-      return 'https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    } else {
-      return 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    }
-  };
-
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-  };
-
-  const getFilteredPodcasts = () => {
-    if (!activeCategory) return supabaseData.podcasts;
-    return supabaseData.podcasts.filter(podcast => podcast.category_id === activeCategory);
-  };
-
-  const handleProgressUpdate = async (podcastId: string, position: number, duration: number) => {
-    if (!userId) return;
-
-    const progressPercent = duration > 0 ? Math.round((position / duration) * 100) : 0;
-
-    const { error } = await supabase
-      .from('podcast_progress')
-      .upsert({
-        user_id: userId,
-        podcast_id: podcastId,
-        playback_position: position,
-        duration: duration,
-        progress_percent: progressPercent,
-        last_played_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,podcast_id'
-      });
-
-    if (error) {
-      console.error('Error updating podcast progress:', error);
-    } else {
-      // Update local state
-      setPodcastProgress(prev => {
-        const existing = prev.find(p => p.podcast_id === podcastId);
-        if (existing) {
-          return prev.map(p => 
-            p.podcast_id === podcastId 
-              ? { ...p, playback_position: position, duration, progress_percent: progressPercent }
-              : p
-          );
-        } else {
-          return [...prev, {
-            id: `temp-${Date.now()}`,
-            user_id: userId,
-            podcast_id: podcastId,
-            playback_position: position,
-            duration,
-            progress_percent: progressPercent
-          }];
-        }
-      });
-    }
-  };
 
   if (loading) {
     return (

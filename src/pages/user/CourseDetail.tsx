@@ -6,6 +6,7 @@ import { supabaseHelpers } from '../../hooks/useSupabase';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
 import QuizComponent from '../../components/Quiz/QuizComponent';
 import PodcastPlayer from '../../components/Media/PodcastPlayer';
+import { stabilityAI } from '../../services/stabilityai';
 
 interface Course {
   id: string;
@@ -82,448 +83,104 @@ export default function CourseDetail() {
   const [showFinalQuiz, setShowFinalQuiz] = useState(false);
   const [allModulesCompleted, setAllModulesCompleted] = useState(false);
 
-  useEffect(() => {
-    const checkAuthAndUser = async () => {
-      try {
-        // First check if user is authenticated
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError || !session) {
-          console.error('Auth session missing or error:', sessionError);
-          setError('Authentication failed. Please log in again.');
-          setLoading(false);
-          return;
-        }
-        
-        setIsAuthenticated(true);
-        setUserId(session.user.id);
-        
-        // Also get user ID through getUser as fallback
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (!userError && user) {
-          setUserId(user.id);
-        }
-      } catch (err) {
-        console.error('Error checking authentication:', err);
-        setError('Authentication check failed. Please log in again.');
-        setLoading(false);
-      }
-    };
-    
-    checkAuthAndUser();
-  }, []);
+  // State for course image
+  const [courseImage, setCourseImage] = useState<string | null>(null);
+  const [loadingImage, setLoadingImage] = useState<boolean>(false);
 
-  useEffect(() => {
-    console.log('CourseId changed:', courseId);
-    if (courseId && userId && isAuthenticated) {
-      checkUserCourseAssignment();
-    }
-  }, [courseId, userId, isAuthenticated]);
-
-  useEffect(() => {
-    console.log('User assignment status changed or dependencies updated:', { 
-      courseId, 
-      userId, 
-      isUserAssignedToCourse,
-      assignmentChecked,
-      isAuthenticated
-    });
-    // Only load course data after we've checked the assignment and user is authenticated
-    if (courseId && userId && assignmentChecked && isAuthenticated) {
-      loadCourseData();
-    }
-  }, [courseId, userId, isUserAssignedToCourse, assignmentChecked, isAuthenticated]);
-
-  useEffect(() => {
-    if (userId && isAuthenticated) {
-      loadPodcastProgress();
-    }
-  }, [userId, isAuthenticated]);
-
-  // Calculate category progress and completion status
-  useEffect(() => {
-    if (categories.length > 0 && podcasts.length > 0 && Object.keys(podcastProgress).length > 0) {
-      const updatedCategories = categories.map(category => {
-        const categoryPodcasts = podcasts.filter(p => p.category_id === category.id);
-        const completedPodcasts = categoryPodcasts.filter(podcast => {
-          const progress = podcastProgress[podcast.id];
-          return progress && progress.progress_percent === 100;
-        }).length;
-        
-        const isCompleted = categoryPodcasts.length > 0 && completedPodcasts === categoryPodcasts.length;
-        
-        return {
-          ...category,
-          podcasts: categoryPodcasts,
-          completedPodcasts,
-          totalPodcasts: categoryPodcasts.length,
-          isCompleted
-        };
-      });
-      
-      setCategoriesWithProgress(updatedCategories);
-      
-      // Check if all modules are completed
-      const allCompleted = updatedCategories.length > 0 && 
-        updatedCategories.every(category => category.isCompleted);
-      setAllModulesCompleted(allCompleted);
-    }
-  }, [categories, podcasts, podcastProgress]);
-
-  const checkUserCourseAssignment = async () => {
-    // Reset states
-    setIsUserAssignedToCourse(false);
-    setAssignmentChecked(false);
-    
-    if (!userId || !courseId) {
-      console.log('Missing userId or courseId for assignment check');
-      setAssignmentChecked(true);
-      return;
+  // Generate course image using Stability AI
+  const generateCourseImage = async (courseTitle: string, courseId: string) => {
+    // If we already have a course image, return it
+    if (courseImage) {
+      return courseImage;
     }
     
+    // First, check if course already has an image_url
+    if (course?.image_url) {
+      setCourseImage(course.image_url);
+      return course.image_url;
+    }
+    
+    // If no image_url exists, generate one using Stability AI
     try {
-      console.log('Checking if user', userId, 'is assigned to course', courseId);
+      setLoadingImage(true);
+      console.log('Generating AI image for course:', courseTitle);
+      const base64Image = await stabilityAI.generateCourseImage(courseTitle);
       
-      // First, try to get all user courses to see what's available
-      const { data: allUserCourses, error: allCoursesError } = await supabase
-        .from('user_courses')
-        .select('*')
-        .eq('user_id', userId);
-      
-      if (allCoursesError) {
-        console.error('Error fetching all user courses:', allCoursesError);
-        // Check if it's an auth error
-        if (allCoursesError.message && allCoursesError.message.includes('Auth')) {
-          setError('Authentication failed. Please log in again.');
-          setLoading(false);
-          return;
+      if (base64Image) {
+        // Convert base64 to blob and upload to Supabase storage
+        const binaryString = atob(base64Image);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
         }
-      } else {
-        console.log('All user courses:', allUserCourses);
-      }
-      
-      // Check if user is assigned to this specific course
-      // Note: user_courses table doesn't have an 'id' column, only user_id and course_id
-      const { data, error } = await supabase
-        .from('user_courses')
-        .select('user_id, course_id, assigned_at')
-        .eq('user_id', userId)
-        .eq('course_id', courseId)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error checking course assignment:', error);
-        // Check if it's an auth error
-        if (error.message && error.message.includes('Auth')) {
-          setError('Authentication failed. Please log in again.');
-          setLoading(false);
-          setAssignmentChecked(true);
-          return;
+        const blob = new Blob([bytes], { type: 'image/png' });
+        
+        // Upload to Supabase storage
+        const fileName = `course-images/${courseId}-${Date.now()}.png`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('course-images')
+          .upload(fileName, blob, {
+            cacheControl: '3600',
+            upsert: true
+          });
+        
+        if (uploadError) {
+          console.error('Error uploading AI generated image:', uploadError);
+          setLoadingImage(false);
+          return null;
         }
-        console.log('Setting isUserAssignedToCourse to false due to error');
-        setIsUserAssignedToCourse(false);
-        setAssignmentChecked(true);
-        return;
-      }
-      
-      const isAssigned = !!data;
-      console.log('User course assignment result:', isAssigned, 'Data:', data);
-      setIsUserAssignedToCourse(isAssigned);
-      setAssignmentChecked(true);
-      
-      // Additional debugging - check if course exists at all
-      if (!isAssigned) {
-        console.log('User is not assigned to course. Checking if course exists...');
-        const { data: courseData, error: courseError } = await supabase
-          .from('courses')
-          .select('id, title')
-          .eq('id', courseId)
-          .maybeSingle();
         
-        if (courseError) {
-          console.error('Error checking if course exists:', courseError);
-        } else {
-          console.log('Course exists:', courseData);
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('course-images')
+          .getPublicUrl(fileName);
+        
+        // Update course with the new image URL
+        try {
+          await supabaseHelpers.updateCourse(courseId, { image_url: publicUrl });
+          console.log('Course image updated successfully');
+        } catch (updateError) {
+          console.error('Error updating course with image URL:', updateError);
         }
-      }
-    } catch (err) {
-      console.error('Error checking course assignment:', err);
-      console.log('Setting isUserAssignedToCourse to false due to exception');
-      setIsUserAssignedToCourse(false);
-      setAssignmentChecked(true);
-    }
-  };
-
-  const loadPodcastProgress = async () => {
-    if (!userId) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('podcast_progress')
-        .select('*')
-        .eq('user_id', userId);
         
-      if (error) {
-        console.error('Error loading podcast progress:', error);
-        return;
-      }
-      
-      if (data && data.length > 0) {
-        // Create a map of podcast_id to progress
-        const progressMap: Record<string, PodcastProgress> = {};
-        
-        data.forEach(item => {
-          progressMap[item.podcast_id] = item;
-        });
-        
-        setPodcastProgress(progressMap);
-        console.log('Loaded podcast progress:', progressMap);
+        setCourseImage(publicUrl);
+        setLoadingImage(false);
+        return publicUrl;
       }
     } catch (error) {
-      console.error('Error loading podcast progress:', error);
+      console.error('Error generating AI course image:', error);
     }
+    
+    setLoadingImage(false);
+    return null;
   };
 
-  const loadCourseData = async () => {
-    try {
-      console.log('Loading course data for courseId:', courseId);
-      console.log('User ID:', userId);
-      console.log('Is user assigned to course:', isUserAssignedToCourse);
-      setLoading(true);
-      setError(null);
-
-      // Add a timeout to prevent infinite loading
-      const timeoutId = setTimeout(() => {
-        console.log('Timeout reached, setting loading to false');
-        setLoading(false);
-        setError('Timeout loading course data. Please try again.');
-      }, 10000); // 10 second timeout
-
-      // Check if user is assigned to this course
-      if (!isUserAssignedToCourse) {
-        clearTimeout(timeoutId);
-        console.log('User is not assigned to this course, showing error');
-        setError('You are not assigned to this course. Please contact your administrator.');
-        setLoading(false);
-        return;
-      }
-
-      console.log('User is assigned, proceeding to load course data...');
-      // Get course details and related data including documents
-      console.log('Fetching course data...');
-      
-      // Fetch course data with proper RLS enforcement
-      const { data: courseData, error: courseError } = await supabase
-        .from('courses')
-        .select(`
-          *,
-          companies (
-            id,
-            name
-          )
-        `)
-        .eq('id', courseId)
-        .single();
-      
-      if (courseError) {
-        console.error('Error fetching course data:', courseError);
-        clearTimeout(timeoutId);
-        setError('Failed to load course data. Please try again.');
-        setLoading(false);
-        return;
-      }
-      
-      // Fetch categories with proper RLS enforcement
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from('content_categories')
-        .select('*')
-        .eq('course_id', courseId)
-        .order('name');
-      
-      if (categoriesError) {
-        console.error('Error fetching categories data:', categoriesError);
-        clearTimeout(timeoutId);
-        setError('Failed to load course categories. Please try again.');
-        setLoading(false);
-        return;
-      }
-      
-      // Fetch podcasts with proper RLS enforcement - only podcasts for this course that user is assigned to
-      const { data: podcastsData, error: podcastsError } = await supabase
-        .from('podcasts')
-        .select('*')
-        .eq('course_id', courseId);
-      
-      if (podcastsError) {
-        console.error('Error fetching podcasts data:', podcastsError);
-        clearTimeout(timeoutId);
-        setError('Failed to load course podcasts. Please try again.');
-        setLoading(false);
-        return;
-      }
-      
-      // Fetch PDFs with proper RLS enforcement - only PDFs for this course that user is assigned to
-      const { data: pdfsData, error: pdfsError } = await supabase
-        .from('pdfs')
-        .select('*')
-        .eq('course_id', courseId);
-      
-      if (pdfsError) {
-        console.error('Error fetching PDFs data:', pdfsError);
-        clearTimeout(timeoutId);
-        setError('Failed to load course documents. Please try again.');
-        setLoading(false);
-        return;
-      }
-      
-      // Clear the timeout since we've successfully loaded
-      clearTimeout(timeoutId);
-      
-      console.log('All data loaded successfully');
-      setCourse(courseData);
-      setCategories(categoriesData || []);
-      setPodcasts(podcastsData || []);
-      setPdfs(pdfsData || []);
-
-      // Set first category as active if categories exist
-      if (categoriesData && categoriesData.length > 0) {
-        setActiveCategory(categoriesData[0].id);
-      }
-    } catch (err) {
-      console.error('Failed to load course data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load course data');
-    } finally {
-      setLoading(false);
+  // Effect to generate course image when course loads
+  useEffect(() => {
+    if (course && course.id && !courseImage && !loadingImage) {
+      generateCourseImage(course.title, course.id);
     }
-  };
+  }, [course]);
 
-  const handlePlayPodcast = (podcast: any) => {
-    console.log("Playing podcast:", podcast);
-    setCurrentPodcast(podcast);
-  };
-
-  // Extract YouTube video ID from URL
-  const extractYouTubeVideoId = (url: string): string | null => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
-  };
-
-  // Render media player based on content type
-  const renderMediaPlayer = () => {
-    if (!currentPodcast) {
-      return (
-        <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-          <Headphones className="h-12 w-12 mb-4" />
-          <p>Select a podcast to start listening</p>
-          <p className="text-sm mt-2">Note: Modules must be completed in sequence</p>
-        </div>
-      );
+  // Get course image with fallback
+  const getCourseImageWithFallback = () => {
+    if (loadingImage) {
+      return 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
     }
-
-    if (currentPodcast.is_youtube_video && currentPodcast.video_url) {
-      const videoId = extractYouTubeVideoId(currentPodcast.video_url);
-      if (videoId) {
-        return (
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">{currentPodcast.title}</h2>
-            <div className="aspect-video">
-              <iframe
-                src={`https://www.youtube.com/embed/${videoId}`}
-                title={currentPodcast.title}
-                className="w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </div>
-            <div className="mt-4 text-sm text-gray-600">
-              <p>Note: You must watch this video completely before accessing the next module.</p>
-            </div>
-          </div>
-        );
-      } else {
-        return (
-          <div className="text-red-500">
-            Invalid YouTube URL. Please contact administrator.
-          </div>
-        );
-      }
-    } else {
-      return (
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">{currentPodcast.title}</h2>
-          <audio
-            src={currentPodcast.mp3_url}
-            controls
-            controlsList="nodownload noplaybackrate"
-            className="w-full"
-            onTimeUpdate={async (e) => {
-              const audio = e.currentTarget;
-              const progress = Math.round((audio.currentTime / audio.duration) * 100);
-              
-              // Prevent skipping by checking if user is trying to skip ahead
-              const podcastId = currentPodcast.id;
-              const existingProgress = podcastProgress[podcastId];
-              const allowedPosition = existingProgress ? 
-                Math.min(audio.duration, existingProgress.playback_position + 30) : // Allow 30s forward jump
-                30; // Allow initial 30s jump
-                
-              if (audio.currentTime > allowedPosition) {
-                audio.currentTime = allowedPosition;
-                return;
-              }
-              
-              setPodcastProgress(prev => ({
-                ...prev,
-                [podcastId]: {
-                  ...prev[podcastId],
-                  playback_position: audio.currentTime,
-                  duration: audio.duration,
-                  progress_percent: progress
-                }
-              }));
-              
-              // Save progress to Supabase
-              if (userId && progress > 0) {
-                try {
-                  await supabase
-                    .from('podcast_progress')
-                    .upsert({
-                      user_id: userId,
-                      podcast_id: podcastId,
-                      playback_position: audio.currentTime,
-                      duration: audio.duration,
-                      progress_percent: progress,
-                      last_played_at: new Date().toISOString()
-                    }, {
-                      onConflict: 'user_id,podcast_id'
-                    });
-                  console.log('Progress saved');
-                } catch (error) {
-                  console.error('Error saving progress:', error);
-                }
-              }
-            }}
-            onSeeking={(e) => {
-              // Prevent seeking by resetting to current position
-              const audio = e.currentTarget;
-              const podcastId = currentPodcast.id;
-              const existingProgress = podcastProgress[podcastId];
-              if (existingProgress) {
-                audio.currentTime = Math.min(audio.currentTime, existingProgress.playback_position + 30);
-              }
-            }}
-          />
-          <div className="mt-4 text-sm text-gray-600">
-            <p>Note: You must listen to this podcast completely before accessing the next module.</p>
-          </div>
-        </div>
-      );
+    
+    if (courseImage) {
+      return courseImage;
     }
+    
+    if (course?.image_url) {
+      return course.image_url;
+    }
+    
+    return getDefaultImage(course?.title || '');
   };
 
-  const getCourseImage = (courseTitle: string) => {
+  // Get default placeholder image based on course title
+  const getDefaultImage = (courseTitle: string) => {
     const title = courseTitle?.toLowerCase() || '';
     
     if (title.includes('communication')) {
@@ -600,6 +257,48 @@ export default function CourseDetail() {
     if (userId) {
       loadPodcastProgress();
     }
+  };
+
+  const loadPodcastProgress = async () => {
+    if (!userId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('podcast_progress')
+        .select('*')
+        .eq('user_id', userId);
+        
+      if (error) {
+        console.error('Error loading podcast progress:', error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        // Create a map of podcast_id to progress
+        const progressMap: Record<string, PodcastProgress> = {};
+        
+        data.forEach(item => {
+          progressMap[item.podcast_id] = item;
+        });
+        
+        setPodcastProgress(progressMap);
+        console.log('Loaded podcast progress:', progressMap);
+      }
+    } catch (error) {
+      console.error('Error loading podcast progress:', error);
+    }
+  };
+
+  const handlePlayPodcast = (podcast: any) => {
+    console.log("Playing podcast:", podcast);
+    setCurrentPodcast(podcast);
+  };
+
+  // Extract YouTube video ID from URL
+  const extractYouTubeVideoId = (url: string): string | null => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
   };
 
   if (loading) {
@@ -687,12 +386,18 @@ export default function CourseDetail() {
           {/* Course Image with Gradient Overlay */}
           <div className="md:w-2/5 relative">
             <div className="h-64 md:h-full bg-gradient-to-r from-blue-500 to-purple-600 relative overflow-hidden">
-              <img
-                src={getCourseImage(course.title)}
-                alt={course.title}
-                className="w-full h-full object-cover opacity-90"
-                onError={handleImageError}
-              />
+              {loadingImage ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                </div>
+              ) : (
+                <img
+                  src={getCourseImageWithFallback()}
+                  alt={course.title}
+                  className="w-full h-full object-cover opacity-90"
+                  onError={handleImageError}
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
             </div>
           </div>
