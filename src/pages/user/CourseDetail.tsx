@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, BookOpen, User, ChevronLeft, Play, FileText, MessageSquare, Headphones, Download } from 'lucide-react';
+import { Clock, BookOpen, User, ChevronLeft, Play, FileText, MessageSquare, Headphones, Download, Lock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
@@ -15,12 +15,39 @@ interface Course {
   level?: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  course_id: string;
+  created_at: string;
+}
+
+interface Podcast {
+  id: string;
+  title: string;
+  course_id: string;
+  category_id: string;
+  mp3_url: string;
+  created_by: string | null;
+  created_at: string;
+}
+
+interface PodcastProgress {
+  id: string;
+  user_id: string;
+  podcast_id: string;
+  playback_position: number;
+  duration: number;
+  progress_percent: number;
+  last_played_at: string;
+}
+
 export default function CourseDetail() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [course, setCourse] = useState<any>(null);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [podcasts, setPodcasts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [pdfs, setPdfs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +56,7 @@ export default function CourseDetail() {
   const [currentPodcast, setCurrentPodcast] = useState<any>(null);
   const [currentPdf, setCurrentPdf] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [podcastProgress, setPodcastProgress] = useState<Record<string, number>>({});
+  const [podcastProgress, setPodcastProgress] = useState<Record<string, PodcastProgress>>({});
   const [isUserAssignedToCourse, setIsUserAssignedToCourse] = useState<boolean>(false);
   const [assignmentChecked, setAssignmentChecked] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -191,11 +218,11 @@ export default function CourseDetail() {
       }
       
       if (data && data.length > 0) {
-        // Create a map of podcast_id to progress_percent
-        const progressMap: Record<string, number> = {};
+        // Create a map of podcast_id to progress
+        const progressMap: Record<string, PodcastProgress> = {};
         
         data.forEach(item => {
-          progressMap[item.podcast_id] = item.progress_percent || 0;
+          progressMap[item.podcast_id] = item;
         });
         
         setPodcastProgress(progressMap);
@@ -328,6 +355,32 @@ export default function CourseDetail() {
   const getFilteredPodcasts = () => {
     if (!activeCategory) return podcasts;
     return podcasts.filter(podcast => podcast.category_id === activeCategory);
+  };
+
+  // Check if a podcast is unlocked (previous podcasts in the same category must be completed)
+  const isPodcastUnlocked = (podcast: Podcast, categoryPodcasts: Podcast[]) => {
+    // Find the index of this podcast in the category
+    const podcastIndex = categoryPodcasts.findIndex(p => p.id === podcast.id);
+    
+    // First podcast is always unlocked
+    if (podcastIndex === 0) return true;
+    
+    // Check if all previous podcasts are completed (100%)
+    for (let i = 0; i < podcastIndex; i++) {
+      const previousPodcast = categoryPodcasts[i];
+      const progress = podcastProgress[previousPodcast.id];
+      if (!progress || progress.progress_percent < 100) {
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  // Get the completion percentage for a podcast
+  const getPodcastCompletion = (podcastId: string) => {
+    const progress = podcastProgress[podcastId];
+    return progress ? progress.progress_percent : 0;
   };
 
   if (loading) {
@@ -521,28 +574,59 @@ export default function CourseDetail() {
               <h2 className="text-lg font-semibold mb-4">Podcasts</h2>
               <div className="space-y-3">
                 {getFilteredPodcasts().length > 0 ? 
-                  getFilteredPodcasts().map(podcast => (
-                    <div key={podcast.id} className={`p-3 rounded-lg cursor-pointer transition-colors ${currentPodcast?.id === podcast.id ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 hover:bg-gray-100'}`} onClick={() => handlePlayPodcast(podcast)}>
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 mr-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Headphones className="h-5 w-5 text-blue-600" />
-                          </div>
-                        </div> 
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-medium text-gray-900 truncate">{podcast.title}</h3>
+                  getFilteredPodcasts().map(podcast => {
+                    // Get all podcasts in this category ordered by creation date
+                    const categoryPodcasts = podcasts
+                      .filter(p => p.category_id === podcast.category_id)
+                      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+                    
+                    const isUnlocked = isPodcastUnlocked(podcast, categoryPodcasts);
+                    const completion = getPodcastCompletion(podcast.id);
+                    
+                    return (
+                      <div 
+                        key={podcast.id} 
+                        className={`p-3 rounded-lg transition-colors ${
+                          currentPodcast?.id === podcast.id 
+                            ? 'bg-blue-50 border border-blue-200' 
+                            : isUnlocked 
+                              ? 'bg-gray-50 hover:bg-gray-100 cursor-pointer' 
+                              : 'bg-gray-100 opacity-50 cursor-not-allowed'
+                        }`}
+                        onClick={() => isUnlocked && handlePlayPodcast(podcast)}
+                      >
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 mr-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                              <Headphones className="h-5 w-5 text-blue-600" />
+                            </div>
+                          </div> 
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-sm font-medium text-gray-900 truncate">{podcast.title}</h3>
                             <p className="text-xs text-gray-500">Audio content</p>
-                            {podcastProgress[podcast.id] > 0 && (
+                            {completion > 0 && (
                               <div className="ml-2 flex items-center">
                                 <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                  <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${podcastProgress[podcast.id]}%` }}></div>
+                                  <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
                                 </div>
+                                <span className="text-xs text-gray-500 ml-1">{completion}%</span>
                               </div>
                             )}
-                         </div>
-                       </div>
-                     </div>
-                  )) : (
+                            {!isUnlocked && (
+                              <div className="text-xs text-red-500 mt-1">Complete previous modules first</div>
+                            )}
+                          </div>
+                          {!isUnlocked && (
+                            <div className="flex-shrink-0">
+                              <div className="w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center">
+                                <Lock className="h-3 w-3 text-gray-500" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }) : (
                     <div className="text-center py-8 text-gray-500">
                       No podcasts found for this category
                     </div>
@@ -563,9 +647,27 @@ export default function CourseDetail() {
                     onTimeUpdate={async (e) => {
                       const audio = e.currentTarget;
                       const progress = Math.round((audio.currentTime / audio.duration) * 100);
+                      
+                      // Prevent skipping by checking if user is trying to skip ahead
+                      const podcastId = currentPodcast.id;
+                      const existingProgress = podcastProgress[podcastId];
+                      const allowedPosition = existingProgress ? 
+                        Math.min(audio.duration, existingProgress.playback_position + 30) : // Allow 30s forward jump
+                        30; // Allow initial 30s jump
+                        
+                      if (audio.currentTime > allowedPosition) {
+                        audio.currentTime = allowedPosition;
+                        return;
+                      }
+                      
                       setPodcastProgress(prev => ({
                         ...prev,
-                        [currentPodcast.id]: progress
+                        [podcastId]: {
+                          ...prev[podcastId],
+                          playback_position: audio.currentTime,
+                          duration: audio.duration,
+                          progress_percent: progress
+                        }
                       }));
                       
                       // Save progress to Supabase
@@ -575,7 +677,7 @@ export default function CourseDetail() {
                             .from('podcast_progress')
                             .upsert({
                               user_id: userId,
-                              podcast_id: currentPodcast.id,
+                              podcast_id: podcastId,
                               playback_position: audio.currentTime,
                               duration: audio.duration,
                               progress_percent: progress,
@@ -589,12 +691,25 @@ export default function CourseDetail() {
                         }
                       }
                     }}
+                    onSeeking={(e) => {
+                      // Prevent seeking by resetting to current position
+                      const audio = e.currentTarget;
+                      const podcastId = currentPodcast.id;
+                      const existingProgress = podcastProgress[podcastId];
+                      if (existingProgress) {
+                        audio.currentTime = Math.min(audio.currentTime, existingProgress.playback_position + 30);
+                      }
+                    }}
                   />
+                  <div className="mt-4 text-sm text-gray-600">
+                    <p>Note: You must listen to this podcast completely before accessing the next module.</p>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-64 text-gray-500">
                   <Headphones className="h-12 w-12 mb-4" />
                   <p>Select a podcast to start listening</p>
+                  <p className="text-sm mt-2">Note: Modules must be completed in sequence</p>
                 </div>
               )}
             </div>
@@ -624,7 +739,8 @@ export default function CourseDetail() {
                       className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                       onClick={(e) => {
                         e.preventDefault();
-                        setCurrentPdf(pdf);
+                        // Open in new window/tab
+                        window.open(pdf.pdf_url, '_blank');
                       }}
                     >
                       <FileText className="h-3 w-3 mr-1" />
