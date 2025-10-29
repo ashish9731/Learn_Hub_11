@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, BookOpen, Users, CheckCircle, XCircle, Mail, User, Building2, ChevronDown, ChevronRight, Headphones, FileText, Music } from 'lucide-react';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import { useRealtimeSync } from '../../hooks/useSupabase';
-import { supabase } from '../../lib/supabase';
+import { supabase, supabaseAdmin } from '../../lib/supabase';
 import { sendCourseAssignedEmail } from '../../services/emailService';
 
 interface User {
@@ -287,11 +287,16 @@ export default function CourseAssignment() {
         throw new Error('Not authenticated');
       }
 
+      // Check if we have admin client
+      if (!supabaseAdmin) {
+        throw new Error('Admin client not available. Please check your environment configuration.');
+      }
+
       // Get admin profile for email
       const adminProfile = supabaseData.userProfiles.find(p => p.user_id === currentUser.id);
       const adminName = adminProfile?.full_name || currentUser.email;
 
-      // Create podcast assignments
+      // Create podcast assignments using admin client to bypass RLS
       if (selectedContent.podcasts.length > 0) {
         const assignments = [];
         
@@ -307,8 +312,8 @@ export default function CourseAssignment() {
           }
         }
         
-        // Insert podcast assignments
-        const { error: podcastAssignmentError } = await supabase
+        // Insert podcast assignments using admin client
+        const { error: podcastAssignmentError } = await supabaseAdmin
           .from('podcast_assignments')
           .upsert(assignments, {
             onConflict: 'user_id,podcast_id'
@@ -320,7 +325,7 @@ export default function CourseAssignment() {
         }
       }
 
-      // Create course assignments for PDFs and courses (they need course context)
+      // Create course assignments for PDFs and courses using admin client
       const courseAssignments = [];
       const allSelectedPdfs = selectedContent.pdfs;
       
@@ -352,8 +357,8 @@ export default function CourseAssignment() {
           }
         }
         
-        // Insert course assignments
-        const { error: courseAssignmentError } = await supabase
+        // Insert course assignments using admin client
+        const { error: courseAssignmentError } = await supabaseAdmin
           .from('user_courses')
           .upsert(courseAssignments, {
             onConflict: 'user_id,course_id'
