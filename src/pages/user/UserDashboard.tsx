@@ -307,7 +307,6 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     try {
       if (!userId) return;
       
-      setLoading(true);
       setError(null);
       
       // Load all data first
@@ -340,9 +339,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     } catch (err) {
       console.error('Failed to load user data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load user data');
-    } finally {
-      setLoading(false);
     }
+    // Note: We don't set loading state here, it's handled by the main useEffect
   }, [userId, loadUserLikedPodcasts]);
 
   // Real-time sync for all relevant tables
@@ -369,43 +367,41 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
 
   // Get user ID on component mount
   useEffect(() => {
-    const fetchUserId = async () => {
+    const initializeDashboard = async () => {
+      setLoading(true);
+      setError(null);
+      
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setUserId(user.id);
+          
+          // Load all data in parallel
+          await Promise.all([
+            loadUserCourses(),
+            loadUserData(),
+            loadPodcastProgress(),
+            loadLearningMetrics(user.id)
+          ]);
         }
       } catch (error) {
-        console.error('Error getting user:', error);
+        console.error('Error initializing dashboard:', error);
+        setError(error instanceof Error ? error.message : 'Failed to initialize dashboard');
+      } finally {
+        setLoading(false);
       }
     };
-    fetchUserId();
+    
+    initializeDashboard();
   }, []);
-
-  // Load podcast progress when userId is available
-  useEffect(() => {
-    if (userId) {
-      loadPodcastProgress();
-      try {
-        loadLearningMetrics(userId);
-      } catch (error) {
-        console.error('Error loading learning metrics:', error);
-        // Set default metrics if loading fails
-        setLearningMetrics({
-          totalHours: 0,
-          completedCourses: 0,
-          inProgressCourses: 0,
-          averageCompletion: 0
-        });
-      }
-    }
-  }, [userId]);
   
-  // Then load user data when userId is available
+  // Load user data when userId is available
   useEffect(() => {
     if (userId) {
       loadUserCourses(); // Load user courses first
       loadUserData(); // Load all data
+      loadPodcastProgress();
+      loadLearningMetrics(userId);
     }
   }, [userId]);
   

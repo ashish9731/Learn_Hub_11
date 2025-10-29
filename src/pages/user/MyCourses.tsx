@@ -117,8 +117,6 @@ export default function MyCourses() {
 
   async function loadAllSupabaseData() {
     try {
-      setLoading(true);
-      
       // Load basic data that doesn't require user-specific permissions
       let courses = [], categories = [], podcasts = [], pdfs = [], documents = [];
       
@@ -149,9 +147,8 @@ export default function MyCourses() {
     } catch (err) {
       console.error('Error in loadAllSupabaseData:', err);
       setError(err instanceof Error ? err.message : 'Failed to load data');
-    } finally {
-      setLoading(false);
     }
+    // Note: We don't set loading to false here anymore, it's handled in the useEffect
   }
 
   async function loadPodcastProgress() {
@@ -229,10 +226,42 @@ export default function MyCourses() {
   }, []);
 
   useEffect(() => {
+    const initializeData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // First get the user ID
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+          
+          // Load all data in parallel
+          await Promise.all([
+            loadAllSupabaseData(),
+            loadPodcastProgress(),
+            loadUserCourses(user.id)
+          ]);
+        } else {
+          // If not logged in, still load general data
+          await loadAllSupabaseData();
+        }
+      } catch (err) {
+        console.error('Error initializing data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to initialize data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initializeData();
+  }, []);
+  
+  useEffect(() => {
+    // Reload data when userId changes
     if (userId) {
       loadPodcastProgress();
       loadUserCourses(userId);
-      loadAllSupabaseData();
     }
   }, [userId]);
 
