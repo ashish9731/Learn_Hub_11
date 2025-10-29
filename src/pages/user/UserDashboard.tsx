@@ -5,14 +5,17 @@ import {
   FileText, 
   Image, 
   File,
-  Play,
-  ChevronDown,
-  ChevronRight
+  Clock,
+  CheckCircle,
+  BarChart3,
+  TrendingUp,
+  Users
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import { useRealtimeSync } from '../../hooks/useSupabase';
 import { useNavigate } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface Course {
   id: string;
@@ -24,133 +27,41 @@ interface Course {
   level?: string;
 }
 
-interface Category {
-  id: string;
-  name: string;
-  course_id: string;
-  created_at: string;
-  level?: string;
-}
-
-interface Podcast {
-  id: string;
-  title: string;
-  course_id: string;
-  category_id: string;
-  category: string;
-  mp3_url: string;
-  video_url: string | null;
-  is_youtube_video: boolean;
-  created_by: string | null;
-  created_at: string;
-}
-
-interface PDF {
-  id: string;
-  title: string;
-  course_id: string;
-  pdf_url: string;
-  created_by: string | null;
-  created_at: string;
-}
-
 interface UserCourse {
   user_id: string;
   course_id: string;
   assigned_by: string | null;
   assigned_at: string;
   due_date: string | null;
+  completed?: boolean;
+  completion_date?: string | null;
   courses: Course;
 }
 
-// Add this helper function to determine file type from URL
-const getFileType = (url: string): 'pdf' | 'image' | 'template' => {
-  const extension = url.split('.').pop()?.toLowerCase() || '';
-  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
-  const pdfExtensions = ['pdf'];
-  
-  if (imageExtensions.includes(extension)) {
-    return 'image';
-  } else if (pdfExtensions.includes(extension)) {
-    return 'pdf';
-  } else {
-    return 'template';
-  }
-};
-
-// Add this helper function to get file extension
-const getFileExtension = (url: string): string => {
-  return url.split('.').pop()?.toUpperCase() || 'FILE';
-};
+interface PodcastProgress {
+  id: string;
+  user_id: string;
+  podcast_id: string;
+  playback_position: number;
+  duration: number;
+  progress_percent: number;
+  last_played_at?: string;
+}
 
 export default function UserDashboard({ userEmail = '' }: { userEmail?: string }) {
   const [userId, setUserId] = useState<string>('');
-  const [podcastProgress, setPodcastProgress] = useState<Record<string, number>>({});
-  const [podcastDurations, setPodcastDurations] = useState<Record<string, number>>({});
   const [supabaseData, setSupabaseData] = useState<{
     courses: Course[];
-    categories: Category[];
-    podcasts: Podcast[];
-    pdfs: PDF[];
     userCourses: UserCourse[];
   }>({
     courses: [],
-    categories: [],
-    podcasts: [],
-    pdfs: [],
     userCourses: []
   });
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    audios: true,
-    videos: true,
-    docs: true,
-    images: true,
-    templates: true
-  });
+  const [podcastProgress, setPodcastProgress] = useState<PodcastProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeModule, setActiveModule] = useState('dashboard');
+  const [userProfile, setUserProfile] = useState<any>(null);
   const navigate = useNavigate();
-
-  // Load podcast progress
-  const loadPodcastProgress = async () => {
-    if (!userId) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('podcast_progress')
-        .select('*')
-        .eq('user_id', userId);
-      
-      if (error) {
-        console.error('Error loading podcast progress:', error);
-        setPodcastProgress({});
-        setPodcastDurations({});
-        return;
-      }
-      
-      if (data && data.length > 0) {
-        const progressMap: Record<string, any> = {};
-        const durationMap: Record<string, number> = {};
-        
-        data.forEach(item => {
-          progressMap[item.podcast_id] = item.progress_percent || 0;
-          durationMap[item.podcast_id] = typeof item.duration === 'string' ? 
-            parseFloat(item.duration) : (item.duration || 0);
-        });
-        
-        setPodcastProgress(progressMap);
-        setPodcastDurations(durationMap);
-      } else {
-        setPodcastProgress({});
-        setPodcastDurations({});
-      }
-    } catch (error) {
-      console.error('Exception loading podcast progress:', error);
-      setPodcastProgress({});
-      setPodcastDurations({});
-    }
-  };
 
   // Load user data - only assigned courses
   const loadUserData = async () => {
@@ -159,13 +70,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       
       setError(null);
       
-      // Load all data in parallel
-      const [categoriesData, podcastsData, pdfsData, userCoursesData] = await Promise.all([
-        supabaseHelpers.getContentCategories(), 
-        supabaseHelpers.getPodcasts(),
-        supabaseHelpers.getPDFs(),
-        supabaseHelpers.getUserCourses(userId)
-      ]);
+      // Load user courses
+      const userCoursesData = await supabaseHelpers.getUserCourses(userId);
       
       // Load courses using regular supabase client to respect RLS policies
       let coursesData = [];
@@ -195,9 +101,6 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       setSupabaseData(prev => ({
         ...prev,
         courses: assignedCourses,
-        categories: categoriesData || [],
-        podcasts: podcastsData,
-        pdfs: pdfsData,
         userCourses: userCoursesData || []
       }));
     } catch (err) {
@@ -206,12 +109,32 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     }
   };
 
+  // Load podcast progress
+  const loadPodcastProgress = async () => {
+    if (!userId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('podcast_progress')
+        .select('*')
+        .eq('user_id', userId);
+      
+      if (error) {
+        console.error('Error loading podcast progress:', error);
+        setPodcastProgress([]);
+        return;
+      }
+      
+      setPodcastProgress(data || []);
+    } catch (error) {
+      console.error('Exception loading podcast progress:', error);
+      setPodcastProgress([]);
+    }
+  };
+
   // Real-time sync for all relevant tables
   useRealtimeSync('user-courses', loadUserData);
   useRealtimeSync('courses', loadUserData);
-  useRealtimeSync('podcasts', loadUserData);
-  useRealtimeSync('content-categories', loadUserData);
-  useRealtimeSync('pdfs', loadUserData);
   useRealtimeSync('podcast-progress', loadPodcastProgress);
 
   // Get user ID on component mount
@@ -280,98 +203,105 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     }
   }, [userId]);
 
-  // Build course hierarchy for display with better categorization
-  const courseHierarchy = React.useMemo(() => {
-    const assignedCourseIds = new Set(supabaseData.userCourses.map(uc => uc.course_id));
-    const assignedCourses = supabaseData.courses.filter(course => 
-      assignedCourseIds.has(course.id)
-    );
+  // Load user profile
+  useEffect(() => {
+    if (userId) {
+      const fetchUserProfile = async () => {
+        try {
+          const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+          
+          if (error) {
+            console.error('Error fetching user profile:', error);
+          } else {
+            setUserProfile(profile);
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        }
+      };
+      
+      fetchUserProfile();
+    }
+  }, [userId]);
+
+  // Calculate KPIs
+  const calculateKPIs = () => {
+    const assignedCourses = supabaseData.userCourses.length;
+    const completedCourses = supabaseData.userCourses.filter(uc => uc.completed).length;
     
-    return assignedCourses.map(course => {
-      const courseCategories = supabaseData.categories.filter(cat => cat.course_id === course.id);
-      
-      const categoriesWithPodcasts = courseCategories.map(category => {
-        const categoryPodcasts = supabaseData.podcasts.filter(
-          podcast => podcast.category_id === category.id
-        );
-        return {
-          ...category,
-          podcasts: categoryPodcasts
-        };
-      });
-      
-      const uncategorizedPodcasts = supabaseData.podcasts.filter(
-        podcast => podcast.course_id === course.id && !podcast.category_id
+    // Calculate total learning hours
+    let totalHours = 0;
+    let totalProgress = 0;
+    let progressCount = 0;
+    
+    podcastProgress.forEach(progress => {
+      const duration = typeof progress.duration === 'string' ? 
+        parseFloat(progress.duration) : (progress.duration || 0);
+      totalHours += (duration * (progress.progress_percent || 0) / 100) / 3600;
+      totalProgress += progress.progress_percent || 0;
+      progressCount++;
+    });
+    
+    const averageProgress = progressCount > 0 ? Math.round(totalProgress / progressCount) : 0;
+    
+    return {
+      assignedCourses,
+      completedCourses,
+      totalHours: Math.round(totalHours * 10) / 10,
+      averageProgress
+    };
+  };
+
+  // Prepare chart data
+  const prepareChartData = () => {
+    const courseProgressData = supabaseData.userCourses.map(uc => {
+      const coursePodcasts = podcastProgress.filter(p => 
+        supabaseData.courses.find(c => c.id === uc.course_id)?.id
       );
       
-      const coursePDFs = supabaseData.pdfs.filter(pdf => pdf.course_id === course.id);
-      
-      // Categorize documents by file type
-      const documents = coursePDFs.map(pdf => ({
-        ...pdf,
-        fileType: getFileType(pdf.pdf_url),
-        fileExtension: getFileExtension(pdf.pdf_url)
-      }));
-      
-      const pdfDocuments = documents.filter(doc => doc.fileType === 'pdf');
-      const imageDocuments = documents.filter(doc => doc.fileType === 'image');
-      const templateDocuments = documents.filter(doc => doc.fileType === 'template');
+      const totalProgress = coursePodcasts.reduce((sum, p) => sum + (p.progress_percent || 0), 0);
+      const avgProgress = coursePodcasts.length > 0 ? Math.round(totalProgress / coursePodcasts.length) : 0;
       
       return {
-        ...course,
-        categories: categoriesWithPodcasts,
-        uncategorizedPodcasts,
-        coursePDFs: documents,
-        pdfDocuments,
-        imageDocuments,
-        templateDocuments,
-        totalPodcasts: categoriesWithPodcasts.reduce(
-          (sum, cat) => sum + cat.podcasts.length, 0
-        ) + uncategorizedPodcasts.length,
-        totalDocuments: documents.length
+        name: uc.courses.title.length > 15 ? `${uc.courses.title.substring(0, 15)}...` : uc.courses.title,
+        progress: avgProgress
       };
     });
-  }, [supabaseData.courses, supabaseData.categories, supabaseData.podcasts, supabaseData.pdfs, supabaseData.userCourses]);
-
-  // Toggle section expansion
-  const toggleSectionExpansion = (section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+    
+    // Progress distribution data
+    const progressDistribution = [
+      { name: 'Not Started', value: supabaseData.userCourses.filter(uc => {
+        const courseProgress = podcastProgress.filter(p => 
+          supabaseData.courses.find(c => c.id === uc.course_id)?.id
+        );
+        return courseProgress.length === 0 || courseProgress.every(p => (p.progress_percent || 0) === 0);
+      }).length },
+      { name: 'In Progress', value: supabaseData.userCourses.filter(uc => {
+        const courseProgress = podcastProgress.filter(p => 
+          supabaseData.courses.find(c => c.id === uc.course_id)?.id
+        );
+        return courseProgress.some(p => (p.progress_percent || 0) > 0 && (p.progress_percent || 0) < 100);
+      }).length },
+      { name: 'Completed', value: supabaseData.userCourses.filter(uc => {
+        const courseProgress = podcastProgress.filter(p => 
+          supabaseData.courses.find(c => c.id === uc.course_id)?.id
+        );
+        return courseProgress.length > 0 && courseProgress.every(p => (p.progress_percent || 0) >= 100);
+      }).length }
+    ];
+    
+    return { courseProgressData, progressDistribution };
   };
 
-  // Calculate total items for each content type
-  const getContentCounts = () => {
-    let audioCount = 0;
-    let videoCount = 0;
-    let docCount = 0;
-    let imageCount = 0;
-    let templateCount = 0;
-    
-    courseHierarchy.forEach(course => {
-      // Count audio podcasts (not YouTube videos)
-      course.categories.forEach(category => {
-        audioCount += category.podcasts.filter(p => !p.is_youtube_video).length;
-      });
-      audioCount += course.uncategorizedPodcasts.filter(p => !p.is_youtube_video).length;
-      
-      // Count video podcasts (YouTube videos)
-      course.categories.forEach(category => {
-        videoCount += category.podcasts.filter(p => p.is_youtube_video).length;
-      });
-      videoCount += course.uncategorizedPodcasts.filter(p => p.is_youtube_video).length;
-      
-      // Count documents
-      docCount += course.pdfDocuments.length;
-      imageCount += course.imageDocuments.length;
-      templateCount += course.templateDocuments.length;
-    });
-    
-    return { audioCount, videoCount, docCount, imageCount, templateCount };
-  };
+  const { assignedCourses, completedCourses, totalHours, averageProgress } = calculateKPIs();
+  const { courseProgressData, progressDistribution } = prepareChartData();
 
-  const { audioCount, videoCount, docCount, imageCount, templateCount } = getContentCounts();
+  // Colors for pie chart
+  const COLORS = ['#8b5cf6', '#f59e0b', '#10b981'];
 
   if (loading) {
     return (
@@ -406,387 +336,164 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     );
   }
 
-  // Dashboard view - organized by content type
+  // Dashboard view - KPIs and charts only
   return (
     <div className="py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">My Learning Dashboard</h1>
+          <h1 className="text-2xl font-bold text-white">Learning Dashboard</h1>
           <p className="mt-1 text-sm text-[#a0a0a0]">
-            Access all your assigned courses and content
+            Track your learning progress and course completion
           </p>
         </div>
 
-        {/* Content Type Sections */}
-        <div className="space-y-6">
-          {/* Audios Section */}
-          <div className="bg-[#1e1e1e] rounded-lg border border-[#333333]">
-            <div 
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
-              onClick={() => toggleSectionExpansion('audios')}
-            >
-              <div className="flex items-center">
-                <Headphones className="h-5 w-5 text-[#8b5cf6] mr-3" />
-                <h2 className="text-lg font-medium text-white">Audio Content</h2>
-              </div>
-              <div className="flex items-center">
-                <span className="text-sm text-[#a0a0a0] mr-3">{audioCount} items</span>
-                {expandedSections.audios ? (
-                  <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
-                ) : (
-                  <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
-                )}
-              </div>
-            </div>
-            
-            {expandedSections.audios && (
-              <div className="px-4 pb-4">
-                {courseHierarchy.map(course => (
-                  <div key={course.id} className="mb-4">
-                    <h3 className="text-md font-medium text-white mb-2">{course.title}</h3>
-                    <div className="space-y-2">
-                      {course.categories.map(category => (
-                        category.podcasts.filter(p => !p.is_youtube_video).map(podcast => (
-                          <div 
-                            key={podcast.id} 
-                            className="flex items-center justify-between p-3 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
-                            onClick={() => {
-                              // Navigate to course detail page with audio tab selected
-                              navigate(`/user/courses/${course.id}`, { state: { activeTab: 'audios' } });
-                            }}
-                          >
-                            <div className="flex items-center">
-                              <Headphones className="h-4 w-4 text-[#8b5cf6] mr-3" />
-                              <div>
-                                <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
-                                <p className="text-xs text-[#a0a0a0]">{category.name}</p>
-                              </div>
-                            </div>
-                            {podcastProgress[podcast.id] > 0 && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#8b5cf6]/20 text-[#8b5cf6]">
-                                {Math.round(podcastProgress[podcast.id] || 0)}%
-                              </span>
-                            )}
-                          </div>
-                        ))
-                      ))}
-                      {course.uncategorizedPodcasts.filter(p => !p.is_youtube_video).map(podcast => (
-                        <div 
-                          key={podcast.id} 
-                          className="flex items-center justify-between p-3 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
-                          onClick={() => {
-                            // Navigate to course detail page with audio tab selected
-                            navigate(`/user/courses/${course.id}`, { state: { activeTab: 'audios' } });
-                          }}
-                        >
-                          <div className="flex items-center">
-                            <Headphones className="h-4 w-4 text-[#8b5cf6] mr-3" />
-                            <div>
-                              <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
-                              <p className="text-xs text-[#a0a0a0]">Uncategorized</p>
-                            </div>
-                          </div>
-                          {podcastProgress[podcast.id] > 0 && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#8b5cf6]/20 text-[#8b5cf6]">
-                              {Math.round(podcastProgress[podcast.id] || 0)}%
-                            </span>
-                          )}
-                        </div>
-                      ))}
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[
+            { title: 'Assigned Courses', value: assignedCourses, icon: BookOpen, color: 'bg-[#8b5cf6]' },
+            { title: 'Completed Courses', value: completedCourses, icon: CheckCircle, color: 'bg-[#10b981]' },
+            { title: 'Total Hours', value: totalHours, icon: Clock, color: 'bg-[#f59e0b]' },
+            { title: 'Avg. Progress', value: `${averageProgress}%`, icon: TrendingUp, color: 'bg-[#3b82f6]' }
+          ].map((card, index) => (
+            <div key={index} className="bg-[#1e1e1e] overflow-hidden shadow-sm rounded-lg border border-[#333333]">
+              <div className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className={`${card.color} rounded-md p-3`}>
+                      <card.icon className="h-6 w-6 text-white" />
                     </div>
                   </div>
-                ))}
-                
-                {audioCount === 0 && (
-                  <div className="text-center py-8">
-                    <Headphones className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-white">No audio content available</h3>
-                    <p className="mt-1 text-sm text-[#a0a0a0]">
-                      Your assigned courses don't have any audio content yet.
-                    </p>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-300 truncate">{card.title}</dt>
+                      <dd className="text-2xl font-semibold text-white">{card.value}</dd>
+                    </dl>
                   </div>
-                )}
+                </div>
               </div>
-            )}
+            </div>
+          ))}
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Course Progress Chart */}
+          <div className="bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333]">
+            <div className="px-6 py-4 border-b border-[#333333]">
+              <h3 className="text-lg font-medium text-white">Course Progress</h3>
+            </div>
+            <div className="p-6 h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={courseProgressData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
+                  <XAxis dataKey="name" stroke="#a0a0a0" />
+                  <YAxis stroke="#a0a0a0" domain={[0, 100]} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333333' }}
+                    itemStyle={{ color: 'white' }}
+                  />
+                  <Bar dataKey="progress" fill="#8b5cf6" name="Progress %" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
-          {/* Videos Section */}
-          <div className="bg-[#1e1e1e] rounded-lg border border-[#333333]">
-            <div 
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
-              onClick={() => toggleSectionExpansion('videos')}
-            >
-              <div className="flex items-center">
-                <Play className="h-5 w-5 text-red-500 mr-3" />
-                <h2 className="text-lg font-medium text-white">Video Content</h2>
-              </div>
-              <div className="flex items-center">
-                <span className="text-sm text-[#a0a0a0] mr-3">{videoCount} items</span>
-                {expandedSections.videos ? (
-                  <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
-                ) : (
-                  <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
-                )}
-              </div>
+          {/* Progress Distribution */}
+          <div className="bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333]">
+            <div className="px-6 py-4 border-b border-[#333333]">
+              <h3 className="text-lg font-medium text-white">Progress Distribution</h3>
             </div>
-            
-            {expandedSections.videos && (
-              <div className="px-4 pb-4">
-                {courseHierarchy.map(course => (
-                  <div key={course.id} className="mb-4">
-                    <h3 className="text-md font-medium text-white mb-2">{course.title}</h3>
-                    <div className="space-y-2">
-                      {course.categories.map(category => (
-                        category.podcasts.filter(p => p.is_youtube_video).map(podcast => (
-                          <div 
-                            key={podcast.id} 
-                            className="flex items-center justify-between p-3 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
-                            onClick={() => {
-                              // Navigate to course detail page with videos tab selected
-                              navigate(`/user/courses/${course.id}`, { state: { activeTab: 'videos' } });
-                            }}
-                          >
-                            <div className="flex items-center">
-                              <Play className="h-4 w-4 text-red-500 mr-3" />
-                              <div>
-                                <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
-                                <p className="text-xs text-[#a0a0a0]">{category.name}</p>
-                              </div>
-                            </div>
-                            {podcastProgress[podcast.id] > 0 && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-500">
-                                {Math.round(podcastProgress[podcast.id] || 0)}%
-                              </span>
-                            )}
-                          </div>
-                        ))
-                      ))}
-                      {course.uncategorizedPodcasts.filter(p => p.is_youtube_video).map(podcast => (
-                        <div 
-                          key={podcast.id} 
-                          className="flex items-center justify-between p-3 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
-                          onClick={() => {
-                            // Navigate to course detail page with videos tab selected
-                            navigate(`/user/courses/${course.id}`, { state: { activeTab: 'videos' } });
-                          }}
-                        >
-                          <div className="flex items-center">
-                            <Play className="h-4 w-4 text-red-500 mr-3" />
-                            <div>
-                              <h4 className="text-sm font-medium text-white">{podcast.title}</h4>
-                              <p className="text-xs text-[#a0a0a0]">Uncategorized</p>
-                            </div>
-                          </div>
-                          {podcastProgress[podcast.id] > 0 && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-500">
-                              {Math.round(podcastProgress[podcast.id] || 0)}%
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                
-                {videoCount === 0 && (
-                  <div className="text-center py-8">
-                    <Play className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-white">No video content available</h3>
-                    <p className="mt-1 text-sm text-[#a0a0a0]">
-                      Your assigned courses don't have any video content yet.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Docs Section */}
-          <div className="bg-[#1e1e1e] rounded-lg border border-[#333333]">
-            <div 
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
-              onClick={() => toggleSectionExpansion('docs')}
-            >
-              <div className="flex items-center">
-                <FileText className="h-5 w-5 text-purple-500 mr-3" />
-                <h2 className="text-lg font-medium text-white">Documents</h2>
-              </div>
-              <div className="flex items-center">
-                <span className="text-sm text-[#a0a0a0] mr-3">{docCount} items</span>
-                {expandedSections.docs ? (
-                  <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
-                ) : (
-                  <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
-                )}
-              </div>
+            <div className="p-6 h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={progressDistribution}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name}: ${percent ? (percent * 100).toFixed(0) : '0'}%`}
+                  >
+                    {progressDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333333' }}
+                    itemStyle={{ color: 'white' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
-            
-            {expandedSections.docs && (
-              <div className="px-4 pb-4">
-                {courseHierarchy.map(course => (
-                  <div key={course.id} className="mb-4">
-                    <h3 className="text-md font-medium text-white mb-2">{course.title}</h3>
-                    <div className="space-y-2">
-                      {course.pdfDocuments.map(doc => (
-                        <div 
-                          key={doc.id} 
-                          className="flex items-center justify-between p-3 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
-                          onClick={() => window.open(doc.pdf_url, '_blank')}
-                        >
-                          <div className="flex items-center">
-                            <FileText className="h-4 w-4 text-purple-500 mr-3" />
-                            <div>
-                              <h4 className="text-sm font-medium text-white">{doc.title}</h4>
-                              <p className="text-xs text-[#a0a0a0]">PDF Document</p>
-                            </div>
-                          </div>
-                          <File className="h-4 w-4 text-gray-400" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                
-                {docCount === 0 && (
-                  <div className="text-center py-8">
-                    <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-white">No documents available</h3>
-                    <p className="mt-1 text-sm text-[#a0a0a0]">
-                      Your assigned courses don't have any documents yet.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Images Section */}
-          <div className="bg-[#1e1e1e] rounded-lg border border-[#333333]">
-            <div 
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
-              onClick={() => toggleSectionExpansion('images')}
-            >
-              <div className="flex items-center">
-                <Image className="h-5 w-5 text-blue-500 mr-3" />
-                <h2 className="text-lg font-medium text-white">Images & Cheatsheets</h2>
-              </div>
-              <div className="flex items-center">
-                <span className="text-sm text-[#a0a0a0] mr-3">{imageCount} items</span>
-                {expandedSections.images ? (
-                  <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
-                ) : (
-                  <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
-                )}
-              </div>
-            </div>
-            
-            {expandedSections.images && (
-              <div className="px-4 pb-4">
-                {courseHierarchy.map(course => (
-                  <div key={course.id} className="mb-4">
-                    <h3 className="text-md font-medium text-white mb-2">{course.title}</h3>
-                    <div className="space-y-2">
-                      {course.imageDocuments.map(image => (
-                        <div 
-                          key={image.id} 
-                          className="flex items-center justify-between p-3 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
-                          onClick={() => window.open(image.pdf_url, '_blank')}
-                        >
-                          <div className="flex items-center">
-                            <Image className="h-4 w-4 text-blue-500 mr-3" />
-                            <div>
-                              <h4 className="text-sm font-medium text-white">{image.title}</h4>
-                              <p className="text-xs text-[#a0a0a0]">{image.fileExtension} Image</p>
-                            </div>
-                          </div>
-                          <Image className="h-4 w-4 text-gray-400" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                
-                {imageCount === 0 && (
-                  <div className="text-center py-8">
-                    <Image className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-white">No images available</h3>
-                    <p className="mt-1 text-sm text-[#a0a0a0]">
-                      Your assigned courses don't have any images or cheatsheets yet.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Templates Section */}
-          <div className="bg-[#1e1e1e] rounded-lg border border-[#333333]">
-            <div 
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-[#252525]"
-              onClick={() => toggleSectionExpansion('templates')}
-            >
-              <div className="flex items-center">
-                <File className="h-5 w-5 text-yellow-500 mr-3" />
-                <h2 className="text-lg font-medium text-white">Templates</h2>
-              </div>
-              <div className="flex items-center">
-                <span className="text-sm text-[#a0a0a0] mr-3">{templateCount} items</span>
-                {expandedSections.templates ? (
-                  <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
-                ) : (
-                  <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
-                )}
-              </div>
-            </div>
-            
-            {expandedSections.templates && (
-              <div className="px-4 pb-4">
-                {courseHierarchy.map(course => (
-                  <div key={course.id} className="mb-4">
-                    <h3 className="text-md font-medium text-white mb-2">{course.title}</h3>
-                    <div className="space-y-2">
-                      {course.templateDocuments.map(template => (
-                        <div 
-                          key={template.id} 
-                          className="flex items-center justify-between p-3 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
-                          onClick={() => window.open(template.pdf_url, '_blank')}
-                        >
-                          <div className="flex items-center">
-                            <File className="h-4 w-4 text-yellow-500 mr-3" />
-                            <div>
-                              <h4 className="text-sm font-medium text-white">{template.title}</h4>
-                              <p className="text-xs text-[#a0a0a0]">{template.fileExtension} Template</p>
-                            </div>
-                          </div>
-                          <File className="h-4 w-4 text-gray-400" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                
-                {templateCount === 0 && (
-                  <div className="text-center py-8">
-                    <File className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-white">No templates available</h3>
-                    <p className="mt-1 text-sm text-[#a0a0a0]">
-                      Your assigned courses don't have any templates yet.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
-        {/* View All Courses Button */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => navigate('/user/courses')}
-            className="inline-flex items-center px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#1e1e1e] hover:bg-[#252525]"
-          >
-            View All Courses
-          </button>
+        {/* Assigned Courses */}
+        <div className="bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333]">
+          <div className="px-6 py-4 border-b border-[#333333]">
+            <h3 className="text-lg font-medium text-white">My Courses</h3>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {supabaseData.userCourses.length > 0 ? (
+                supabaseData.userCourses.map((userCourse) => {
+                  const course = userCourse.courses;
+                  const courseProgress = podcastProgress.filter(p => 
+                    supabaseData.courses.find(c => c.id === userCourse.course_id)?.id
+                  );
+                  const totalProgress = courseProgress.reduce((sum, p) => sum + (p.progress_percent || 0), 0);
+                  const avgProgress = courseProgress.length > 0 ? Math.round(totalProgress / courseProgress.length) : 0;
+                  
+                  return (
+                    <div 
+                      key={userCourse.course_id} 
+                      className="flex items-center justify-between p-4 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
+                      onClick={() => navigate(`/user/courses/${userCourse.course_id}`)}
+                    >
+                      <div className="flex items-center">
+                        {course.image_url ? (
+                          <img 
+                            src={course.image_url} 
+                            alt={course.title} 
+                            className="h-12 w-12 rounded-md object-cover mr-4"
+                          />
+                        ) : (
+                          <div className="h-12 w-12 rounded-md bg-[#8b5cf6]/20 flex items-center justify-center mr-4">
+                            <BookOpen className="h-6 w-6 text-[#8b5cf6]" />
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="text-sm font-medium text-white">{course.title}</h4>
+                          <p className="text-xs text-gray-400">
+                            {course.level || 'Not specified'} • Assigned on {new Date(userCourse.assigned_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-24 bg-[#333333] rounded-full h-2 mr-3">
+                          <div 
+                            className="bg-[#8b5cf6] h-2 rounded-full" 
+                            style={{ width: `${avgProgress}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-white">{avgProgress}%</span>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-8">
+                  <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-white">No courses assigned</h3>
+                  <p className="mt-1 text-sm text-[#a0a0a0]">
+                    Contact your administrator to get access to courses.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

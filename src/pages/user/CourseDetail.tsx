@@ -708,315 +708,361 @@ export default function CourseDetail() {
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      {/* Action Buttons - Single Row */}
+      <div className="grid grid-cols-5 gap-4 mb-6">
         <button
-          onClick={() => setActiveTab('podcasts')}
+          onClick={() => setActiveTab('audios')}
           className={`py-3 px-4 rounded-lg flex justify-center items-center font-medium ${
-            activeTab === 'podcasts' 
+            activeTab === 'audios' 
               ? 'bg-blue-500 text-white' 
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
           <Headphones className="h-5 w-5 mr-2" />
-          Podcasts
+          Audios
         </button>
         <button
-          onClick={() => setActiveTab('downloads')}
+          onClick={() => setActiveTab('videos')}
           className={`py-3 px-4 rounded-lg flex justify-center items-center font-medium ${
-            activeTab === 'downloads' 
+            activeTab === 'videos' 
+              ? 'bg-blue-500 text-white' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <Play className="h-5 w-5 mr-2" />
+          Videos
+        </button>
+        <button
+          onClick={() => setActiveTab('docs')}
+          className={`py-3 px-4 rounded-lg flex justify-center items-center font-medium ${
+            activeTab === 'docs' 
               ? 'bg-blue-500 text-white' 
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
           <FileText className="h-5 w-5 mr-2" />
-          Downloads
+          Docs
         </button>
         <button
-          onClick={() => setActiveTab('ai-chat')}
+          onClick={() => setActiveTab('images')}
           className={`py-3 px-4 rounded-lg flex justify-center items-center font-medium ${
-            activeTab === 'ai-chat' 
+            activeTab === 'images' 
               ? 'bg-blue-500 text-white' 
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          <MessageSquare className="h-5 w-5 mr-2" />
-          AI Chat Bot
+          <Image className="h-5 w-5 mr-2" />
+          Images
+        </button>
+        <button
+          onClick={() => setActiveTab('templates')}
+          className={`py-3 px-4 rounded-lg flex justify-center items-center font-medium ${
+            activeTab === 'templates' 
+              ? 'bg-blue-500 text-white' 
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <File className="h-5 w-5 mr-2" />
+          Templates
         </button>
       </div>
 
-      {activeTab === 'podcasts' && (
-        <>
-          {/* Category Filters */}
-          <div className="grid grid-cols-5 gap-4 mb-6">
-            {categoriesWithProgress.map(category => (
-              <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`py-3 px-4 rounded-lg text-center font-medium relative ${
-                  activeCategory === category.id 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <div className="flex flex-col items-center">
-                  <span className="truncate">{category.name}</span>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                    <div 
-                      className="bg-blue-600 h-1.5 rounded-full" 
-                      style={{ width: `${category.totalPodcasts > 0 ? (category.completedPodcasts / category.totalPodcasts) * 100 : 0}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-xs mt-1">
-                    {category.completedPodcasts}/{category.totalPodcasts}
-                  </span>
-                  {category.isCompleted && (
-                    <div className="absolute top-1 right-1">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                    </div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Content Area */}
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Podcast List */}
-            <div className="md:w-1/3 bg-white rounded-lg shadow-md p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Podcasts</h2>
-                {activeCategory && (() => {
-                  const category = categoriesWithProgress.find(c => c.id === activeCategory);
-                  return category?.isCompleted ? (
-                    <button
-                      onClick={() => startModuleQuiz(category.id, category.name)}
-                      className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
-                    >
-                      Take Quiz
-                    </button>
-                  ) : null;
-                })()}
-              </div>
-              <div className="space-y-3">
-                {getFilteredPodcasts().length > 0 ? 
-                  getFilteredPodcasts().map(podcast => {
-                    // Get all podcasts in this category ordered by creation date
-                    const categoryPodcasts = podcasts
-                      .filter(p => p.category_id === podcast.category_id)
-                      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-                    
-                    const isUnlocked = isPodcastUnlocked(podcast, categoryPodcasts);
-                    const completion = getPodcastCompletion(podcast.id);
-                    
-                    return (
-                      <div 
-                        key={podcast.id} 
-                        className={`p-3 rounded-lg transition-colors ${
-                          currentPodcast?.id === podcast.id 
-                            ? 'bg-blue-50 border border-blue-200' 
-                            : isUnlocked 
-                              ? 'bg-gray-50 hover:bg-gray-100 cursor-pointer' 
-                              : 'bg-gray-100 opacity-50 cursor-not-allowed'
-                        }`}
-                        onClick={() => isUnlocked && handlePlayPodcast(podcast)}
-                      >
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 mr-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                              {podcast.is_youtube_video ? (
-                                <Play className="h-5 w-5 text-red-600" />
-                              ) : (
-                                <Headphones className="h-5 w-5 text-blue-600" />
-                              )}
-                            </div>
-                          </div> 
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-medium text-gray-900 truncate">{podcast.title}</h3>
-                            <p className="text-xs text-gray-500">{podcast.is_youtube_video ? 'YouTube Video' : 'Audio content'}</p>
-                            {completion > 0 && (
-                              <div className="ml-2 flex items-center">
-                                <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                  <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
-                                </div>
-                                <span className="text-xs text-gray-500 ml-1">{completion}%</span>
-                              </div>
-                            )}
-                            {!isUnlocked && (
-                              <div className="text-xs text-red-500 mt-1">Complete previous modules first</div>
-                            )}
-                          </div>
-                          {!isUnlocked && (
-                            <div className="flex-shrink-0">
-                              <div className="w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center">
-                                <Lock className="h-3 w-3 text-gray-500" />
-                              </div>
-                            </div>
-                          )}
+      {/* Audios Tab */}
+      {activeTab === 'audios' && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Audio Content</h2>
+          <div className="space-y-3">
+            {podcasts.filter(p => !p.is_youtube_video).length > 0 ? 
+              podcasts.filter(p => !p.is_youtube_video).map(podcast => {
+                const completion = getPodcastCompletion(podcast.id);
+                
+                return (
+                  <div 
+                    key={podcast.id} 
+                    className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-50 ${
+                      currentPodcast?.id === podcast.id 
+                        ? 'bg-blue-50 border border-blue-200' 
+                        : 'bg-gray-50'
+                    }`}
+                    onClick={() => handlePlayPodcast(podcast)}
+                  >
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 mr-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Headphones className="h-5 w-5 text-blue-600" />
                         </div>
+                      </div> 
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-medium text-gray-900 truncate">{podcast.title}</h3>
+                        <p className="text-xs text-gray-500">Audio content</p>
+                        {completion > 0 && (
+                          <div className="ml-2 flex items-center">
+                            <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                              <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                            </div>
+                            <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                          </div>
+                        )}
                       </div>
-                    );
-                  }) : (
-                    <div className="text-center py-8 text-gray-500">
-                      No podcasts found for this category
                     </div>
-                  )}
-              </div>
-            </div>
-
-            {/* Media Player */}
-            <div className="md:w-2/3 bg-white rounded-lg shadow-md p-6">
-              {renderMediaPlayer()}
-            </div>
-          </div>
-        </>
-      )}
-
-      {activeTab === 'quiz' && showQuiz && quizCategoryId && quizCategoryName && (
-        <div className="mt-6">
-          <QuizComponent
-            courseId={courseId || ''}
-            categoryId={quizCategoryId}
-            categoryName={quizCategoryName}
-            onComplete={handleQuizComplete}
-          />
-        </div>
-      )}
-
-      {activeTab === 'quiz' && showFinalQuiz && (
-        <div className="mt-6">
-          <QuizComponent
-            courseId={courseId || ''}
-            isFinalQuiz={true}
-            onComplete={handleQuizComplete}
-          />
-        </div>
-      )}
-
-      {/* Final Quiz Button - only show when all modules are completed */}
-      {allModulesCompleted && activeTab !== 'quiz' && (
-        <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-medium text-green-800">Congratulations! You've completed all modules.</h3>
-              <p className="text-green-700">Take the final quiz to complete this course.</p>
-            </div>
-            <button
-              onClick={startFinalQuiz}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-              Start Final Quiz
-            </button>
+                  </div>
+                );
+              }) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Headphones className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Audio Content</h3>
+                  <p className="text-gray-500">This course doesn't have any audio content yet.</p>
+                </div>
+              )}
           </div>
         </div>
       )}
 
-      {activeTab === 'downloads' && pdfs.length > 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Course Documents</h2>
+      {/* Videos Tab */}
+      {activeTab === 'videos' && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Video Content</h2>
+          <div className="space-y-3">
+            {podcasts.filter(p => p.is_youtube_video).length > 0 ? 
+              podcasts.filter(p => p.is_youtube_video).map(podcast => {
+                const completion = getPodcastCompletion(podcast.id);
+                
+                return (
+                  <div 
+                    key={podcast.id} 
+                    className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-50 ${
+                      currentPodcast?.id === podcast.id 
+                        ? 'bg-blue-50 border border-blue-200' 
+                        : 'bg-gray-50'
+                    }`}
+                    onClick={() => {
+                      // Open YouTube video in new tab
+                      if (podcast.video_url) {
+                        window.open(podcast.video_url, '_blank');
+                      }
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 mr-3">
+                        <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                          <Play className="h-5 w-5 text-red-600" />
+                        </div>
+                      </div> 
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-medium text-gray-900 truncate">{podcast.title}</h3>
+                        <p className="text-xs text-gray-500">YouTube Video</p>
+                        {completion > 0 && (
+                          <div className="ml-2 flex items-center">
+                            <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                              <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                            </div>
+                            <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Play className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Video Content</h3>
+                  <p className="text-gray-500">This course doesn't have any video content yet.</p>
+                </div>
+              )}
+          </div>
+        </div>
+      )}
+
+      {/* Docs Tab */}
+      {activeTab === 'docs' && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Documents</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* PDFs */}
-            {pdfs.map(pdf => (
-              <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
-                    <FileText className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <div className="ml-3 flex-1">
-                    <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
-                    <p className="text-xs text-gray-500 mb-3">PDF Document</p>
-                    <a 
-                      href={pdf.pdf_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        // Open in new window/tab
-                        window.open(pdf.pdf_url, '_blank');
-                      }}
-                    >
-                      <FileText className="h-3 w-3 mr-1" />
-                      View Document
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-          </div>
-          
-          {/* PDF Viewer Modal */}
-          {currentPdf && (
-            <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg p-6 max-w-4xl w-full h-[80vh] flex flex-col">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-bold">{currentPdf.title}</h2>
-                  <div className="flex space-x-2">
-                    <a 
-                      href={currentPdf.pdf_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      download
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Download className="h-3 w-3 mr-1" />
-                      Download
-                    </a>
-                    <button
-                      onClick={() => setCurrentPdf(null)}
-                      className="px-4 py-2 bg-gray-200 rounded-md text-gray-700 hover:bg-gray-300"
-                    >
-                     Close
-                    </button>
-                  </div>
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  {currentPdf.pdf_url.toLowerCase().endsWith('.pdf') || currentPdf.pdf_url.toLowerCase().endsWith('.txt') ? (
-                    <iframe 
-                      src={currentPdf.pdf_url} 
-                      className="w-full h-full border-0"
-                      title={currentPdf.title}
-                    ></iframe>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full bg-gray-100 p-8 text-center">
-                      <FileText className="h-16 w-16 text-blue-500 mb-4" />
-                      <h3 className="text-xl font-medium text-gray-800 mb-2">Document Download Required</h3>
-                      <p className="text-gray-600 mb-6">This file type ({currentPdf.pdf_url.split('.').pop()?.toUpperCase()}) requires download to view.</p>
+            {pdfs.filter(pdf => {
+              const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
+              return extension === 'pdf' || extension === 'docx' || extension === 'doc' || extension === 'txt';
+            }).length > 0 ? 
+              pdfs.filter(pdf => {
+                const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
+                return extension === 'pdf' || extension === 'docx' || extension === 'doc' || extension === 'txt';
+              }).map(pdf => (
+                <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
+                      <FileText className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
+                      <p className="text-xs text-gray-500 mb-3">PDF Document</p>
                       <a 
-                        href={currentPdf.pdf_url} 
+                        href={pdf.pdf_url} 
                         target="_blank" 
-                        rel="noopener noreferrer"
-                        download
-                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // Open in new window/tab
+                          window.open(pdf.pdf_url, '_blank');
+                        }}
                       >
-                        <Download className="h-5 w-5 inline mr-2" />
-                        Download to View
+                        <FileText className="h-3 w-3 mr-1" />
+                        View Document
                       </a>
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
-      ) : activeTab === 'downloads' && (
-        <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <FileText className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">No Documents Available</h2>
-          <p className="text-gray-500">
-            There are no downloadable resources for this course yet.
-          </p>
+              )) : (
+                <div className="text-center py-8 text-gray-500 col-span-full">
+                  <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Documents</h3>
+                  <p className="text-gray-500">This course doesn't have any documents yet.</p>
+                </div>
+              )}
+          </div>
         </div>
       )}
 
-      {activeTab === 'ai-chat' && (
-        <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <MessageSquare className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">AI Chat Bot Coming Soon</h2>
-          <p className="text-gray-500">
-            Our AI assistant is being trained on this course content and will be available soon to answer your questions!
-          </p>
+      {/* Images Tab */}
+      {activeTab === 'images' && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Images & Cheatsheets</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pdfs.filter(pdf => {
+              const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
+              return extension === 'jpg' || extension === 'jpeg' || extension === 'png' || extension === 'gif' || extension === 'svg';
+            }).length > 0 ? 
+              pdfs.filter(pdf => {
+                const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
+                return extension === 'jpg' || extension === 'jpeg' || extension === 'png' || extension === 'gif' || extension === 'svg';
+              }).map(pdf => (
+                <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
+                      <Image className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
+                      <p className="text-xs text-gray-500 mb-3">Image File</p>
+                      <a 
+                        href={pdf.pdf_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // Open in new window/tab
+                          window.open(pdf.pdf_url, '_blank');
+                        }}
+                      >
+                        <Image className="h-3 w-3 mr-1" />
+                        View Image
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center py-8 text-gray-500 col-span-full">
+                  <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Images</h3>
+                  <p className="text-gray-500">This course doesn't have any images or cheatsheets yet.</p>
+                </div>
+              )}
+          </div>
+        </div>
+      )}
+
+      {/* Templates Tab */}
+      {activeTab === 'templates' && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Templates</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pdfs.filter(pdf => {
+              const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
+              return extension !== 'pdf' && extension !== 'docx' && extension !== 'doc' && extension !== 'txt' && 
+                     extension !== 'jpg' && extension !== 'jpeg' && extension !== 'png' && extension !== 'gif' && extension !== 'svg';
+            }).length > 0 ? 
+              pdfs.filter(pdf => {
+                const extension = pdf.pdf_url.split('.').pop()?.toLowerCase();
+                return extension !== 'pdf' && extension !== 'docx' && extension !== 'doc' && extension !== 'txt' && 
+                       extension !== 'jpg' && extension !== 'jpeg' && extension !== 'png' && extension !== 'gif' && extension !== 'svg';
+              }).map(pdf => (
+                <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
+                      <File className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
+                      <p className="text-xs text-gray-500 mb-3">Template File</p>
+                      <a 
+                        href={pdf.pdf_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // Open in new window/tab
+                          window.open(pdf.pdf_url, '_blank');
+                        }}
+                      >
+                        <File className="h-3 w-3 mr-1" />
+                        View Template
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center py-8 text-gray-500 col-span-full">
+                  <File className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Templates</h3>
+                  <p className="text-gray-500">This course doesn't have any templates yet.</p>
+                </div>
+              )}
+          </div>
+        </div>
+      )}
+
+      {/* Media Player */}
+      {currentPodcast && activeTab === 'audios' && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">{currentPodcast.title}</h2>
+              <button
+                onClick={() => setCurrentPodcast(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="mt-4">
+              <PodcastPlayer 
+                podcast={currentPodcast} 
+                userId={userId || undefined}
+                onProgressUpdate={(progress, duration, currentTime) => {
+                  // Update local progress state
+                  setPodcastProgress(prev => ({
+                    ...prev,
+                    [currentPodcast.id]: {
+                      id: currentPodcast.id,
+                      user_id: userId || '',
+                      podcast_id: currentPodcast.id,
+                      playback_position: currentTime,
+                      duration: duration,
+                      progress_percent: progress,
+                      last_played_at: new Date().toISOString()
+                    }
+                  }));
+                  
+                  // Call parent callback if provided
+                  if (onProgressUpdate) {
+                    onProgressUpdate(progress, duration, currentTime);
+                  }
+                }}
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
