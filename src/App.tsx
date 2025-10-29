@@ -330,7 +330,6 @@ function AppContent() {
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/analytics" element={<Analytics />} />
                     <Route path="/content" element={<ContentUpload />} />
-                    <Route path="/course-assignment" element={<CourseAssignmentCreation />} />
                     <Route path="/companies" element={<Companies />} />
                     <Route path="/admins" element={<Admins />} />
                     <Route path="/users" element={<Users />} />

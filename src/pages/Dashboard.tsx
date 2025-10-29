@@ -420,7 +420,6 @@ export default function Dashboard() {
     { name: 'All Admins', icon: UserCog, path: '/admins' },
     { name: 'All Users', icon: Users, path: '/users' },
     { name: 'Content Upload', icon: BookOpen, path: '/content' },
-    { name: 'Course Assignment', icon: Play, path: '/course-assignment' },
     { name: 'Analytics', icon: BarChart3, path: '/analytics' }
   ];
 
