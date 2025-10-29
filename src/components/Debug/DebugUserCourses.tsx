@@ -1,136 +1,116 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 
-const DebugUserCourses = () => {
+export default function DebugUserCourses() {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDebugInfo = async () => {
       try {
         setLoading(true);
-        setError(null);
         
         // Get current user
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
         
-        if (authError) {
-          throw new Error(`Auth error: ${authError.message}`);
-        }
-        
-        if (!user) {
-          throw new Error('No user authenticated');
-        }
-        
-        console.log('Debug: Current user', user);
-        
-        // Get user courses
+        // Get all courses with RLS (what user can see)
         const { data: userCourses, error: userCoursesError } = await supabase
+          .from('courses')
+          .select('*');
+        
+        // Get user's course assignments
+        const { data: userCourseAssignments, error: userCourseAssignmentsError } = await supabase
           .from('user_courses')
           .select(`
             *,
-            courses (
-              id,
-              title
-            )
+            courses (id, title)
           `)
-          .eq('user_id', user.id);
+          .eq('user_id', userId);
         
-        if (userCoursesError) {
-          throw new Error(`User courses error: ${userCoursesError.message}`);
-        }
-        
-        console.log('Debug: User courses', userCourses);
-        
-        // Get all courses
+        // Get all courses using admin client for comparison
         const { data: allCourses, error: allCoursesError } = await supabase
           .from('courses')
           .select('*');
         
-        if (allCoursesError) {
-          throw new Error(`All courses error: ${allCoursesError.message}`);
-        }
-        
-        console.log('Debug: All courses', allCourses);
-        
         setDebugInfo({
-          user,
-          userCourses,
-          allCourses
+          userId,
+          userCourses: userCourses || [],
+          userCoursesError: userCoursesError?.message,
+          userCourseAssignments: userCourseAssignments || [],
+          userCourseAssignmentsError: userCourseAssignmentsError?.message,
+          allCourses: allCourses || [],
+          allCoursesError: allCoursesError?.message,
+          session: session || null
         });
-      } catch (err) {
-        console.error('Debug error:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
+      } catch (error: any) {
+        console.error('Debug error:', error);
+        setDebugInfo({ error: error.message });
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchDebugInfo();
   }, []);
-  
+
   if (loading) {
-    return (
-      <div className="p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
-        <p>Loading debug information...</p>
-      </div>
-    );
+    return <div className="p-4 bg-yellow-100 border border-yellow-400 rounded">Loading debug info...</div>;
   }
-  
-  if (error) {
-    return (
-      <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-        <p>Error: {error}</p>
-      </div>
-    );
+
+  if (!debugInfo) {
+    return <div className="p-4 bg-red-100 border border-red-400 rounded">No debug info available</div>;
   }
-  
+
   return (
-    <div className="p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded">
-      <h3 className="font-bold mb-2">Debug Information</h3>
+    <div className="p-4 bg-gray-100 border border-gray-400 rounded">
+      <h3 className="text-lg font-bold mb-2">Debug Information</h3>
       
-      <div className="mb-4">
-        <h4 className="font-semibold">User Info:</h4>
-        <pre className="text-xs bg-white p-2 rounded overflow-x-auto">
-          {JSON.stringify(debugInfo?.user, null, 2)}
-        </pre>
-      </div>
-      
-      <div className="mb-4">
-        <h4 className="font-semibold">User Course Assignments ({debugInfo?.userCourses?.length || 0}):</h4>
-        {debugInfo?.userCourses && debugInfo.userCourses.length > 0 ? (
-          <div className="space-y-2">
-            {debugInfo.userCourses.map((uc: any, index: number) => (
-              <div key={index} className="bg-white p-2 rounded">
-                <p><strong>Course ID:</strong> {uc.course_id}</p>
-                <p><strong>Course Title:</strong> {uc.courses?.title || 'Unknown'}</p>
-                <p><strong>Assigned At:</strong> {uc.assigned_at}</p>
-              </div>
-            ))}
+      {debugInfo.error ? (
+        <div className="text-red-600">Error: {debugInfo.error}</div>
+      ) : (
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-bold">User Info</h4>
+            <p>User ID: {debugInfo.userId || 'Not logged in'}</p>
           </div>
-        ) : (
-          <p>No course assignments found</p>
-        )}
-      </div>
-      
-      <div>
-        <h4 className="font-semibold">All Courses ({debugInfo?.allCourses?.length || 0}):</h4>
-        {debugInfo?.allCourses && debugInfo.allCourses.length > 0 ? (
-          <div className="space-y-2">
-            {debugInfo.allCourses.map((course: any, index: number) => (
-              <div key={index} className="bg-white p-2 rounded">
-                <p><strong>ID:</strong> {course.id}</p>
-                <p><strong>Title:</strong> {course.title}</p>
-              </div>
-            ))}
+          
+          <div>
+            <h4 className="font-bold">Courses User Can See (RLS Applied)</h4>
+            <p>Error: {debugInfo.userCoursesError || 'None'}</p>
+            <ul className="list-disc pl-5">
+              {debugInfo.userCourses.map((course: any) => (
+                <li key={course.id}>{course.title} (ID: {course.id})</li>
+              ))}
+            </ul>
+            <p>Total: {debugInfo.userCourses.length}</p>
           </div>
-        ) : (
-          <p>No courses found</p>
-        )}
-      </div>
+          
+          <div>
+            <h4 className="font-bold">User's Course Assignments</h4>
+            <p>Error: {debugInfo.userCourseAssignmentsError || 'None'}</p>
+            <ul className="list-disc pl-5">
+              {debugInfo.userCourseAssignments.map((assignment: any) => (
+                <li key={assignment.course_id}>
+                  {assignment.courses?.title || 'Unknown Course'} (ID: {assignment.course_id})
+                </li>
+              ))}
+            </ul>
+            <p>Total: {debugInfo.userCourseAssignments.length}</p>
+          </div>
+          
+          <div>
+            <h4 className="font-bold">All Courses (Admin View)</h4>
+            <p>Error: {debugInfo.allCoursesError || 'None'}</p>
+            <ul className="list-disc pl-5">
+              {debugInfo.allCourses.map((course: any) => (
+                <li key={course.id}>{course.title} (ID: {course.id})</li>
+              ))}
+            </ul>
+            <p>Total: {debugInfo.allCourses.length}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default DebugUserCourses;
+}

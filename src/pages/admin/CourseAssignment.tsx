@@ -350,9 +350,7 @@ export default function CourseAssignment() {
             courseAssignments.push({
               user_id: userId,
               course_id: courseId,
-              assigned_by: currentUser.id,
-              assigned_at: new Date().toISOString(),
-              due_date: null
+              assigned_at: new Date().toISOString()
             });
           }
         }

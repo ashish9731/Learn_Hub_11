@@ -169,22 +169,22 @@ export interface Database {
         Row: {
           user_id: string
           course_id: string
-          assigned_at: string
           assigned_by: string | null
+          assigned_at: string
           due_date: string | null
         }
         Insert: {
           user_id: string
           course_id: string
-          assigned_at?: string
           assigned_by?: string | null
+          assigned_at?: string
           due_date?: string | null
         }
         Update: {
           user_id?: string
           course_id?: string
-          assigned_at?: string
           assigned_by?: string | null
+          assigned_at?: string
           due_date?: string | null
         }
       }
