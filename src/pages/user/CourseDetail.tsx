@@ -29,6 +29,8 @@ interface Podcast {
   course_id: string;
   category_id: string;
   mp3_url: string;
+  video_url: string | null;
+  is_youtube_video: boolean;
   created_by: string | null;
   created_at: string;
 }
@@ -378,6 +380,127 @@ export default function CourseDetail() {
     setCurrentPodcast(podcast);
   };
 
+  // Extract YouTube video ID from URL
+  const extractYouTubeVideoId = (url: string): string | null => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  // Render media player based on content type
+  const renderMediaPlayer = () => {
+    if (!currentPodcast) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+          <Headphones className="h-12 w-12 mb-4" />
+          <p>Select a podcast to start listening</p>
+          <p className="text-sm mt-2">Note: Modules must be completed in sequence</p>
+        </div>
+      );
+    }
+
+    if (currentPodcast.is_youtube_video && currentPodcast.video_url) {
+      const videoId = extractYouTubeVideoId(currentPodcast.video_url);
+      if (videoId) {
+        return (
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">{currentPodcast.title}</h2>
+            <div className="aspect-video">
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}`}
+                title={currentPodcast.title}
+                className="w-full h-full"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+            <div className="mt-4 text-sm text-gray-600">
+              <p>Note: You must watch this video completely before accessing the next module.</p>
+            </div>
+          </div>
+        );
+      } else {
+        return (
+          <div className="text-red-500">
+            Invalid YouTube URL. Please contact administrator.
+          </div>
+        );
+      }
+    } else {
+      return (
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">{currentPodcast.title}</h2>
+          <audio
+            src={currentPodcast.mp3_url}
+            controls
+            controlsList="nodownload noplaybackrate"
+            className="w-full"
+            onTimeUpdate={async (e) => {
+              const audio = e.currentTarget;
+              const progress = Math.round((audio.currentTime / audio.duration) * 100);
+              
+              // Prevent skipping by checking if user is trying to skip ahead
+              const podcastId = currentPodcast.id;
+              const existingProgress = podcastProgress[podcastId];
+              const allowedPosition = existingProgress ? 
+                Math.min(audio.duration, existingProgress.playback_position + 30) : // Allow 30s forward jump
+                30; // Allow initial 30s jump
+                
+              if (audio.currentTime > allowedPosition) {
+                audio.currentTime = allowedPosition;
+                return;
+              }
+              
+              setPodcastProgress(prev => ({
+                ...prev,
+                [podcastId]: {
+                  ...prev[podcastId],
+                  playback_position: audio.currentTime,
+                  duration: audio.duration,
+                  progress_percent: progress
+                }
+              }));
+              
+              // Save progress to Supabase
+              if (userId && progress > 0) {
+                try {
+                  await supabase
+                    .from('podcast_progress')
+                    .upsert({
+                      user_id: userId,
+                      podcast_id: podcastId,
+                      playback_position: audio.currentTime,
+                      duration: audio.duration,
+                      progress_percent: progress,
+                      last_played_at: new Date().toISOString()
+                    }, {
+                      onConflict: 'user_id,podcast_id'
+                    });
+                  console.log('Progress saved');
+                } catch (error) {
+                  console.error('Error saving progress:', error);
+                }
+              }
+            }}
+            onSeeking={(e) => {
+              // Prevent seeking by resetting to current position
+              const audio = e.currentTarget;
+              const podcastId = currentPodcast.id;
+              const existingProgress = podcastProgress[podcastId];
+              if (existingProgress) {
+                audio.currentTime = Math.min(audio.currentTime, existingProgress.playback_position + 30);
+              }
+            }}
+          />
+          <div className="mt-4 text-sm text-gray-600">
+            <p>Note: You must listen to this podcast completely before accessing the next module.</p>
+          </div>
+        </div>
+      );
+    }
+  };
+
   const getCourseImage = (courseTitle: string) => {
     const title = courseTitle?.toLowerCase() || '';
     
@@ -701,12 +824,16 @@ export default function CourseDetail() {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 mr-3">
                             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                              <Headphones className="h-5 w-5 text-blue-600" />
+                              {podcast.is_youtube_video ? (
+                                <Play className="h-5 w-5 text-red-600" />
+                              ) : (
+                                <Headphones className="h-5 w-5 text-blue-600" />
+                              )}
                             </div>
                           </div> 
                           <div className="flex-1 min-w-0">
                             <h3 className="text-sm font-medium text-gray-900 truncate">{podcast.title}</h3>
-                            <p className="text-xs text-gray-500">Audio content</p>
+                            <p className="text-xs text-gray-500">{podcast.is_youtube_video ? 'YouTube Video' : 'Audio content'}</p>
                             {completion > 0 && (
                               <div className="ml-2 flex items-center">
                                 <div className="w-16 bg-gray-200 rounded-full h-1.5">
@@ -739,82 +866,7 @@ export default function CourseDetail() {
 
             {/* Media Player */}
             <div className="md:w-2/3 bg-white rounded-lg shadow-md p-6">
-              {currentPodcast ? (
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">{currentPodcast.title}</h2>
-                  <audio
-                    src={currentPodcast.mp3_url}
-                    controls
-                    controlsList="nodownload noplaybackrate"
-                    className="w-full"
-                    onTimeUpdate={async (e) => {
-                      const audio = e.currentTarget;
-                      const progress = Math.round((audio.currentTime / audio.duration) * 100);
-                      
-                      // Prevent skipping by checking if user is trying to skip ahead
-                      const podcastId = currentPodcast.id;
-                      const existingProgress = podcastProgress[podcastId];
-                      const allowedPosition = existingProgress ? 
-                        Math.min(audio.duration, existingProgress.playback_position + 30) : // Allow 30s forward jump
-                        30; // Allow initial 30s jump
-                        
-                      if (audio.currentTime > allowedPosition) {
-                        audio.currentTime = allowedPosition;
-                        return;
-                      }
-                      
-                      setPodcastProgress(prev => ({
-                        ...prev,
-                        [podcastId]: {
-                          ...prev[podcastId],
-                          playback_position: audio.currentTime,
-                          duration: audio.duration,
-                          progress_percent: progress
-                        }
-                      }));
-                      
-                      // Save progress to Supabase
-                      if (userId && progress > 0) {
-                        try {
-                          await supabase
-                            .from('podcast_progress')
-                            .upsert({
-                              user_id: userId,
-                              podcast_id: podcastId,
-                              playback_position: audio.currentTime,
-                              duration: audio.duration,
-                              progress_percent: progress,
-                              last_played_at: new Date().toISOString()
-                            }, {
-                              onConflict: 'user_id,podcast_id'
-                            });
-                          console.log('Progress saved');
-                        } catch (error) {
-                          console.error('Error saving progress:', error);
-                        }
-                      }
-                    }}
-                    onSeeking={(e) => {
-                      // Prevent seeking by resetting to current position
-                      const audio = e.currentTarget;
-                      const podcastId = currentPodcast.id;
-                      const existingProgress = podcastProgress[podcastId];
-                      if (existingProgress) {
-                        audio.currentTime = Math.min(audio.currentTime, existingProgress.playback_position + 30);
-                      }
-                    }}
-                  />
-                  <div className="mt-4 text-sm text-gray-600">
-                    <p>Note: You must listen to this podcast completely before accessing the next module.</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-                  <Headphones className="h-12 w-12 mb-4" />
-                  <p>Select a podcast to start listening</p>
-                  <p className="text-sm mt-2">Note: Modules must be completed in sequence</p>
-                </div>
-              )}
+              {renderMediaPlayer()}
             </div>
           </div>
         </>

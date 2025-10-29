@@ -381,6 +381,8 @@ export interface Database {
           category: 'Books' | 'HBR' | 'TED Talks' | 'Concept' | 'Role Play' | null
           category_id: string | null
           mp3_url: string
+          video_url: string | null
+          is_youtube_video: boolean
           created_at: string
           created_by: string | null
         }
@@ -391,6 +393,8 @@ export interface Database {
           category?: 'Books' | 'HBR' | 'TED Talks' | 'Concept' | 'Role Play' | null
           category_id?: string | null
           mp3_url: string
+          video_url?: string | null
+          is_youtube_video?: boolean
           created_at?: string
           created_by?: string | null
         }
@@ -401,6 +405,8 @@ export interface Database {
           category?: 'Books' | 'HBR' | 'TED Talks' | 'Concept' | 'Role Play' | null
           category_id?: string | null
           mp3_url?: string
+          video_url?: string | null
+          is_youtube_video?: boolean
           created_at?: string
           created_by?: string | null
         }

@@ -27,6 +27,8 @@ interface Podcast {
   course_id: string;
   category_id: string;
   mp3_url: string;
+  video_url: string | null;
+  is_youtube_video: boolean;
   created_by: string | null;
   created_at: string;
 }
@@ -59,6 +61,7 @@ export default function ContentUpload() {
   const [contentTitle, setContentTitle] = useState('');
   const [contentDescription, setContentDescription] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [contentType, setContentType] = useState<'podcast' | 'document'>('podcast');
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -181,6 +184,131 @@ export default function ContentUpload() {
     }
   };
 
+  const renderUploadForm = () => {
+    if (contentType === 'podcast') {
+      return (
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="content-type" className="block text-sm font-medium text-white mb-2">
+              Podcast Type
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setYoutubeUrl('');
+                }}
+                className={`py-2 px-4 border rounded-md shadow-sm text-sm font-medium ${
+                  !youtubeUrl
+                    ? 'border-[#8b5cf6] bg-[#8b5cf6] text-white'
+                    : 'border-[#333333] bg-[#252525] text-white hover:bg-[#333333]'
+                }`}
+              >
+                Upload File
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFile(null);
+                }}
+                className={`py-2 px-4 border rounded-md shadow-sm text-sm font-medium ${
+                  youtubeUrl
+                    ? 'border-[#8b5cf6] bg-[#8b5cf6] text-white'
+                    : 'border-[#333333] bg-[#252525] text-white hover:bg-[#333333]'
+                }`}
+              >
+                YouTube Link
+              </button>
+            </div>
+          </div>
+
+          {!youtubeUrl ? (
+            <div>
+              <label htmlFor="file" className="block text-sm font-medium text-white mb-2">
+                File Upload <span className="text-red-500">*</span>
+              </label>
+              
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-[#333333] border-dashed rounded-md">
+                <div className="space-y-1 text-center">
+                  <Headphones className="mx-auto h-12 w-12 text-[#a0a0a0]" />
+                  <div className="flex text-sm text-[#a0a0a0]">
+                    <label htmlFor="file-upload-podcast" className="relative cursor-pointer bg-[#1e1e1e] rounded-md font-medium text-[#8b5cf6] hover:text-[#7c3aed] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#8b5cf6]">
+                      <span>Upload a podcast</span>
+                      <input 
+                        id="file-upload-podcast" 
+                        name="file-upload" 
+                        type="file" 
+                        className="sr-only"
+                        onChange={handleFileSelect}
+                        accept=".mp3,.mp4,.mov,.wav"
+                      />
+                    </label>
+                    <p className="pl-1">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-[#a0a0a0]">MP3, MP4, MOV, WAV files supported</p>
+                  {selectedFile && (
+                    <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label htmlFor="youtube-url" className="block text-sm font-medium text-white mb-2">
+                YouTube URL <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="url"
+                id="youtube-url"
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+                className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+              />
+              <p className="mt-1 text-xs text-[#a0a0a0]">
+                Paste the full YouTube URL. The video will be embedded in the app.
+              </p>
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <label htmlFor="file" className="block text-sm font-medium text-white mb-2">
+            File Upload <span className="text-red-500">*</span>
+          </label>
+          
+          {contentType === 'document' && (
+            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-[#333333] border-dashed rounded-md">
+              <div className="space-y-1 text-center">
+                <FileText className="mx-auto h-12 w-12 text-[#a0a0a0]" />
+                <div className="flex text-sm text-[#a0a0a0]">
+                  <label htmlFor="file-upload-document" className="relative cursor-pointer bg-[#1e1e1e] rounded-md font-medium text-[#8b5cf6] hover:text-[#7c3aed] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#8b5cf6]">
+                    <span>Upload a document</span>
+                    <input 
+                      id="file-upload-document" 
+                      name="file-upload" 
+                      type="file" 
+                      className="sr-only"
+                      onChange={handleFileSelect}
+                      accept=".pdf,.doc,.docx,.txt"
+                    />
+                  </label>
+                  <p className="pl-1">or drag and drop</p>
+                </div>
+                <p className="text-xs text-[#a0a0a0]">PDF, DOC, DOCX, TXT files supported</p>
+                {selectedFile && (
+                  <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+  };
+
   const handleCreateCourse = async () => {
     if (!newCourseTitle.trim()) {
       alert('Please enter a course title');
@@ -222,8 +350,18 @@ export default function ContentUpload() {
   };
 
   const handleUpload = async () => {
-    if (!contentTitle || !selectedFile || !selectedCourse || !selectedCategory) {
-      alert('Please fill in all required fields: title, course, category, and file');
+    if (!contentTitle || !selectedCourse || !selectedCategory) {
+      alert('Please fill in all required fields: title, course, and category');
+      return;
+    }
+
+    if (contentType === 'podcast' && !selectedFile && !youtubeUrl) {
+      alert('Please either upload a file or provide a YouTube URL for podcasts');
+      return;
+    }
+
+    if (contentType === 'document' && !selectedFile) {
+      alert('Please upload a file for documents');
       return;
     }
 
@@ -236,53 +374,75 @@ export default function ContentUpload() {
         throw new Error('User not authenticated');
       }
 
-      // Sanitize filename
-      const sanitizedFileName = selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const fileName = `${Date.now()}_${sanitizedFileName}`;
-      
-      console.log('Uploading file:', fileName, 'Type:', contentType);
-
       if (contentType === 'podcast') {
-        // Upload podcast file
-        console.log('Uploading to podcast-files bucket...');
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('podcast-files')
-          .upload(fileName, selectedFile, {
-            cacheControl: '3600',
-            upsert: true
+        if (youtubeUrl) {
+          // Create YouTube video podcast record
+          console.log('Creating YouTube video podcast record...');
+          
+          const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
+            title: contentTitle,
+            course_id: selectedCourse,
+            category: selectedCategory,
+            video_url: youtubeUrl,
+            is_youtube_video: true,
+            created_by: user.id
           });
 
-        if (uploadError) {
-          console.error('Storage upload error:', uploadError);
-          throw uploadError;
+          if (podcastError) {
+            console.error('YouTube podcast creation error:', podcastError);
+            throw podcastError;
+          }
+          
+          console.log('YouTube podcast created successfully:', podcastData);
+          alert('YouTube video added successfully!');
+        } else if (selectedFile) {
+          // Upload podcast file
+          console.log('Uploading to podcast-files bucket...');
+          const sanitizedFileName = selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const fileName = `${Date.now()}_${sanitizedFileName}`;
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('podcast-files')
+            .upload(fileName, selectedFile, {
+              cacheControl: '3600',
+              upsert: true
+            });
+
+          if (uploadError) {
+            console.error('Storage upload error:', uploadError);
+            throw uploadError;
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('podcast-files')
+            .getPublicUrl(fileName);
+
+          console.log('File uploaded, creating podcast record...');
+          
+          // Create podcast record
+          const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
+            title: contentTitle,
+            course_id: selectedCourse,
+            category: selectedCategory,
+            mp3_url: publicUrl,
+            is_youtube_video: false,
+            created_by: user.id
+          });
+
+          if (podcastError) {
+            console.error('Podcast creation error:', podcastError);
+            throw podcastError;
+          }
+          
+          console.log('Podcast created successfully:', podcastData);
+          alert('Podcast uploaded successfully!');
         }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('podcast-files')
-          .getPublicUrl(fileName);
-
-        console.log('File uploaded, creating podcast record...');
-        
-        // Create podcast record
-        const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
-          title: contentTitle,
-          course_id: selectedCourse,
-          category: selectedCategory,
-          mp3_url: publicUrl,
-          created_by: user.id
-        });
-
-        if (podcastError) {
-          console.error('Podcast creation error:', podcastError);
-          throw podcastError;
-        }
-        
-        console.log('Podcast created successfully:', podcastData);
-        alert('Podcast uploaded successfully!');
-        
-      } else if (contentType === 'document') {
+      } else if (contentType === 'document' && selectedFile) {
         // Upload PDF file
         console.log('Uploading to pdf-files bucket...');
+        const sanitizedFileName = selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const fileName = `${Date.now()}_${sanitizedFileName}`;
+        
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('pdf-files')
           .upload(fileName, selectedFile, {
@@ -700,63 +860,7 @@ export default function ContentUpload() {
                   />
                 </div>
                 
-                <div>
-                  <label htmlFor="file" className="block text-sm font-medium text-white mb-2">
-                    File Upload <span className="text-red-500">*</span>
-                  </label>
-                  
-                  {contentType === 'podcast' && (
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-[#333333] border-dashed rounded-md">
-                      <div className="space-y-1 text-center">
-                        <Headphones className="mx-auto h-12 w-12 text-[#a0a0a0]" />
-                        <div className="flex text-sm text-[#a0a0a0]">
-                          <label htmlFor="file-upload-podcast" className="relative cursor-pointer bg-[#1e1e1e] rounded-md font-medium text-[#8b5cf6] hover:text-[#7c3aed] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#8b5cf6]">
-                            <span>Upload a podcast</span>
-                            <input 
-                              id="file-upload-podcast" 
-                              name="file-upload" 
-                              type="file" 
-                              className="sr-only"
-                              onChange={handleFileSelect}
-                              accept=".mp3,.mp4,.mov"
-                            />
-                          </label>
-                          <p className="pl-1">or drag and drop</p>
-                        </div>
-                        <p className="text-xs text-[#a0a0a0]">MP3, MP4, MOV files supported</p>
-                        {selectedFile && (
-                          <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {contentType === 'document' && (
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-[#333333] border-dashed rounded-md">
-                      <div className="space-y-1 text-center">
-                        <FileText className="mx-auto h-12 w-12 text-[#a0a0a0]" />
-                        <div className="flex text-sm text-[#a0a0a0]">
-                          <label htmlFor="file-upload-document" className="relative cursor-pointer bg-[#1e1e1e] rounded-md font-medium text-[#8b5cf6] hover:text-[#7c3aed] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#8b5cf6]">
-                            <span>Upload a document</span>
-                            <input 
-                              id="file-upload-document" 
-                              name="file-upload" 
-                              type="file" 
-                              className="sr-only"
-                              onChange={handleFileSelect}
-                              accept=".pdf,.doc,.docx,.txt"
-                            />
-                          </label>
-                          <p className="pl-1">or drag and drop</p>
-                        </div>
-                        <p className="text-xs text-[#a0a0a0]">PDF, DOC, DOCX, TXT files supported</p>
-                        {selectedFile && (
-                          <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                {renderUploadForm()}
 
                 <div className="flex space-x-3">
                   <button
@@ -765,6 +869,7 @@ export default function ContentUpload() {
                       setContentTitle('');
                       setContentDescription('');
                       setSelectedFile(null);
+                      setYoutubeUrl('');
                       setSelectedCourse('');
                       setSelectedCategory('');
                     }}
@@ -775,7 +880,7 @@ export default function ContentUpload() {
                   <button
                     type="button"
                     onClick={handleUpload}
-                    disabled={isUploading || !contentTitle || !selectedFile || !selectedCourse || !selectedCategory}
+                    disabled={isUploading || !contentTitle || !selectedCourse || !selectedCategory || (contentType === 'podcast' && !selectedFile && !youtubeUrl) || (contentType === 'document' && !selectedFile)}
                     className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUploading ? 'Uploading...' : 'Upload'}
@@ -848,10 +953,16 @@ export default function ContentUpload() {
                                 <div className="space-y-2">
                                   {course.coursePodcasts.map((podcast) => (
                                     <div key={podcast.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
-                                      <Music className="h-4 w-4 text-[#8b5cf6] mr-3" />
+                                      {podcast.is_youtube_video ? (
+                                        <Play className="h-4 w-4 text-red-500 mr-3" />
+                                      ) : (
+                                        <Music className="h-4 w-4 text-[#8b5cf6] mr-3" />
+                                      )}
                                       <div className="flex-1">
                                         <h6 className="text-sm font-medium text-white">{podcast.title}</h6>
-                                        <p className="text-xs text-[#a0a0a0]">Audio Content</p>
+                                        <p className="text-xs text-[#a0a0a0]">
+                                          {podcast.is_youtube_video ? 'YouTube Video' : 'Audio Content'}
+                                        </p>
                                       </div>
                                       <button
                                         onClick={() => handleDeletePodcast(podcast.id)}
