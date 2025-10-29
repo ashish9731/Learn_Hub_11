@@ -322,6 +322,7 @@ function AppContent() {
         <>
           {userRole === 'super_admin' && (
             <>
+              <Header onLogout={handleLogout} userEmail={userEmail} userRole={userRole} />
               <main className="min-h-screen bg-[#121212]">
                 <div className="py-6">
                   <Routes>
