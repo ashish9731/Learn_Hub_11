@@ -94,9 +94,10 @@ export default function CourseDetail() {
       }
       
       // Check if user is assigned to this specific course
+      // Note: user_courses table doesn't have an 'id' column, only user_id and course_id
       const { data, error } = await supabase
         .from('user_courses')
-        .select('id, course_id, user_id')
+        .select('user_id, course_id, assigned_at')
         .eq('user_id', userId)
         .eq('course_id', courseId)
         .maybeSingle();
