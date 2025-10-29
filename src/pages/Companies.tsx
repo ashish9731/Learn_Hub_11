@@ -603,5 +603,3 @@ export default function Companies() {
     </div>
   );
 }
-
-export default Companies;
