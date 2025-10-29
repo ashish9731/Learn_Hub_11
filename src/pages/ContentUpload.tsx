@@ -233,7 +233,7 @@ export default function ContentUpload() {
                 </label>
                 <p className="pl-1">or drag and drop</p>
               </div>
-              <p className="text-xs text-[#a0a0a0]">MP3, WAV, AAC, M4A files supported</p>
+              <p className="text-xs text-[#a0a0a0">MP3, WAV, AAC, M4A files supported</p>
               {selectedFile && (
                 <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
               )}
@@ -434,7 +434,6 @@ export default function ContentUpload() {
         // Create podcast record
         const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
           title: contentTitle,
-          description: contentDescription,
           course_id: selectedCourse,
           mp3_url: publicUrl,
           created_by: user.id,
@@ -452,7 +451,6 @@ export default function ContentUpload() {
         // Create podcast record for YouTube video
         const { data: podcastData, error: podcastError } = await supabaseHelpers.createPodcast({
           title: contentTitle,
-          description: contentDescription,
           course_id: selectedCourse,
           video_url: youtubeUrl,
           created_by: user.id,
