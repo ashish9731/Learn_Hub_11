@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import { useRealtimeSync } from '../../hooks/useSupabase';
@@ -83,6 +83,9 @@ export default function MyCourses() {
   // State to store generated course images
   const [courseImages, setCourseImages] = useState<Record<string, string>>({});
   const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
+  
+  // Ref to track which courses have had images generated
+  const generatedImagesRef = useRef<Record<string, boolean>>({});
 
   // Generate course images when courses change
   useEffect(() => {
@@ -91,16 +94,21 @@ export default function MyCourses() {
       
       // Generate images for courses that don't have them yet
       for (const course of supabaseData.courses) {
+        // Skip if we've already tried to generate an image for this course
+        if (generatedImagesRef.current[course.id]) continue;
+        
         if (!courseImages[course.id] && !loadingImages[course.id]) {
           setLoadingImages(prev => ({ ...prev, [course.id]: true }));
           await generateCourseImage(course.title, course.id);
           setLoadingImages(prev => ({ ...prev, [course.id]: false }));
+          // Mark this course as having had image generation attempted
+          generatedImagesRef.current[course.id] = true;
         }
       }
     };
     
     generateImages();
-  }, [supabaseData.courses]);
+  }, [supabaseData.courses, courseImages, loadingImages]);
 
   // Get course image based on course title or generated AI image
   const generateCourseImage = async (courseTitle: string, courseId: string) => {

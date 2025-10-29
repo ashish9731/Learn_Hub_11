@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, BookOpen, User, ChevronLeft, Play, FileText, MessageSquare, Headphones, Download, Lock, CheckCircle, Image as ImageIcon, File as FileIcon } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -86,6 +86,9 @@ export default function CourseDetail() {
   // State for course image
   const [courseImage, setCourseImage] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState<boolean>(false);
+  
+  // Ref to track if image generation has been attempted
+  const imageGenerationAttemptedRef = useRef(false);
 
   // Generate course image using Stability AI
   const generateCourseImage = async (courseTitle: string, courseId: string) => {
@@ -157,10 +160,11 @@ export default function CourseDetail() {
 
   // Effect to generate course image when course loads
   useEffect(() => {
-    if (course && course.id && !courseImage && !loadingImage) {
+    if (course && course.id && !courseImage && !loadingImage && !imageGenerationAttemptedRef.current) {
+      imageGenerationAttemptedRef.current = true;
       generateCourseImage(course.title, course.id);
     }
-  }, [course]);
+  }, [course, courseImage, loadingImage]);
 
   // Get course image with fallback
   const getCourseImageWithFallback = () => {
