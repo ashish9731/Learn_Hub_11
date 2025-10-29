@@ -464,7 +464,7 @@ export default function ContentUpload() {
           title: contentTitle,
           course_id: selectedCourse,
           mp3_url: publicUrl,
-          video_url: null, // Explicitly set to null for regular podcasts
+          video_url: '', // Provide empty string instead of null for regular podcasts
           created_by: user.id,
           is_youtube_video: false
         });
@@ -482,7 +482,7 @@ export default function ContentUpload() {
           title: contentTitle,
           course_id: selectedCourse,
           video_url: youtubeUrl,
-          mp3_url: null, // Explicitly set to null for YouTube videos
+          mp3_url: '', // Provide empty string instead of null to avoid NOT NULL constraint
           created_by: user.id,
           is_youtube_video: true
         });
