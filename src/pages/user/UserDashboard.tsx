@@ -641,21 +641,15 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     userPodcasts.forEach(podcast => {
       // Find the category for this podcast
       const category = supabaseData.categories.find(cat => cat.id === podcast.category_id);
-      const level = category?.level || 'Basics'; // Default to Basics if no level
       
-      // Add podcast to the appropriate level group
-      if (groupedPodcasts[level]) {
-        groupedPodcasts[level].push({
+      // Only include podcasts that have a category with a valid level
+      if (category && category.level && groupedPodcasts[category.level]) {
+        groupedPodcasts[category.level].push({
           ...podcast,
-          category_name: category?.name || 'Uncategorized'
-        });
-      } else {
-        // If level is not one of the standard levels, add to Basics
-        groupedPodcasts['Basics'].push({
-          ...podcast,
-          category_name: category?.name || 'Uncategorized'
+          category_name: category.name
         });
       }
+      // If category has no level or invalid level, we don't include it
     });
     
     return groupedPodcasts;
@@ -1164,9 +1158,9 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
               podcastsByLevel[activeTab.charAt(0).toUpperCase() + activeTab.slice(1)]?.length === 0) && (
               <div className="text-center py-8">
                 <Headphones className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-300">No podcasts</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-300">No podcasts assigned</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  No podcasts available at the {activeTab} level.
+                  No podcasts have been assigned to you at the {activeTab} level.
                 </p>
               </div>
             )}

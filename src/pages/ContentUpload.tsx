@@ -866,9 +866,9 @@ export default function ContentUpload() {
                       className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
                     >
                       <option value="">Choose a category...</option>
-                      {/* Show course-specific categories */}
+                      {/* Show course-specific categories with levels */}
                       {(supabaseData.categories || [])
-                        .filter(cat => cat.course_id === selectedCourse)
+                        .filter(cat => cat.course_id === selectedCourse && cat.level)
                         .map((category) => (
                           <option key={category.id} value={category.name}>
                             {category.name} ({category.level})
