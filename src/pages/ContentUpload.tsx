@@ -326,13 +326,20 @@ export default function ContentUpload() {
       }
 
       // Create the course
-      const { data, error } = await supabaseHelpers.createCourse({
+      const courseData = {
         title: newCourseTitle,
         level: newCourseLevel,
         created_by: user.id
-      });
+      };
+      
+      console.log('Course data to insert:', courseData);
+      
+      const { data, error } = await supabaseHelpers.createCourse(courseData);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Course creation error:', error);
+        throw new Error(`Database error: ${error.message || 'Unknown database error'}`);
+      }
 
       console.log('Course created successfully:', data);
 
@@ -347,7 +354,8 @@ export default function ContentUpload() {
 
     } catch (error) {
       console.error('Failed to create course:', error);
-      alert('Failed to create course: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to create course: ${errorMessage}`);
     }
   };
 

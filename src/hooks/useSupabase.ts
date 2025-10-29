@@ -421,9 +421,13 @@ export const supabaseHelpers = {
   },
 
   createCourse: async (courseData: any) => {
+    console.log('Attempting to create course with supabaseAdmin:', !!supabaseAdmin);
+    
     if (!supabaseAdmin) {
-      throw new Error('Admin client not available');
+      throw new Error('Admin client not available - Service role key may be missing or invalid');
     }
+    
+    console.log('Inserting course data:', courseData);
     
     const { data, error } = await supabaseAdmin
       .from('courses')
@@ -431,7 +435,12 @@ export const supabaseHelpers = {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Course creation error:', error);
+      throw error;
+    }
+    
+    console.log('Course created successfully:', data);
     return data;
   },
 
