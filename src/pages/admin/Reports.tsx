@@ -652,15 +652,15 @@ export default function Reports() {
                   onClick={() => setSelectedReport(report.id)}
                   className={`p-4 border rounded-lg text-left transition-colors ${
                     selectedReport === report.id
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center">
                     <report.icon className={`h-6 w-6 mr-3 ${
-                      selectedReport === report.id ? 'text-blue-600' : 'text-gray-400'
+                      selectedReport === report.id ? 'text-blue-600' : 'text-gray-600'
                     }`} />
-                    <span className="text-sm font-medium">{report.name}</span>
+                    <span className="text-sm font-medium text-gray-900">{report.name}</span>
                   </div>
                 </button>
               ))}
