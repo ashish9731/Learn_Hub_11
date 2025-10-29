@@ -23,22 +23,32 @@ export default function CourseDetail() {
 
   useEffect(() => {
     const getUserId = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) {
+          console.error('Auth error:', error);
+          return;
+        }
+        if (user) {
+          setUserId(user.id);
+        }
+      } catch (err) {
+        console.error('Error getting user ID:', err);
       }
     };
     getUserId();
   }, []);
 
   useEffect(() => {
+    console.log('CourseId changed:', courseId);
     if (courseId && userId) {
       checkUserCourseAssignment();
     }
   }, [courseId, userId]);
 
   useEffect(() => {
-    if (courseId && userId && isUserAssignedToCourse) {
+    console.log('User assignment status changed:', isUserAssignedToCourse);
+    if (courseId && userId) {
       loadCourseData();
     }
   }, [courseId, userId, isUserAssignedToCourse]);
@@ -50,9 +60,13 @@ export default function CourseDetail() {
   }, [userId]);
 
   const checkUserCourseAssignment = async () => {
-    if (!userId || !courseId) return;
+    if (!userId || !courseId) {
+      console.log('Missing userId or courseId for assignment check');
+      return;
+    }
     
     try {
+      console.log('Checking if user', userId, 'is assigned to course', courseId);
       // Check if user is assigned to this course
       const { data, error } = await supabase
         .from('user_courses')
@@ -67,7 +81,9 @@ export default function CourseDetail() {
         return;
       }
       
-      setIsUserAssignedToCourse(!!data);
+      const isAssigned = !!data;
+      console.log('User course assignment result:', isAssigned);
+      setIsUserAssignedToCourse(isAssigned);
     } catch (err) {
       console.error('Error checking course assignment:', err);
       setIsUserAssignedToCourse(false);
@@ -106,13 +122,27 @@ export default function CourseDetail() {
 
   const loadCourseData = async () => {
     try {
+      console.log('Loading course data for courseId:', courseId);
       setLoading(true);
       setError(null);
 
-      // Always load course data, but check assignment for access control
-      // We'll filter content based on assignment later
+      // Add a timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.log('Timeout reached, setting loading to false');
+        setLoading(false);
+        setError('Timeout loading course data. Please try again.');
+      }, 10000); // 10 second timeout
+
+      // Check if user is assigned to this course
+      if (!isUserAssignedToCourse) {
+        clearTimeout(timeoutId);
+        setError('You are not assigned to this course. Please contact your administrator.');
+        setLoading(false);
+        return;
+      }
 
       // Get course details and related data including documents
+      console.log('Fetching course data...');
       const [courseData, categoriesData, podcastsData, pdfsData] = await Promise.all([
         supabase
         .from('courses')
@@ -126,6 +156,7 @@ export default function CourseDetail() {
         .eq('id', courseId)
         .single()
         .then(res => {
+          console.log('Course data result:', res);
           if (res.error) throw res.error;
           return res.data;
         }),
@@ -134,19 +165,32 @@ export default function CourseDetail() {
         .select('*')
         .eq('course_id', courseId)
         .order('name')
-        .then(res => res.data || []),
+        .then(res => {
+          console.log('Categories data result:', res);
+          return res.data || [];
+        }),
         supabase
         .from('podcasts')
         .select('*')
         .eq('course_id', courseId)
-        .then(res => res.data || []),
+        .then(res => {
+          console.log('Podcasts data result:', res);
+          return res.data || [];
+        }),
         supabase
         .from('pdfs')
         .select('*')
         .eq('course_id', courseId)
-        .then(res => res.data || [])
+        .then(res => {
+          console.log('PDFs data result:', res);
+          return res.data || [];
+        })
       ]);
       
+      // Clear the timeout since we've successfully loaded
+      clearTimeout(timeoutId);
+      
+      console.log('All data loaded successfully');
       setCourse(courseData);
       setCategories(categoriesData);
       setPodcasts(podcastsData);
@@ -197,6 +241,7 @@ export default function CourseDetail() {
   };
 
   if (loading) {
+    console.log('CourseDetail: Showing loading spinner');
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -205,6 +250,7 @@ export default function CourseDetail() {
   }
 
   if (error) {
+    console.log('CourseDetail: Showing error message:', error);
     return (
       <div className="text-center py-12">
         <div className="text-red-600">Error loading course: {error}</div>
@@ -219,6 +265,7 @@ export default function CourseDetail() {
   }
 
   if (!course) {
+    console.log('CourseDetail: Showing course not found message');
     return (
       <div className="text-center py-12">
         <div className="text-gray-600">Course not found</div>

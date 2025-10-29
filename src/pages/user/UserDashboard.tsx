@@ -368,26 +368,40 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   // Get user ID on component mount
   useEffect(() => {
     const initializeDashboard = async () => {
+      console.log('🚀 Initializing User Dashboard');
       setLoading(true);
       setError(null);
       
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        console.log('🔑 Getting user authentication info');
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) {
+          console.error('❌ Auth error:', authError);
+          throw new Error(`Authentication failed: ${authError.message}`);
+        }
+        
         if (user) {
+          console.log('👤 User authenticated:', user.id);
           setUserId(user.id);
           
+          console.log('📊 Loading dashboard data...');
           // Load all data in parallel
           await Promise.all([
-            loadUserCourses(),
-            loadUserData(),
-            loadPodcastProgress(),
-            loadLearningMetrics(user.id)
+            loadUserCourses().then(() => console.log('✅ User courses loaded')),
+            loadUserData().then(() => console.log('✅ User data loaded')),
+            loadPodcastProgress().then(() => console.log('✅ Podcast progress loaded')),
+            loadLearningMetrics(user.id).then(() => console.log('✅ Learning metrics loaded'))
           ]);
+          console.log('🎉 All dashboard data loaded successfully');
+        } else {
+          console.log('⚠️ No user authenticated');
         }
       } catch (error) {
-        console.error('Error initializing dashboard:', error);
+        console.error('💥 Error initializing dashboard:', error);
         setError(error instanceof Error ? error.message : 'Failed to initialize dashboard');
       } finally {
+        console.log('🏁 Setting loading to false');
         setLoading(false);
       }
     };

@@ -227,29 +227,40 @@ export default function MyCourses() {
 
   useEffect(() => {
     const initializeData = async () => {
+      console.log('🚀 Initializing MyCourses component');
       setLoading(true);
       setError(null);
       
       try {
-        // First get the user ID
-        const { data: { user } } = await supabase.auth.getUser();
+        console.log('🔑 Getting user authentication info');
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) {
+          console.error('❌ Auth error:', authError);
+          throw new Error(`Authentication failed: ${authError.message}`);
+        }
+        
         if (user) {
+          console.log('👤 User authenticated:', user.id);
           setUserId(user.id);
           
+          console.log('📊 Loading courses data...');
           // Load all data in parallel
           await Promise.all([
-            loadAllSupabaseData(),
-            loadPodcastProgress(),
-            loadUserCourses(user.id)
+            loadAllSupabaseData().then(() => console.log('✅ Supabase data loaded')),
+            loadPodcastProgress().then(() => console.log('✅ Podcast progress loaded')),
+            loadUserCourses(user.id).then(() => console.log('✅ User courses loaded'))
           ]);
+          console.log('🎉 All courses data loaded successfully');
         } else {
-          // If not logged in, still load general data
+          console.log('⚠️ No user authenticated, loading general data only');
           await loadAllSupabaseData();
         }
       } catch (err) {
-        console.error('Error initializing data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to initialize data');
+        console.error('💥 Error initializing courses data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to initialize courses data');
       } finally {
+        console.log('🏁 Setting loading to false');
         setLoading(false);
       }
     };
