@@ -20,17 +20,17 @@ CREATE POLICY "podcast_assignments_policy_super_admin" ON podcast_assignments
   USING (
     EXISTS (
       SELECT 1 
-      FROM users current_user
-      WHERE current_user.id = auth.uid() 
-      AND current_user.role = 'super_admin'
+      FROM users u
+      WHERE u.id = auth.uid() 
+      AND u.role = 'super_admin'
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 
-      FROM users current_user
-      WHERE current_user.id = auth.uid() 
-      AND current_user.role = 'super_admin'
+      FROM users u
+      WHERE u.id = auth.uid() 
+      AND u.role = 'super_admin'
     )
   );
 
@@ -52,9 +52,9 @@ CREATE POLICY "podcast_assignments_policy_admin" ON podcast_assignments
     )
     OR EXISTS (
       SELECT 1 
-      FROM users current_user
-      WHERE current_user.id = auth.uid() 
-      AND current_user.role = 'super_admin'
+      FROM users u
+      WHERE u.id = auth.uid() 
+      AND u.role = 'super_admin'
     )
   )
   WITH CHECK (
@@ -71,9 +71,9 @@ CREATE POLICY "podcast_assignments_policy_admin" ON podcast_assignments
     )
     OR EXISTS (
       SELECT 1 
-      FROM users current_user
-      WHERE current_user.id = auth.uid() 
-      AND current_user.role = 'super_admin'
+      FROM users u
+      WHERE u.id = auth.uid() 
+      AND u.role = 'super_admin'
     )
   );
 

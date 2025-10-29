@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, BookOpen, Headphones, FileText, Plus, Search, Play, X, CheckCircle, Folder, FolderOpen, ChevronDown, ChevronRight, Music, Trash2 } from 'lucide-react';
+import { Upload, BookOpen, Headphones, FileText, Plus, Search, Play, X, CheckCircle, Folder, FolderOpen, ChevronDown, ChevronRight, Music, Trash2, Clock } from 'lucide-react';
 import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
 import { supabase } from '../lib/supabase';
@@ -11,6 +11,7 @@ interface Course {
   company_id: string | null;
   image_url: string | null;
   created_at: string;
+  level?: string;
 }
 
 interface Category {
@@ -62,6 +63,7 @@ export default function ContentUpload() {
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [newCourseTitle, setNewCourseTitle] = useState('');
+  const [newCourseLevel, setNewCourseLevel] = useState<'Basics' | 'Intermediate' | 'Advanced'>('Basics');
   
   // Assignment form state
   const [assignmentTitle, setAssignmentTitle] = useState('');
@@ -197,7 +199,8 @@ export default function ContentUpload() {
         title: newCourseTitle,
         description: `Course: ${newCourseTitle}`,
         company_id: null,
-        image_url: null
+        image_url: null,
+        level: newCourseLevel
       });
       
       if (error) {
@@ -208,6 +211,7 @@ export default function ContentUpload() {
       console.log('Course created successfully:', data);
       
       setNewCourseTitle('');
+      setNewCourseLevel('Basics');
       await loadSupabaseData();
       alert('Course created successfully!');
       
@@ -571,10 +575,29 @@ export default function ContentUpload() {
                   />
                 </div>
 
+                <div>
+                  <label htmlFor="course-level" className="block text-sm font-medium text-white mb-2">
+                    Course Level
+                  </label>
+                  <select
+                    id="course-level"
+                    value={newCourseLevel}
+                    onChange={(e) => setNewCourseLevel(e.target.value as 'Basics' | 'Intermediate' | 'Advanced')}
+                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                  >
+                    <option value="Basics">Basics</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+
                 <div className="flex space-x-3">
                   <button
                     type="button"
-                    onClick={() => setNewCourseTitle('')}
+                    onClick={() => {
+                      setNewCourseTitle('');
+                      setNewCourseLevel('Basics');
+                    }}
                     className="flex-1 py-2 px-4 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
                   >
                     Clear
@@ -608,7 +631,7 @@ export default function ContentUpload() {
                     <option value="">Choose a course...</option>
                     {supabaseData.courses.map((course: any) => (
                       <option key={course.id} value={course.id}>
-                        {course.title}
+                        {course.title} ({course.level || 'Basics'})
                       </option>
                     ))}
                   </select>

@@ -23,6 +23,7 @@ interface Course {
   title: string;
   company_id: string;
   created_at: string;
+  level?: string;
 }
 
 interface PDF {
@@ -393,7 +394,20 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                   assignedCourses.slice(0, 6).map((course: any, index: number) => (
                     <div key={course.id} className="flex items-center justify-between p-3 bg-[#252525] rounded-lg">
                       <div>
-                        <h4 className="text-sm font-medium text-white">{course.title}</h4>
+                        <div className="flex items-center">
+                          <h4 className="text-sm font-medium text-white">{course.title}</h4>
+                          {course.level && (
+                            <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                              course.level === 'Basics' 
+                                ? 'bg-green-100 text-green-800' 
+                                : course.level === 'Intermediate' 
+                                  ? 'bg-yellow-100 text-yellow-800' 
+                                  : 'bg-red-100 text-red-800'
+                            }`}>
+                              {course.level}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-[#a0a0a0]">Assigned to users</p>
                       </div>
                       <span className="text-xs text-[#a0a0a0]">Active</span>
@@ -418,7 +432,20 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                 availableCourses.slice(0, 6).map((course: any, index: number) => (
                   <div key={course.id} className="flex items-center justify-between p-3 bg-[#252525] rounded-lg">
                     <div>
-                      <h4 className="text-sm font-medium text-white">{course.title}</h4>
+                      <div className="flex items-center">
+                        <h4 className="text-sm font-medium text-white">{course.title}</h4>
+                        {course.level && (
+                          <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                            course.level === 'Basics' 
+                              ? 'bg-green-100 text-green-800' 
+                              : course.level === 'Intermediate' 
+                                ? 'bg-yellow-100 text-yellow-800' 
+                                : 'bg-red-100 text-red-800'
+                          }`}>
+                            {course.level}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-[#a0a0a0]">Available for assignment</p>
                     </div>
                     <span className="text-xs text-[#a0a0a0]">Active</span>

@@ -18,6 +18,7 @@ interface Course {
   title: string;
   company_id: string;
   created_at: string;
+  level?: string;
 }
 
 interface Podcast {
@@ -612,7 +613,20 @@ export default function CourseAssignment() {
                               )}
                             </div>
                             <BookOpen className="h-4 w-4 text-[#8b5cf6] mr-2" />
-                            <span className="text-sm font-medium text-white">{course.title}</span>
+                            <div className="flex items-center">
+                              <span className="text-sm font-medium text-white">{course.title}</span>
+                              {course.level && (
+                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                  course.level === 'Basics' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : course.level === 'Intermediate' 
+                                      ? 'bg-yellow-100 text-yellow-800' 
+                                      : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {course.level}
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <span className="text-xs text-[#a0a0a0]">
                             {course.totalContent} items

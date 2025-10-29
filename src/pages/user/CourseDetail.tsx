@@ -5,6 +5,16 @@ import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
 
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  company_id: string | null;
+  image_url: string | null;
+  created_at: string;
+  level?: string;
+}
+
 export default function CourseDetail() {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -415,7 +425,20 @@ export default function CourseDetail() {
           {/* Course Info */}
           <div className="md:w-2/3 p-6">
             <div className="mb-4">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{course.title}</h1>
+              <div className="flex items-start justify-between">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">{course.title}</h1>
+                {course.level && (
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    course.level === 'Basics' 
+                      ? 'bg-green-100 text-green-800' 
+                      : course.level === 'Intermediate' 
+                        ? 'bg-yellow-100 text-yellow-800' 
+                        : 'bg-red-100 text-red-800'
+                  }`}>
+                    {course.level}
+                  </span>
+                )}
+              </div>
               <p className="text-gray-600 mb-4">
                 {course.description || `Master the art of ${course.title.toLowerCase()}. This course contains various modules to help you develop your skills.`}
               </p>

@@ -14,8 +14,10 @@ interface Company {
 interface Course {
   id: string;
   title: string;
-  company_id: string;
+  company_id: string | null;
+  image_url: string | null;
   created_at: string;
+  level?: string;
 }
 
 interface Podcast {

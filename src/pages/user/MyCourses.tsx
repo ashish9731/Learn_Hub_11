@@ -14,6 +14,7 @@ interface Course {
   image_url?: string;
   company_id?: string;
   created_at?: string;
+  level?: string;
 }
 
 interface Category {
@@ -458,12 +459,25 @@ export default function MyCourses() {
               </div>
               
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {course.title}
-                </h3>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {course.title}
+                  </h3>
+                  {course.level && (
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      course.level === 'Basics' 
+                        ? 'bg-green-100 text-green-800' 
+                        : course.level === 'Intermediate' 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : 'bg-red-100 text-red-800'
+                    }`}>
+                      {course.level}
+                    </span>
+                  )}
+                </div>
                 
                 <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                  {course.description || `This course contains ${courseCategories.length} categories and ${coursePodcasts.length} podcasts to help you master the subject.`}
+                  {course.description || `This course contains ${courseCategories.length} categories with ${coursePodcasts.length} podcasts and ${coursePdfs.length} documents to help you master the subject.`}
                 </p>
 
                 <div className="space-y-3">

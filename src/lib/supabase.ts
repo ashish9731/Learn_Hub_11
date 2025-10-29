@@ -149,6 +149,7 @@ export interface Database {
           company_id: string | null
           image_url: string | null
           created_at: string
+          level: string | null
         }
         Insert: {
           id?: string
@@ -156,6 +157,7 @@ export interface Database {
           company_id?: string | null
           image_url?: string | null
           created_at?: string
+          level?: string | null
         }
         Update: {
           id?: string
@@ -163,6 +165,7 @@ export interface Database {
           company_id?: string | null
           image_url?: string | null
           created_at?: string
+          level?: string | null
         }
       }
       user_courses: {

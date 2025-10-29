@@ -27,6 +27,7 @@ interface Course {
   company_id: string | null;
   image_url: string | null;
   created_at: string;
+  level?: string;
 }
 
 interface Category {
@@ -365,6 +366,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       
       console.log('Assigned courses for user:', assignedCourses);
       console.log('User courses data:', userCoursesData);
+      console.log('All courses data:', coursesData);
+      console.log('Assigned course IDs:', Array.from(assignedCourseIds));
       
       setSupabaseData(prev => ({
         ...prev,
@@ -550,7 +553,15 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
 
   // Build course hierarchy for display - only for assigned courses
   const courseHierarchy = React.useMemo(() => {
-    return supabaseData.courses.map(course => {
+    // Get assigned course IDs
+    const assignedCourseIds = new Set(supabaseData.userCourses.map(uc => uc.course_id));
+    
+    // Filter courses to show only assigned courses
+    const assignedCourses = supabaseData.courses.filter(course => 
+      assignedCourseIds.has(course.id)
+    );
+    
+    return assignedCourses.map(course => {
       // Get categories for this course
       const courseCategories = supabaseData.categories.filter(cat => cat.course_id === course.id);
       
@@ -579,7 +590,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         ) + uncategorizedPodcasts.length
       };
     });
-  }, [supabaseData.courses, supabaseData.categories, supabaseData.podcasts]);
+  }, [supabaseData.courses, supabaseData.categories, supabaseData.podcasts, supabaseData.userCourses]);
 
   // Toggle course expansion
   const toggleCourseExpansion = (courseId: string) => {
