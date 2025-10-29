@@ -37,6 +37,12 @@ export default function LogoUpload({
     // Reset error state
     setUploadError(null);
 
+    // Check if logo name is provided
+    if (!logoName.trim()) {
+      setUploadError('Please enter a logo name before selecting a file');
+      return;
+    }
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
       setUploadError('Please select an image file');
@@ -46,11 +52,6 @@ export default function LogoUpload({
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       setUploadError('File size must be less than 2MB');
-      return;
-    }
-
-    if (!logoName.trim()) {
-      setUploadError('Please enter a logo name');
       return;
     }
 
@@ -191,6 +192,7 @@ export default function LogoUpload({
                     className="block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-300"
                     placeholder="Enter logo name"
                   />
+                  <p className="mt-1 text-xs text-gray-500">Please enter a name before selecting a file</p>
                 </div>
 
                 {/* Upload Section */}
@@ -204,14 +206,15 @@ export default function LogoUpload({
                     accept="image/*"
                     onChange={handleFileSelect}
                     className="hidden"
+                    disabled={!logoName.trim()}
                   />
                   
                   <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                     <div className="space-y-1 text-center">
                       <Upload className="mx-auto h-12 w-12 text-gray-400" />
                       <div className="flex text-sm text-gray-600">
-                        <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                          <span>Upload a file</span>
+                        <label htmlFor="file-upload" className={`relative cursor-pointer rounded-md font-medium focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 ${logoName.trim() ? 'text-blue-600 hover:text-blue-500' : 'text-gray-400 cursor-not-allowed'}`}>
+                          <span>{logoName.trim() ? 'Upload a file' : 'Enter logo name first'}</span>
                           <input 
                             id="file-upload" 
                             name="file-upload" 
@@ -219,6 +222,7 @@ export default function LogoUpload({
                             className="sr-only"
                             onChange={handleFileSelect}
                             accept="image/*"
+                            disabled={!logoName.trim()}
                           />
                         </label>
                         <p className="pl-1">or drag and drop</p>
