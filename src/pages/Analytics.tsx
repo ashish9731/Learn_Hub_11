@@ -121,11 +121,13 @@ export default function Analytics() {
       // Calculate total learning hours from podcast progress
       let totalLearningHours = 0;
       try {
-        const { data: progressData } = await supabase
+        const { data: progressData, error: progressError } = await supabase
           .from('podcast_progress')
           .select('*');
           
-        if (progressData && progressData.length > 0) {
+        if (progressError) {
+          console.error('Error fetching podcast progress:', progressError);
+        } else if (progressData && progressData.length > 0) {
           const totalSeconds = progressData.reduce((total: number, item: any) => {
             const duration = typeof item.duration === 'string' ? parseFloat(item.duration) : (item.duration || 0);
             const progressPercent = item.progress_percent || 0;

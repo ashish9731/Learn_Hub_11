@@ -160,8 +160,8 @@ export default function Dashboard() {
       const totalPodcasts = podcastsData.length;
       const totalCompanies = companiesData.length;
       
-      // Calculate total learning hours from user metrics
-      const totalLearningHours = Math.round((userMetrics?.reduce((sum: number, metric: any) => sum + (metric.total_hours || 0), 0) || 0) * 10) / 10;
+      // Calculate total learning hours from podcast progress (not user metrics)
+      const totalLearningHours = Math.round(totalCompletedHours * 10) / 10;
       
       // Calculate active users (users with course assignments or progress)
       const usersWithAssignments = new Set(userCoursesData?.map((uc: UserCourse) => uc.user_id) || []);
