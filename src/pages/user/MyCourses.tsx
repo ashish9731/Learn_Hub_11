@@ -229,10 +229,10 @@ export default function MyCourses() {
   }, []);
 
   useEffect(() => {
-    loadPodcastProgress();
-    
     if (userId) {
+      loadPodcastProgress();
       loadUserCourses(userId);
+      loadAllSupabaseData();
     }
   }, [userId]);
 

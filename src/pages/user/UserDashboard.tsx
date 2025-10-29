@@ -271,7 +271,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         userCourses: userCoursesData || []
       }));
 
-      // Calculate metrics from the loaded data
+      // Load podcast progress for metrics calculation
       const { data: progressData } = await supabase
         .from('podcast_progress')
         .select('*')
@@ -285,8 +285,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
 
       setLearningMetrics({
         totalHours: Math.round(totalHours * 10) / 10,
-        completedCourses: (userCoursesData || []).length,
-        inProgressCourses: (progressData || []).filter(p => p.progress_percent > 0).length,
+        completedCourses: (userCoursesData || []).filter(uc => uc.completed).length,
+        inProgressCourses: (progressData || []).filter(p => p.progress_percent > 0 && p.progress_percent < 100).length,
         averageCompletion: (progressData || []).length > 0 ? 
           (progressData || []).reduce((sum, p) => sum + (p.progress_percent || 0), 0) / (progressData || []).length : 0
       });
@@ -311,18 +311,19 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       setError(null);
       
       // Load all data first
-      const [coursesData, categoriesData, podcastsData, pdfsData] = await Promise.all([
+      const [coursesData, categoriesData, podcastsData, pdfsData, userCoursesData] = await Promise.all([
         supabaseHelpers.getCourses(),
         supabaseHelpers.getContentCategories(), 
         supabaseHelpers.getPodcasts(),
-        supabaseHelpers.getPDFs()
+        supabaseHelpers.getPDFs(),
+        supabaseHelpers.getUserCourses(userId)
       ]);
       
       // Load liked podcasts separately to avoid the error
       const likedPodcastsData = await loadUserLikedPodcasts(userId);
       
       // Filter courses to show only assigned courses
-      const assignedCourseIds = new Set(supabaseData.userCourses.map(uc => uc.course_id));
+      const assignedCourseIds = new Set(userCoursesData.map(uc => uc.course_id));
       const assignedCourses = (coursesData || []).filter(course => 
         assignedCourseIds.has(course.id)
       );
@@ -333,7 +334,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         categories: categoriesData || [],
         podcasts: podcastsData,
         pdfs: pdfsData,
-        likedPodcasts: likedPodcastsData
+        likedPodcasts: likedPodcastsData,
+        userCourses: userCoursesData || []
       }));
     } catch (err) {
       console.error('Failed to load user data:', err);
@@ -341,7 +343,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     } finally {
       setLoading(false);
     }
-  }, [userId, loadUserLikedPodcasts, supabaseData.userCourses]);
+  }, [userId, loadUserLikedPodcasts]);
 
   // Real-time sync for all relevant tables
   useRealtimeSync('user-courses', loadUserCourses);
@@ -397,21 +399,15 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         });
       }
     }
-  }, [userId, loadPodcastProgress, loadLearningMetrics]);
-
+  }, [userId]);
+  
   // Then load user data when userId is available
   useEffect(() => {
     if (userId) {
       loadUserCourses(); // Load user courses first
+      loadUserData(); // Load all data
     }
-  }, [userId, loadUserCourses]);
-  
-  // Load user data after user courses are loaded
-  useEffect(() => {
-    if (userId && supabaseData.userCourses.length > 0) {
-      loadUserData();
-    }
-  }, [userId, supabaseData.userCourses, loadUserData]);
+  }, [userId]);
   
   // Load user profile when userId is available
   useEffect(() => {

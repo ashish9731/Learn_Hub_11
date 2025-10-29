@@ -64,6 +64,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
     userCourses: []
   });
   const [assignedCourses, setAssignedCourses] = useState<Course[]>([]);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [adminId, setAdminId] = useState<string | null>(null);
@@ -116,7 +117,13 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
       setUserProfiles(userProfilesData || []);
       setPodcastProgress(progressData || []);
       
-      // Filter courses to show only those assigned to users in admin's company
+      // Show all courses from Super Admin that are available for assignment
+      // Filter courses to show only those that belong to the admin's company or all courses if no company
+      const availableCourses = (coursesData || []).filter((course: Course) => 
+        !companyId || course.company_id === companyId
+      );
+      
+      // Also get courses that are already assigned to users in admin's company
       const adminUsers = companyId 
         ? (usersData || []).filter((user: User) => user.role === 'user' && user.company_id === companyId)
         : (usersData || []).filter((user: User) => user.role === 'user');
@@ -149,6 +156,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
       const activeUsers = new Set([...usersWithCourses, ...usersWithProgress]).size;
       
       setAssignedCourses(assignedCourses);
+      setAvailableCourses(availableCourses);
       setRealTimeMetrics({
         totalUsers: adminUsers.length,
         totalCourses: assignedCourseIds.size,
@@ -379,18 +387,18 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                {assignedCourses.length > 0 ? (
-                  assignedCourses.slice(0, 6).map((course: any, index: number) => (
+                {availableCourses.length > 0 ? (
+                  availableCourses.slice(0, 6).map((course: any, index: number) => (
                     <div key={course.id} className="flex items-center justify-between p-3 bg-[#252525] rounded-lg">
                       <div>
                         <h4 className="text-sm font-medium text-white">{course.title}</h4>
-                        <p className="text-xs text-[#a0a0a0]">Assigned to your users</p>
+                        <p className="text-xs text-[#a0a0a0]">Available for assignment</p>
                       </div>
                       <span className="text-xs text-[#a0a0a0]">Active</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-center text-[#a0a0a0] py-4">No courses assigned yet</p>
+                  <p className="text-center text-[#a0a0a0] py-4">No courses available yet</p>
                 )}
               </div>
             </div>

@@ -34,9 +34,14 @@ export default function CourseDetail() {
   useEffect(() => {
     if (courseId && userId) {
       checkUserCourseAssignment();
-      loadCourseData();
     }
   }, [courseId, userId]);
+
+  useEffect(() => {
+    if (courseId && userId && isUserAssignedToCourse) {
+      loadCourseData();
+    }
+  }, [courseId, userId, isUserAssignedToCourse]);
 
   useEffect(() => {
     if (userId) {
@@ -104,12 +109,8 @@ export default function CourseDetail() {
       setLoading(true);
       setError(null);
 
-      // Check if user is assigned to this course before loading data
-      if (!isUserAssignedToCourse) {
-        setError('You are not assigned to this course. Please contact your administrator.');
-        setLoading(false);
-        return;
-      }
+      // Always load course data, but check assignment for access control
+      // We'll filter content based on assignment later
 
       // Get course details and related data including documents
       const [courseData, categoriesData, podcastsData, pdfsData] = await Promise.all([

@@ -207,21 +207,9 @@ export default function CourseAssignment() {
   };
 
   // Build course hierarchy for content selection
-  // Filter courses to show only those assigned to users in admin's company
-  const adminUsers = supabaseData.users.filter((user: User) => 
-    user.role === 'user' && 
-    (!adminCompanyId || user.company_id === adminCompanyId)
-  );
-  
-  const adminUserIds = adminUsers.map((user: User) => user.id);
-  const adminUserCourses = supabaseData.userCourses.filter((uc: UserCourse) => 
-    adminUserIds.includes(uc.user_id)
-  );
-  
-  const assignedCourseIds = new Set(adminUserCourses.map((uc: UserCourse) => uc.course_id));
-  
+  // Show all courses from Super Admin that are available for assignment
   const courseHierarchy = supabaseData.courses
-    .filter((course: Course) => assignedCourseIds.has(course.id))
+    .filter((course: Course) => !adminCompanyId || course.company_id === adminCompanyId)
     .map((course: Course) => {
     // Get categories for this course
     const courseCategories = supabaseData.categories.filter((cat: Category) => cat.course_id === course.id);
