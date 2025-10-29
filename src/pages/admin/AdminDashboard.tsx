@@ -132,12 +132,10 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         assignedCourseIds.has(course.id)
       );
       
-      // Show all courses from Super Admin that are available for assignment
-      // Include courses that are either:
-      // 1. Not assigned to any company (NULL company_id) - these are available to all admins
-      // 2. Assigned to the admin's company
+      // Show only courses that have been assigned to this admin by Super Admin
+      // These are courses where the company_id matches the admin's company_id
       const availableCourses = (coursesData || []).filter((course: Course) => 
-        course.company_id === null || course.company_id === companyId
+        course.company_id === companyId
       );
       
       // Calculate total hours from podcast progress
