@@ -314,6 +314,16 @@ export default function ContentUpload() {
       return;
     }
 
+    // Check if a course with the same title already exists (case insensitive)
+    const existingCourse = supabaseData.courses.find(
+      course => course.title.toLowerCase() === newCourseTitle.trim().toLowerCase()
+    );
+    
+    if (existingCourse) {
+      alert(`A course with the name "${newCourseTitle}" already exists. Please choose a different name.`);
+      return;
+    }
+
     try {
       console.log('Creating course:', {
         title: newCourseTitle,
@@ -380,6 +390,24 @@ export default function ContentUpload() {
   const handleUpload = async () => {
     if (!contentTitle || !selectedCourse) {
       alert('Please fill in all required fields: title and course');
+      return;
+    }
+
+    // Check if content with the same title already exists in the selected course
+    const existingPodcast = supabaseData.podcasts.find(
+      podcast => 
+        podcast.title.toLowerCase() === contentTitle.trim().toLowerCase() && 
+        podcast.course_id === selectedCourse
+    );
+    
+    const existingPDF = supabaseData.pdfs.find(
+      pdf => 
+        pdf.title.toLowerCase() === contentTitle.trim().toLowerCase() && 
+        pdf.course_id === selectedCourse
+    );
+    
+    if (existingPodcast || existingPDF) {
+      alert(`Content with the name "${contentTitle}" already exists in this course. Please choose a different name.`);
       return;
     }
 
