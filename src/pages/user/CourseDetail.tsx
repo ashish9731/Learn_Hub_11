@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, ChevronLeft, Music, Folder, User, Image, RefreshCw } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, ChevronLeft, Music, Folder, User, Image, RefreshCw, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
@@ -173,7 +173,7 @@ export default function CourseDetail() {
 
         // If we have a course image URL, use it
         if (courseData.image_url) {
-          setCourseImage(courseData.image_url);
+          // Remove the incorrect line that was causing the error
         }
       } catch (err) {
         console.error('Error loading course data:', err);
@@ -339,7 +339,7 @@ export default function CourseDetail() {
     console.log('CourseDetail: Showing loading spinner');
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
       </div>
     );
   }
@@ -349,10 +349,10 @@ export default function CourseDetail() {
     return (
       <div className="p-6">
         <div className="text-center py-12">
-          <div className="text-red-600">Error loading course: {error}</div>
+          <div className="text-red-400">Error loading course: {error}</div>
           <button
             onClick={() => navigate('/user/courses')}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="mt-4 px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-600"
           >
             Back to Courses
           </button>
@@ -383,7 +383,7 @@ export default function CourseDetail() {
     return (
       <div className="p-6">
         <div className="text-center py-12">
-          <div className="text-gray-600">Course not found</div>
+          <div className="text-gray-400">Course not found</div>
         </div>
         
         {/* Debug component for troubleshooting */}
@@ -396,11 +396,11 @@ export default function CourseDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black text-white">
       {/* Back Button */}
       <button
         onClick={() => navigate('/user/courses')}
-        className="flex items-center text-blue-600 hover:text-blue-800 mb-6 group"
+        className="flex items-center text-blue-400 hover:text-blue-300 mb-6 group"
       >
         <ChevronLeft className="h-5 w-5 mr-1 transition-transform group-hover:-translate-x-1" />
         <span className="font-medium">Back to Courses</span>
@@ -420,7 +420,7 @@ export default function CourseDetail() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : error ? (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-red-900 border border-red-700 rounded-lg p-4">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
@@ -428,8 +428,8 @@ export default function CourseDetail() {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">Error loading course</h3>
-                <div className="mt-2 text-sm text-red-700">
+                <h3 className="text-sm font-medium text-red-300">Error loading course</h3>
+                <div className="mt-2 text-sm text-red-200">
                   <p>{error}</p>
                 </div>
               </div>
@@ -438,11 +438,11 @@ export default function CourseDetail() {
         ) : course ? (
           <>
             {/* Course Header */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+            <div className="bg-gray-900 rounded-xl shadow-lg overflow-hidden mb-8 border border-gray-800">
               <div className="md:flex">
                 {/* Course Image - Left Side */}
                 <div className="md:w-1/3">
-                  <div className="aspect-video bg-gray-200 relative rounded-xl overflow-hidden">
+                  <div className="aspect-video bg-gray-800 relative rounded-xl overflow-hidden border border-gray-700">
                     {course?.image_url ? (
                       <img
                         src={course.image_url}
@@ -451,9 +451,9 @@ export default function CourseDetail() {
                         onError={handleImageError}
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-                        <BookOpen className="h-16 w-16 text-indigo-300 mb-4" />
-                        <p className="text-indigo-400 text-center font-medium">No course image</p>
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 p-6 border border-gray-700">
+                        <BookOpen className="h-16 w-16 text-gray-400 mb-4" />
+                        <p className="text-gray-400 text-center font-medium">No course image</p>
                       </div>
                     )}
                   </div>
@@ -463,7 +463,7 @@ export default function CourseDetail() {
                 <div className="md:w-2/3 p-8">
                   <div className="flex justify-between items-start mb-6">
                     <div>
-                      <h1 className="text-3xl font-bold text-gray-900 mb-3">{course.title}</h1>
+                      <h1 className="text-3xl font-bold text-white mb-3">{course.title}</h1>
                       {course.level && (
                         <span className={`px-4 py-2 text-sm rounded-full font-medium ${
                           course.level === 'Basics' 
@@ -478,33 +478,33 @@ export default function CourseDetail() {
                     </div>
                   </div>
 
-                  <p className="text-gray-700 text-lg mb-8 leading-relaxed">{course.description || 'No description provided for this course.'}</p>
+                  <p className="text-gray-300 text-lg mb-8 leading-relaxed">{course.description || 'No description provided for this course.'}</p>
 
                   {/* Course Metadata */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center shadow-sm">
-                      <div className="text-2xl font-bold text-blue-600 mb-1">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
+                      <div className="text-2xl font-bold text-blue-400 mb-1">
                         {categoriesWithProgress.length}
                       </div>
-                      <div className="text-sm font-medium text-blue-800">Categories</div>
+                      <div className="text-sm font-medium text-gray-300">Categories</div>
                     </div>
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center shadow-sm">
-                      <div className="text-2xl font-bold text-green-600 mb-1">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
+                      <div className="text-2xl font-bold text-green-400 mb-1">
                         {podcasts.length}
                       </div>
-                      <div className="text-sm font-medium text-green-800">Podcasts</div>
+                      <div className="text-sm font-medium text-gray-300">Podcasts</div>
                     </div>
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 text-center shadow-sm">
-                      <div className="text-2xl font-bold text-purple-600 mb-1">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
+                      <div className="text-2xl font-bold text-purple-400 mb-1">
                         {pdfs.length}
                       </div>
-                      <div className="text-sm font-medium text-purple-800">Documents</div>
+                      <div className="text-sm font-medium text-gray-300">Documents</div>
                     </div>
-                    <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 text-center shadow-sm">
-                      <div className="text-2xl font-bold text-amber-600 mb-1">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
+                      <div className="text-2xl font-bold text-amber-400 mb-1">
                         {totalLearningHours.toFixed(1)}
                       </div>
-                      <div className="text-sm font-medium text-amber-800">Hours</div>
+                      <div className="text-sm font-medium text-gray-300">Hours</div>
                     </div>
                   </div>
                 </div>
@@ -519,8 +519,8 @@ export default function CourseDetail() {
                       onClick={() => setActiveTab(tab)}
                       className={`flex-1 min-w-[140px] px-6 py-4 rounded-2xl font-semibold text-lg capitalize transition-all duration-300 transform hover:scale-105 ${
                         activeTab === tab
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-xl'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-lg'
+                          ? 'bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-xl'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:shadow-lg'
                       }`}
                     >
                       {tab}
@@ -532,8 +532,8 @@ export default function CourseDetail() {
 
             {/* Audio Tab */}
             {activeTab === 'audio' && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Audio Content</h2>
+              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+                <h2 className="text-xl font-semibold text-white mb-4">Audio Content</h2>
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Audio List - Left Side */}
                   <div className="lg:w-1/2">
@@ -545,22 +545,22 @@ export default function CourseDetail() {
                           return (
                             <div 
                               key={podcast.id} 
-                              className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-50 ${
+                              className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
                                 currentPodcast?.id === podcast.id 
-                                  ? 'bg-blue-50 border border-blue-200' 
-                                  : 'bg-gray-50'
+                                  ? 'bg-gray-800 border border-blue-500' 
+                                  : 'bg-gray-800'
                               }`}
                               onClick={() => handlePlayPodcast(podcast)}
                             >
                               <div className="flex items-center">
                                 <div className="flex-shrink-0 mr-3">
-                                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <Headphones className="h-5 w-5 text-blue-600" />
+                                  <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
+                                    <Headphones className="h-5 w-5 text-blue-400" />
                                   </div>
                                 </div> 
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="text-sm font-medium text-gray-900 truncate">{podcast.title}</h3>
-                                  <p className="text-xs text-gray-500">Audio content</p>
+                                  <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
+                                  <p className="text-xs text-gray-400">Audio content</p>
                                   {completion > 0 && (
                                     <div className="ml-2 flex items-center">
                                       <div className="w-16 bg-gray-200 rounded-full h-1.5">
@@ -574,10 +574,10 @@ export default function CourseDetail() {
                             </div>
                           );
                         }) : (
-                          <div className="text-center py-8 text-gray-500">
-                            <Headphones className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Audio Content</h3>
-                            <p className="text-gray-500">This course doesn't have any audio content yet.</p>
+                          <div className="text-center py-8 text-gray-400">
+                            <Headphones className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                            <h3 className="text-lg font-medium text-white mb-2">No Audio Content</h3>
+                            <p className="text-gray-400">This course doesn't have any audio content yet.</p>
                           </div>
                         )}
                     </div>
@@ -586,9 +586,9 @@ export default function CourseDetail() {
                   {/* Audio Player - Right Side */}
                   <div className="lg:w-1/2">
                     {currentPodcast && !currentPodcast.is_youtube_video ? (
-                      <div className="bg-gray-50 rounded-lg p-4 h-full">
+                      <div className="bg-gray-800 rounded-lg p-4 h-full border border-gray-700">
                         <div className="mb-4">
-                          <h2 className="text-lg font-bold text-gray-900">{currentPodcast.title}</h2>
+                          <h2 className="text-lg font-bold text-white">{currentPodcast.title}</h2>
                         </div>
                         <div className="mt-4">
                           <PodcastPlayer 
@@ -613,7 +613,7 @@ export default function CourseDetail() {
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-gray-50 rounded-lg p-8 h-full flex flex-col items-center justify-center text-gray-500">
+                      <div className="bg-gray-800 rounded-lg p-8 h-full flex flex-col items-center justify-center text-gray-400 border border-gray-700">
                         <Headphones className="h-12 w-12 mb-4" />
                         <p className="text-center">Select an audio file from the playlist to start listening</p>
                       </div>
@@ -625,16 +625,16 @@ export default function CourseDetail() {
 
             {/* Video Tab */}
             {activeTab === 'video' && (
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">Video Content</h2>
+                  <h2 className="text-xl font-semibold text-white">Video Content</h2>
                   <div className="flex space-x-2">
                     <button
                       onClick={() => setVideoViewMode('list')}
                       className={`px-3 py-1 rounded-md text-sm ${
                         videoViewMode === 'list'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          ? 'bg-blue-700 text-white'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                       }`}
                     >
                       List View
@@ -643,8 +643,8 @@ export default function CourseDetail() {
                       onClick={() => setVideoViewMode('tile')}
                       className={`px-3 py-1 rounded-md text-sm ${
                         videoViewMode === 'tile'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          ? 'bg-blue-700 text-white'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                       }`}
                     >
                       Tile View
@@ -663,22 +663,22 @@ export default function CourseDetail() {
                           return videoViewMode === 'list' ? (
                             <div 
                               key={podcast.id} 
-                              className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-50 ${
+                              className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
                                 currentPodcast?.id === podcast.id 
-                                  ? 'bg-blue-50 border border-blue-200' 
-                                  : 'bg-gray-50'
+                                  ? 'bg-gray-800 border border-red-500' 
+                                  : 'bg-gray-800'
                               }`}
                               onClick={() => handlePlayPodcast(podcast)}
                             >
                               <div className="flex items-center">
                                 <div className="flex-shrink-0 mr-3">
-                                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                                    <Youtube className="h-5 w-5 text-red-600" />
+                                  <div className="w-10 h-10 bg-red-900 rounded-full flex items-center justify-center">
+                                    <Youtube className="h-5 w-5 text-red-400" />
                                   </div>
                                 </div> 
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="text-sm font-medium text-gray-900 truncate">{podcast.title}</h3>
-                                  <p className="text-xs text-gray-500">YouTube Video</p>
+                                  <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
+                                  <p className="text-xs text-gray-400">YouTube Video</p>
                                   {completion > 0 && (
                                     <div className="ml-2 flex items-center">
                                       <div className="w-16 bg-gray-200 rounded-full h-1.5">
@@ -693,14 +693,14 @@ export default function CourseDetail() {
                           ) : (
                             <div 
                               key={podcast.id} 
-                              className={`border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
+                              className={`border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
                                 currentPodcast?.id === podcast.id 
-                                  ? 'border-red-300 ring-2 ring-red-100' 
-                                  : ''
+                                  ? 'border-red-500 ring-2 ring-red-900 bg-gray-800' 
+                                  : 'bg-gray-800'
                               }`}
                               onClick={() => handlePlayPodcast(podcast)}
                             >
-                              <div className="aspect-video bg-gray-200 rounded-lg mb-3 relative overflow-hidden">
+                              <div className="aspect-video bg-gray-700 rounded-lg mb-3 relative overflow-hidden">
                                 {videoId ? (
                                   <img 
                                     src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`} 
@@ -718,8 +718,8 @@ export default function CourseDetail() {
                                   </div>
                                 </div>
                               </div>
-                              <h3 className="text-sm font-medium text-gray-900 mb-1 truncate">{podcast.title}</h3>
-                              <p className="text-xs text-gray-500 mb-2">YouTube Video</p>
+                              <h3 className="text-sm font-medium text-white mb-1 truncate">{podcast.title}</h3>
+                              <p className="text-xs text-gray-400 mb-2">YouTube Video</p>
                               {completion > 0 && (
                                 <div className="w-full bg-gray-200 rounded-full h-1.5">
                                   <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
@@ -730,10 +730,10 @@ export default function CourseDetail() {
                         })}
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <Youtube className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Video Content</h3>
-                        <p className="text-gray-500">This course doesn't have any video content yet.</p>
+                      <div className="text-center py-8 text-gray-400">
+                        <Youtube className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                        <h3 className="text-lg font-medium text-white mb-2">No Video Content</h3>
+                        <p className="text-gray-400">This course doesn't have any video content yet.</p>
                       </div>
                     )}
                   </div>
@@ -741,9 +741,15 @@ export default function CourseDetail() {
                   {/* YouTube Player - Right Side */}
                   {currentPodcast && currentPodcast.is_youtube_video && (
                     <div className="lg:w-1/2">
-                      <div className="bg-gray-50 rounded-lg p-4 h-full">
-                        <div className="mb-4">
-                          <h2 className="text-lg font-bold text-gray-900">{currentPodcast.title}</h2>
+                      <div className="bg-gray-800 rounded-lg p-4 h-full border border-gray-700">
+                        <div className="flex justify-between items-center mb-4">
+                          <h2 className="text-lg font-bold text-white">{currentPodcast.title}</h2>
+                          <button
+                            onClick={() => setCurrentPodcast(null)}
+                            className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-700"
+                          >
+                            <X className="h-6 w-6" />
+                          </button>
                         </div>
                         <div className="aspect-video">
                           {currentPodcast.video_url ? (
@@ -771,24 +777,24 @@ export default function CourseDetail() {
 
             {/* Docs Tab */}
             {activeTab === 'docs' && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Documents</h2>
+              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+                <h2 className="text-xl font-semibold text-white mb-4">Documents</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {pdfs.length > 0 ? 
                     pdfs.map(pdf => (
-                      <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
                         <div className="flex items-start">
-                          <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
-                            <FileText className="h-8 w-8 text-blue-600" />
+                          <div className="flex-shrink-0 p-2 bg-blue-900 rounded-lg">
+                            <FileText className="h-8 w-8 text-blue-400" />
                           </div>
                           <div className="ml-3 flex-1">
-                            <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
-                            <p className="text-xs text-gray-500 mb-3">PDF Document</p>
+                            <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
+                            <p className="text-xs text-gray-400 mb-3">PDF Document</p>
                             <a 
                               href={pdf.pdf_url} 
                               target="_blank" 
                               rel="noopener noreferrer" 
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                               onClick={(e) => {
                                 e.preventDefault();
                                 // Open in new window/tab
@@ -802,10 +808,10 @@ export default function CourseDetail() {
                         </div>
                       </div>
                     )) : (
-                      <div className="text-center py-8 text-gray-500 col-span-full">
-                        <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Documents</h3>
-                        <p className="text-gray-500">This course doesn't have any documents yet.</p>
+                      <div className="text-center py-8 text-gray-400 col-span-full">
+                        <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                        <h3 className="text-lg font-medium text-white mb-2">No Documents</h3>
+                        <p className="text-gray-400">This course doesn't have any documents yet.</p>
                       </div>
                     )}
                 </div>
@@ -814,8 +820,8 @@ export default function CourseDetail() {
 
             {/* Images Tab */}
             {activeTab === 'images' && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Images & Infographics</h2>
+              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+                <h2 className="text-xl font-semibold text-white mb-4">Images & Infographics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {pdfs.filter(pdf => 
                     pdf.title.toLowerCase().includes('.jpg') || 
@@ -831,31 +837,31 @@ export default function CourseDetail() {
                       pdf.title.toLowerCase().includes('.gif') ||
                       pdf.title.toLowerCase().includes('.svg')
                     ).map(pdf => (
-                      <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="aspect-video bg-gray-200 rounded-lg mb-3 overflow-hidden">
+                      <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
+                        <div className="aspect-video bg-gray-700 rounded-lg mb-3 overflow-hidden">
                           <img 
                             src={pdf.pdf_url} 
                             alt={pdf.title}
                             className="w-full h-full object-contain"
                           />
                         </div>
-                        <h3 className="text-sm font-medium text-gray-900 mb-1 truncate">{pdf.title}</h3>
-                        <p className="text-xs text-gray-500 mb-2">Image</p>
+                        <h3 className="text-sm font-medium text-white mb-1 truncate">{pdf.title}</h3>
+                        <p className="text-xs text-gray-400 mb-2">Image</p>
                         <a 
                           href={pdf.pdf_url} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                         >
                           <Image className="h-3 w-3 mr-1" />
                           View Image
                         </a>
                       </div>
                     )) : (
-                      <div className="text-center py-8 text-gray-500 col-span-full">
-                        <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Images</h3>
-                        <p className="text-gray-500">This course doesn't have any images or infographics yet.</p>
+                      <div className="text-center py-8 text-gray-400 col-span-full">
+                        <Image className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                        <h3 className="text-lg font-medium text-white mb-2">No Images</h3>
+                        <p className="text-gray-400">This course doesn't have any images or infographics yet.</p>
                       </div>
                     )}
                 </div>
@@ -864,8 +870,8 @@ export default function CourseDetail() {
 
             {/* Templates Tab */}
             {activeTab === 'templates' && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Templates & Other Content</h2>
+              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+                <h2 className="text-xl font-semibold text-white mb-4">Templates & Other Content</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {pdfs.filter(pdf => 
                     !pdf.title.toLowerCase().includes('.jpg') && 
@@ -881,19 +887,19 @@ export default function CourseDetail() {
                       !pdf.title.toLowerCase().includes('.gif') &&
                       !pdf.title.toLowerCase().includes('.svg')
                     ).map(pdf => (
-                      <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
                         <div className="flex items-start">
-                          <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
-                            <FileText className="h-8 w-8 text-blue-600" />
+                          <div className="flex-shrink-0 p-2 bg-blue-900 rounded-lg">
+                            <FileText className="h-8 w-8 text-blue-400" />
                           </div>
                           <div className="ml-3 flex-1">
-                            <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
-                            <p className="text-xs text-gray-500 mb-3">Template/Document</p>
+                            <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
+                            <p className="text-xs text-gray-400 mb-3">Template/Document</p>
                             <a 
                               href={pdf.pdf_url} 
                               target="_blank" 
                               rel="noopener noreferrer" 
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                             >
                               <FileText className="h-3 w-3 mr-1" />
                               View Template
@@ -902,10 +908,10 @@ export default function CourseDetail() {
                         </div>
                       </div>
                     )) : (
-                      <div className="text-center py-8 text-gray-500 col-span-full">
-                        <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Templates</h3>
-                        <p className="text-gray-500">This course doesn't have any templates or other content yet.</p>
+                      <div className="text-center py-8 text-gray-400 col-span-full">
+                        <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                        <h3 className="text-lg font-medium text-white mb-2">No Templates</h3>
+                        <p className="text-gray-400">This course doesn't have any templates or other content yet.</p>
                       </div>
                     )}
                 </div>
@@ -914,27 +920,27 @@ export default function CourseDetail() {
 
             {/* Quiz Tab */}
             {activeTab === 'quiz' && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Quiz</h2>
+              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+                <h2 className="text-xl font-semibold text-white mb-4">Quiz</h2>
                 <div className="space-y-4">
                   {/* Quiz Content */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Module Quiz</h3>
-                    <p className="text-gray-600 mb-4">Test your knowledge on the course modules.</p>
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <h3 className="text-lg font-medium text-white mb-2">Module Quiz</h3>
+                    <p className="text-gray-300 mb-4">Test your knowledge on the course modules.</p>
                     <button
                       onClick={() => startModuleQuiz('module1', 'Module 1')}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                      className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
                     >
                       Start Module 1 Quiz
                     </button>
                   </div>
 
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Final Quiz</h3>
-                    <p className="text-gray-600 mb-4">Complete the final quiz to finish the course.</p>
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <h3 className="text-lg font-medium text-white mb-2">Final Quiz</h3>
+                    <p className="text-gray-300 mb-4">Complete the final quiz to finish the course.</p>
                     <button
                       onClick={startFinalQuiz}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                      className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
                     >
                       Start Final Quiz
                     </button>
@@ -945,13 +951,13 @@ export default function CourseDetail() {
 
             {/* Media Player */}
             {currentPodcast && activeTab === 'podcasts' && (
-              <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+              <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+                <div className="bg-gray-900 rounded-lg p-6 max-w-2xl w-full border border-gray-700">
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold">{currentPodcast.title}</h2>
+                    <h2 className="text-xl font-bold text-white">{currentPodcast.title}</h2>
                     <button
                       onClick={() => setCurrentPodcast(null)}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-gray-400 hover:text-white"
                     >
                       <ChevronLeft className="h-6 w-6" />
                     </button>
