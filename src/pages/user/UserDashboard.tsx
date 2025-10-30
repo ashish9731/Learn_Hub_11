@@ -269,36 +269,40 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       assignedCourseIds.has(podcast.course_id)
     );
     
+    // Debug: Log assigned podcasts and progress data
+    console.log('Assigned Podcasts:', assignedPodcasts);
+    console.log('Podcast Progress:', podcastProgress);
+    
     // Calculate total possible hours and actual time spent
     assignedPodcasts.forEach(podcast => {
       // Find progress for this podcast
       const progress = podcastProgress.find(p => p.podcast_id === podcast.id);
       
-      // For YouTube videos, use default 30 minutes (1800 seconds)
-      // For audio files, use default 20 minutes (1200 seconds) if no duration is available
-      const isYouTubeVideo = podcast.is_youtube_video || (podcast.video_url && !podcast.mp3_url);
-      const defaultDuration = isYouTubeVideo ? 1800 : 1200;
-      
-      // Use actual duration from progress data if available, otherwise use defaults
-      const duration = (progress && progress.duration > 0) ? progress.duration : defaultDuration;
-      
-      // Add to total possible time
-      totalPossibleSeconds += duration;
-      
-      // Calculate actual time spent based on progress percentage
-      if (progress) {
+      // Only include podcasts that have progress data (meaning they've been interacted with)
+      if (progress && progress.duration > 0) {
+        // Use actual duration from progress data
+        const duration = progress.duration;
+        
+        // Add to total possible time
+        totalPossibleSeconds += duration;
+        
+        // Calculate actual time spent based on progress percentage
         const timeSpent = duration * (progress.progress_percent / 100);
         totalSecondsPlayed += timeSpent;
         
         totalProgress += progress.progress_percent || 0;
         progressCount++;
       }
+      // Skip podcasts without progress data or duration
     });
     
     // Convert total seconds to hours with decimal precision
     const totalPossibleHours = totalPossibleSeconds / 3600;
     const totalHoursPlayed = totalSecondsPlayed / 3600;
     const averageProgress = progressCount > 0 ? Math.round(totalProgress / progressCount) : 0;
+    
+    console.log('Total Seconds Played:', totalSecondsPlayed);
+    console.log('Total Hours Played:', totalHoursPlayed);
     
     return {
       assignedCourses,
@@ -324,22 +328,12 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       const totalProgress = coursePodcasts.reduce((sum, p) => sum + (p.progress_percent || 0), 0);
       const avgProgress = coursePodcasts.length > 0 ? Math.round(totalProgress / coursePodcasts.length) : 0;
       
-      // Calculate time spent on this course
+      // Calculate time spent on this course using only actual durations
       let courseTimeSeconds = 0;
       coursePodcasts.forEach(progress => {
-        // Find the podcast for this progress
-        const podcast = supabaseData.podcasts.find(p => p.id === progress.podcast_id);
-        if (podcast) {
-          // For YouTube videos, use default 30 minutes (1800 seconds)
-          // For audio files, use default 20 minutes (1200 seconds) if no duration is available
-          const isYouTubeVideo = podcast.is_youtube_video || (podcast.video_url && !podcast.mp3_url);
-          const defaultDuration = isYouTubeVideo ? 1800 : 1200;
-          
-          // Use actual duration from progress data if available, otherwise use defaults
-          const duration = (progress.duration > 0) ? progress.duration : defaultDuration;
-          
-          // Calculate actual time spent based on progress percentage
-          const timeSpent = duration * (progress.progress_percent / 100);
+        // Only count time for podcasts with actual duration data
+        if (progress.duration > 0) {
+          const timeSpent = progress.duration * (progress.progress_percent / 100);
           courseTimeSeconds += timeSpent;
         }
       });
