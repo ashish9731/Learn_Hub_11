@@ -270,13 +270,26 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     );
     
     // Debug: Log assigned podcasts and progress data
+    console.log('=== DASHBOARD DEBUG INFO ===');
+    console.log('Assigned Courses Count:', assignedCourses);
     console.log('Assigned Podcasts:', assignedPodcasts);
-    console.log('Podcast Progress:', podcastProgress);
+    console.log('Podcast Progress Items:', podcastProgress);
+    console.log('Assigned Course IDs:', Array.from(assignedCourseIds));
     
     // Calculate total possible hours and actual time spent
-    assignedPodcasts.forEach(podcast => {
+    assignedPodcasts.forEach((podcast, index) => {
       // Find progress for this podcast
       const progress = podcastProgress.find(p => p.podcast_id === podcast.id);
+      
+      console.log(`Podcast ${index + 1}:`, {
+        id: podcast.id,
+        title: podcast.title,
+        hasProgress: !!progress,
+        progress: progress ? {
+          duration: progress.duration,
+          progress_percent: progress.progress_percent
+        } : null
+      });
       
       // Only include podcasts that have progress data (meaning they've been interacted with)
       if (progress && progress.duration > 0) {
@@ -292,6 +305,10 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         
         totalProgress += progress.progress_percent || 0;
         progressCount++;
+        
+        console.log(`  -> Added to calculation: duration=${duration}, progress=${progress.progress_percent}%, timeSpent=${timeSpent}`);
+      } else {
+        console.log(`  -> SKIPPED: no progress or zero duration`);
       }
       // Skip podcasts without progress data or duration
     });
@@ -301,8 +318,13 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     const totalHoursPlayed = totalSecondsPlayed / 3600;
     const averageProgress = progressCount > 0 ? Math.round(totalProgress / progressCount) : 0;
     
+    console.log('=== CALCULATION RESULTS ===');
     console.log('Total Seconds Played:', totalSecondsPlayed);
     console.log('Total Hours Played:', totalHoursPlayed);
+    console.log('Total Possible Seconds:', totalPossibleSeconds);
+    console.log('Total Possible Hours:', totalPossibleHours);
+    console.log('Progress Count:', progressCount);
+    console.log('Average Progress:', averageProgress);
     
     return {
       assignedCourses,
@@ -907,9 +929,11 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                           // Calculate time spent
                           let courseTimeSeconds = 0;
                           courseProgressItems.forEach(progress => {
-                            const duration = progress.duration || 0;
-                            const timeSpent = duration * (progress.progress_percent / 100);
-                            courseTimeSeconds += timeSpent;
+                            // Only count time for podcasts with actual duration data
+                            if (progress.duration > 0) {
+                              const timeSpent = progress.duration * (progress.progress_percent / 100);
+                              courseTimeSeconds += timeSpent;
+                            }
                           });
                           
                           return (
