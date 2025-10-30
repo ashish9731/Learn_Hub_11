@@ -486,7 +486,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Course Progress Chart */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
-            <h2 className="text-xl font-bold mb-6">Course Progress</h2>
+            <h2 className="text-xl font-bold mb-6 text-white">Course Progress</h2>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={courseProgressData}>
@@ -539,64 +539,72 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
             </div>
           </div>
 
-          {/* Progress Distribution Chart */}
+          {/* Progress Distribution Table */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
-            <h2 className="text-xl font-bold mb-6">Progress Distribution</h2>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={progressDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={true}
-                    outerRadius={60}
-                    innerRadius={30}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => percent ? `${name}: ${(percent * 100).toFixed(0)}%` : `${name}`}
-                    paddingAngle={2}
-                  >
-                    {progressDistribution.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={COLORS[index % COLORS.length]} 
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(0,0,0,0.8)', 
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: '0.5rem'
-                    }}
-                    formatter={(value) => [value, 'Courses']}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+            <h2 className="text-xl font-bold mb-6 text-white">Progress Distribution</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-700">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Courses</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Percentage</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {progressDistribution.map((item, index) => (
+                    <tr key={index} className="hover:bg-white/5">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div 
+                            className="w-3 h-3 rounded-full mr-2" 
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          ></div>
+                          <span className="text-white">{item.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-white">
+                        {item.value}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-white">
+                          {supabaseData.userCourses.length > 0 
+                            ? `${Math.round((item.value / supabaseData.userCourses.length) * 100)}%` 
+                            : '0%'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
             
-            {/* Progress Legend */}
+            {/* Summary Stats */}
             <div className="mt-6 grid grid-cols-3 gap-4">
-              {progressDistribution.map((item, index) => (
-                <div key={index} className="flex items-center">
-                  <div 
-                    className="w-4 h-4 rounded-full mr-2" 
-                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                  ></div>
-                  <div>
-                    <p className="text-sm font-medium text-white">{item.name}</p>
-                    <p className="text-xs text-gray-400">{item.value} courses</p>
-                  </div>
-                </div>
-              ))}
+              <div className="bg-white/5 p-3 rounded-lg text-center">
+                <p className="text-2xl font-bold text-white">{supabaseData.userCourses.length}</p>
+                <p className="text-sm text-gray-400">Total Courses</p>
+              </div>
+              <div className="bg-white/5 p-3 rounded-lg text-center">
+                <p className="text-2xl font-bold text-white">
+                  {progressDistribution.find(item => item.name === 'Completed')?.value || 0}
+                </p>
+                <p className="text-sm text-gray-400">Completed</p>
+              </div>
+              <div className="bg-white/5 p-3 rounded-lg text-center">
+                <p className="text-2xl font-bold text-white">
+                  {Math.round((progressDistribution.find(item => item.name === 'Completed')?.value || 0) / 
+                    Math.max(supabaseData.userCourses.length, 1) * 100)}%
+                </p>
+                <p className="text-sm text-gray-400">Completion Rate</p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Recently Accessed Courses */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
-          <h2 className="text-xl font-bold mb-6">Recently Accessed Courses</h2>
+          <h2 className="text-xl font-bold mb-6 text-white">Recently Accessed Courses</h2>
           {supabaseData.userCourses.length === 0 ? (
             <div className="text-center py-12">
               <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
@@ -717,43 +725,42 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                   </div>
                   
                   <h4 className="text-lg font-semibold text-white mb-4">Course List</h4>
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {supabaseData.userCourses.map((userCourse, index) => {
-                      const course = userCourse.courses;
-                      const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === course.id);
-                      const courseProgressItems = podcastProgress.filter(p => 
-                        coursePodcasts.some(podcast => podcast.id === p.podcast_id)
-                      );
-                      
-                      // Calculate course progress
-                      const totalProgress = courseProgressItems.reduce((sum, p) => sum + (p.progress_percent || 0), 0);
-                      const progressPercent = courseProgressItems.length > 0 ? Math.round(totalProgress / courseProgressItems.length) : 0;
-                      
-                      return (
-                        <div key={index} className="bg-white/5 rounded-xl border border-white/10 p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <h5 className="font-semibold text-white">{course.title}</h5>
-                            <span className={`px-2 py-1 text-xs rounded-full ${
-                              progressPercent >= 100 ? 'bg-green-500/20 text-green-300' :
-                              progressPercent > 0 ? 'bg-yellow-500/20 text-yellow-300' :
-                              'bg-gray-500/20 text-gray-300'
-                            }`}>
-                              {progressPercent >= 100 ? 'Completed' : progressPercent > 0 ? 'In Progress' : 'Not Started'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm mb-2">
-                            <span className="text-gray-400">{coursePodcasts.length} modules</span>
-                            <span className="text-white">{progressPercent}%</span>
-                          </div>
-                          <div className="w-full bg-white/20 rounded-full h-2">
-                            <div
-                              className="bg-[#8b5cf6] h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${progressPercent}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-700">
+                      <thead>
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Course</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Modules</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Progress</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-700">
+                        {supabaseData.userCourses.map((userCourse, index) => {
+                          const course = userCourse.courses;
+                          const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === course.id);
+                          const courseProgressItems = podcastProgress.filter(p => 
+                            coursePodcasts.some(podcast => podcast.id === p.podcast_id)
+                          );
+                          
+                          // Calculate course progress
+                          const totalProgress = courseProgressItems.reduce((sum, p) => sum + (p.progress_percent || 0), 0);
+                          const progressPercent = courseProgressItems.length > 0 ? Math.round(totalProgress / courseProgressItems.length) : 0;
+                          
+                          const status = progressPercent >= 100 ? 'Completed' : progressPercent > 0 ? 'In Progress' : 'Not Started';
+                          const statusColor = progressPercent >= 100 ? 'text-green-400' : progressPercent > 0 ? 'text-yellow-400' : 'text-gray-400';
+                          
+                          return (
+                            <tr key={index} className="hover:bg-white/5">
+                              <td className="px-4 py-3 whitespace-nowrap text-white">{course.title}</td>
+                              <td className="px-4 py-3 whitespace-nowrap text-white">{coursePodcasts.length}</td>
+                              <td className="px-4 py-3 whitespace-nowrap text-white">{progressPercent}%</td>
+                              <td className={`px-4 py-3 whitespace-nowrap ${statusColor}`}>{status}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}
@@ -849,44 +856,48 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                   </div>
                   
                   <h4 className="text-lg font-semibold text-white mb-4">Completed Courses</h4>
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {supabaseData.userCourses.filter(uc => {
-                      const courseProgress = podcastProgress.filter(p => 
-                        supabaseData.podcasts.some(podcast => 
-                          podcast.id === p.podcast_id && podcast.course_id === uc.course_id
-                        )
-                      );
-                      return courseProgress.length > 0 && courseProgress.every(p => (p.progress_percent || 0) >= 100);
-                    }).map((userCourse, index) => {
-                      const course = userCourse.courses;
-                      const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === course.id);
-                      const courseProgressItems = podcastProgress.filter(p => 
-                        coursePodcasts.some(podcast => podcast.id === p.podcast_id)
-                      );
-                      
-                      // Calculate time spent
-                      let courseTimeSeconds = 0;
-                      courseProgressItems.forEach(progress => {
-                        const duration = progress.duration || 0;
-                        const timeSpent = duration * (progress.progress_percent / 100);
-                        courseTimeSeconds += timeSpent;
-                      });
-                      
-                      return (
-                        <div key={index} className="bg-white/5 rounded-xl border border-white/10 p-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <h5 className="font-semibold text-white">{course.title}</h5>
-                            <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-300">
-                              Completed
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-400">Time Spent</span>
-                            <span className="text-white">{Math.round(courseTimeSeconds / 60)} minutes</span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-700">
+                      <thead>
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Course</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Time Spent</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-700">
+                        {supabaseData.userCourses.filter(uc => {
+                          const courseProgress = podcastProgress.filter(p => 
+                            supabaseData.podcasts.some(podcast => 
+                              podcast.id === p.podcast_id && podcast.course_id === uc.course_id
+                            )
+                          );
+                          return courseProgress.length > 0 && courseProgress.every(p => (p.progress_percent || 0) >= 100);
+                        }).map((userCourse, index) => {
+                          const course = userCourse.courses;
+                          const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === course.id);
+                          const courseProgressItems = podcastProgress.filter(p => 
+                            coursePodcasts.some(podcast => podcast.id === p.podcast_id)
+                          );
+                          
+                          // Calculate time spent
+                          let courseTimeSeconds = 0;
+                          courseProgressItems.forEach(progress => {
+                            const duration = progress.duration || 0;
+                            const timeSpent = duration * (progress.progress_percent / 100);
+                            courseTimeSeconds += timeSpent;
+                          });
+                          
+                          return (
+                            <tr key={index} className="hover:bg-white/5">
+                              <td className="px-4 py-3 whitespace-nowrap text-white">{course.title}</td>
+                              <td className="px-4 py-3 whitespace-nowrap text-white">{Math.round(courseTimeSeconds / 60)} minutes</td>
+                              <td className="px-4 py-3 whitespace-nowrap text-green-400">Completed</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}
