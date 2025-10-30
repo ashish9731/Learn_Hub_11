@@ -256,7 +256,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     const completedCourses = supabaseData.userCourses.filter(uc => uc.completed).length;
     
     // Calculate total learning hours based on actual podcast durations from progress data
-    let totalSeconds = 0;
+    let totalPossibleSeconds = 0;
+    let totalSecondsPlayed = 0;
     let totalProgress = 0;
     let progressCount = 0;
     
@@ -268,34 +269,46 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       assignedCourseIds.has(podcast.course_id)
     );
     
-    // Calculate total hours based on actual progress data, not estimates
-    podcastProgress.forEach(progress => {
-      // Only count progress for podcasts in assigned courses
-      const podcast = assignedPodcasts.find(p => p.id === progress.podcast_id);
-      if (podcast) {
-        // Use actual duration from progress data, not estimates
-        const duration = progress.duration || 0;
-        // Calculate actual time spent based on progress percentage
+    // Calculate total possible hours and actual time spent
+    assignedPodcasts.forEach(podcast => {
+      // Find progress for this podcast
+      const progress = podcastProgress.find(p => p.podcast_id === podcast.id);
+      
+      // For YouTube videos, use default 30 minutes (1800 seconds)
+      // For audio files, use default 20 minutes (1200 seconds) if no duration is available
+      const isYouTubeVideo = podcast.is_youtube_video || (podcast.video_url && !podcast.mp3_url);
+      const defaultDuration = isYouTubeVideo ? 1800 : 1200;
+      
+      // Use actual duration from progress data if available, otherwise use defaults
+      const duration = (progress && progress.duration > 0) ? progress.duration : defaultDuration;
+      
+      // Add to total possible time
+      totalPossibleSeconds += duration;
+      
+      // Calculate actual time spent based on progress percentage
+      if (progress) {
         const timeSpent = duration * (progress.progress_percent / 100);
-        totalSeconds += timeSpent;
+        totalSecondsPlayed += timeSpent;
         
         totalProgress += progress.progress_percent || 0;
         progressCount++;
       }
     });
     
-    // Convert total seconds to hours with decimal precision (show even seconds)
-    const totalHours = totalSeconds / 3600;
+    // Convert total seconds to hours with decimal precision
+    const totalPossibleHours = totalPossibleSeconds / 3600;
+    const totalHoursPlayed = totalSecondsPlayed / 3600;
     const averageProgress = progressCount > 0 ? Math.round(totalProgress / progressCount) : 0;
     
     return {
       assignedCourses,
       completedCourses,
-      totalHours: Math.round(totalHours * 100) / 100, // Round to 2 decimal places for accuracy
+      totalHours: Math.round(totalHoursPlayed * 100) / 100, // Round to 2 decimal places for accuracy
+      totalPossibleHours: Math.round(totalPossibleHours * 100) / 100, // Total possible hours
       averageProgress,
       // Add detailed stats for KPI drill-down
-      totalMinutes: Math.round(totalSeconds / 60), // Show total minutes for better granularity
-      totalSecondsPlayed: Math.round(totalSeconds) // Show total seconds played
+      totalMinutes: Math.round(totalSecondsPlayed / 60), // Show total minutes played
+      totalSecondsPlayed: Math.round(totalSecondsPlayed) // Show total seconds played
     };
   };
 
@@ -314,9 +327,21 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       // Calculate time spent on this course
       let courseTimeSeconds = 0;
       coursePodcasts.forEach(progress => {
-        const duration = progress.duration || 0;
-        const timeSpent = duration * (progress.progress_percent / 100);
-        courseTimeSeconds += timeSpent;
+        // Find the podcast for this progress
+        const podcast = supabaseData.podcasts.find(p => p.id === progress.podcast_id);
+        if (podcast) {
+          // For YouTube videos, use default 30 minutes (1800 seconds)
+          // For audio files, use default 20 minutes (1200 seconds) if no duration is available
+          const isYouTubeVideo = podcast.is_youtube_video || (podcast.video_url && !podcast.mp3_url);
+          const defaultDuration = isYouTubeVideo ? 1800 : 1200;
+          
+          // Use actual duration from progress data if available, otherwise use defaults
+          const duration = (progress.duration > 0) ? progress.duration : defaultDuration;
+          
+          // Calculate actual time spent based on progress percentage
+          const timeSpent = duration * (progress.progress_percent / 100);
+          courseTimeSeconds += timeSpent;
+        }
       });
       
       return {
@@ -370,7 +395,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     return { courseProgressData, progressDistribution };
   };
 
-  const { assignedCourses, completedCourses, totalHours, averageProgress, totalMinutes, totalSecondsPlayed } = calculateKPIs();
+  const { assignedCourses, completedCourses, totalHours, totalPossibleHours, averageProgress, totalMinutes, totalSecondsPlayed } = calculateKPIs();
   const { courseProgressData, progressDistribution } = prepareChartData();
 
   // Colors for pie chart
@@ -470,7 +495,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-300">{card.title}</p>
-                    <p className="text-3xl font-bold mt-2">{card.value}</p>
+                    <p className="text-3xl font-bold mt-2 text-white">{card.value}</p>
                     <p className="text-xs text-gray-400 mt-1">{card.subtitle}</p>
                   </div>
                   <div className={`${card.color} p-3 rounded-lg`}>
@@ -772,14 +797,19 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                     <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
                       <p className="text-gray-300">Total Hours</p>
                       <p className="text-3xl font-bold text-white">{totalHours}</p>
+                      <p className="text-sm text-gray-400">Hours played</p>
                     </div>
                     <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
-                      <p className="text-gray-300">Total Minutes</p>
-                      <p className="text-3xl font-bold text-white">{totalMinutes}</p>
+                      <p className="text-gray-300">Total Possible Hours</p>
+                      <p className="text-3xl font-bold text-white">{totalPossibleHours}</p>
+                      <p className="text-sm text-gray-400">If all content completed</p>
                     </div>
                     <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
-                      <p className="text-gray-300">Total Seconds</p>
-                      <p className="text-3xl font-bold text-white">{totalSecondsPlayed}</p>
+                      <p className="text-gray-300">Completion Rate</p>
+                      <p className="text-3xl font-bold text-white">
+                        {totalPossibleHours > 0 ? Math.round((totalHours / totalPossibleHours) * 100) : 0}%
+                      </p>
+                      <p className="text-sm text-gray-400">Of total content</p>
                     </div>
                   </div>
                   
