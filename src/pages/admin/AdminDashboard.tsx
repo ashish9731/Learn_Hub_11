@@ -141,20 +141,28 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         course.company_id === null || course.company_id === companyId
       );
       
-      // Calculate total hours from podcast progress
-      const filteredProgress = (progressData || []).filter((progress: any) => 
-        adminUserIds.includes(progress.user_id)
-      );
-      
-      const totalHours = Math.round(filteredProgress.reduce((sum: number, progress: any) => {
-        const duration = typeof progress.duration === 'string' ? parseFloat(progress.duration) : (progress.duration || 0);
-        const progressPercent = progress.progress_percent || 0;
-        return sum + ((duration * (progressPercent / 100)) / 3600 * 10) / 10;
-      }, 0) * 10) / 10;
+      // Calculate total hours from actual podcast durations
+      let totalHours = 0;
+      if (podcastsData && podcastsData.length > 0) {
+        // Sum up durations of all podcasts in courses assigned to this admin's company
+        const adminPodcasts = podcastsData.filter(podcast => {
+          const course = coursesData.find(c => c.id === podcast.course_id);
+          return course && (course.company_id === companyId || course.company_id === null);
+        });
+        
+        const totalPodcastSeconds = adminPodcasts.reduce((total: number, podcast: any) => {
+          // Use actual duration if available, otherwise estimate
+          const duration = podcast.duration || (podcast.is_youtube_video ? 1800 : 1200);
+          return total + duration;
+        }, 0);
+        
+        // Convert to hours
+        totalHours = Math.round(totalPodcastSeconds / 3600 * 10) / 10;
+      }
       
       // Active users are those who have any course assignments or progress
       const usersWithCourses = new Set(adminUserCourses.map((uc: UserCourse) => uc.user_id));
-      const usersWithProgress = new Set(filteredProgress.filter((progress: any) => 
+      const usersWithProgress = new Set(progressData.filter((progress: any) => 
         progress.progress_percent > 0).map((progress: any) => progress.user_id));
       const activeUsers = new Set([...usersWithCourses, ...usersWithProgress]).size;
       

@@ -118,26 +118,18 @@ export default function Analytics() {
       ).length || 0;
       const totalDocuments = pdfsData.length || 0;
       
-      // Calculate total learning hours from podcast progress
+      // Calculate total learning hours from actual podcast durations
       let totalLearningHours = 0;
-      try {
-        const { data: progressData, error: progressError } = await supabase
-          .from('podcast_progress')
-          .select('*');
-          
-        if (progressError) {
-          console.error('Error fetching podcast progress:', progressError);
-        } else if (progressData && progressData.length > 0) {
-          const totalSeconds = progressData.reduce((total: number, item: any) => {
-            const duration = typeof item.duration === 'string' ? parseFloat(item.duration) : (item.duration || 0);
-            const progressPercent = item.progress_percent || 0;
-            return total + (duration * (progressPercent / 100));
-          }, 0);
-          
-          totalLearningHours = Math.round(totalSeconds / 3600 * 10) / 10;
-        }
-      } catch (progressError) {
-        console.error('Error calculating learning hours:', progressError);
+      if (podcastsData && podcastsData.length > 0) {
+        // Sum up durations of all podcasts
+        const totalPodcastSeconds = podcastsData.reduce((total: number, podcast: any) => {
+          // Use actual duration if available, otherwise estimate
+          const duration = podcast.duration || (podcast.is_youtube_video ? 1800 : 1200);
+          return total + duration;
+        }, 0);
+        
+        // Convert to hours
+        totalLearningHours = Math.round(totalPodcastSeconds / 3600 * 10) / 10;
       }
       
       setRealTimeAnalytics({

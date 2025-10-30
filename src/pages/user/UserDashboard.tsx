@@ -273,9 +273,6 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       totalSeconds += duration;
     });
     
-    // Convert total seconds to hours
-    const totalHours = totalSeconds / 3600;
-    
     // Calculate average progress based on podcast progress
     podcastProgress.forEach(progress => {
       // Only count progress for podcasts in assigned courses
@@ -286,6 +283,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       }
     });
     
+    // Convert total seconds to hours
+    const totalHours = totalSeconds / 3600;
     const averageProgress = progressCount > 0 ? Math.round(totalProgress / progressCount) : 0;
     
     return {

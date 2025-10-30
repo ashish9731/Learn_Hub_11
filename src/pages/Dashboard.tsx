@@ -161,7 +161,19 @@ export default function Dashboard() {
       const totalCompanies = companiesData.length;
       
       // Calculate total learning hours from podcast progress (not user metrics)
-      const totalLearningHours = Math.round(totalCompletedHours * 10) / 10;
+      // Calculate actual time based on uploaded content durations
+      let totalLearningHours = 0;
+      if (podcastsData && podcastsData.length > 0) {
+        // Sum up durations of all podcasts
+        const totalPodcastSeconds = podcastsData.reduce((total: number, podcast: any) => {
+          // Use actual duration if available, otherwise estimate
+          const duration = podcast.duration || (podcast.is_youtube_video ? 1800 : 1200);
+          return total + duration;
+        }, 0);
+        
+        // Convert to hours
+        totalLearningHours = Math.round(totalPodcastSeconds / 3600 * 10) / 10;
+      }
       
       // Calculate active users (users with course assignments or progress)
       const usersWithAssignments = new Set(userCoursesData?.map((uc: UserCourse) => uc.user_id) || []);
