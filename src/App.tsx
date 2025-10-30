@@ -3,9 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { supabase } from './lib/supabase';
 import { testSupabaseConnection } from './lib/supabase';
 
-// Import ThemeProvider
-import { ThemeProvider } from './context/ThemeContext';
-
 // Global real-time sync manager
 const setupGlobalRealtimeSync = () => {
   // Create a global channel for all table changes
@@ -120,14 +117,11 @@ import MyCourses from './pages/user/MyCourses';
 import CourseDetail from './pages/user/CourseDetail';
 import AIChat from './pages/user/AIChat';
 import AuthPage from './components/Auth/AuthPage';
-import { useTheme } from './context/ThemeContext';
 
 function App() {
   return (
     <Router>
-      <ThemeProvider>
-        <AppContent />
-      </ThemeProvider>
+      <AppContent />
     </Router>
   );
 }
@@ -138,7 +132,6 @@ function AppContent() {
   const [userRole, setUserRole] = useState<'super_admin' | 'admin' | 'user'>('user');
   const [isLoading, setIsLoading] = useState(true); 
   const [connectionTested, setConnectionTested] = useState(false);
-  const { theme } = useTheme();
   const navigate = useNavigate();
   const [globalChannel, setGlobalChannel] = useState<any>(null);
 
@@ -322,7 +315,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen dark bg-[#121212]">
+    <div className="min-h-screen bg-[#121212]">
       {isAuthenticated ? (
         <>
           {userRole === 'super_admin' && (
