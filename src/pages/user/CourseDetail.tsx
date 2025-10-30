@@ -91,6 +91,7 @@ export default function CourseDetail() {
   const [showFinalQuiz, setShowFinalQuiz] = useState(false);
   const [allModulesCompleted, setAllModulesCompleted] = useState(false);
   const [totalLearningHours, setTotalLearningHours] = useState<number>(0);
+  const [videoViewMode, setVideoViewMode] = useState<'list' | 'tile'>('list');
 
   // State for course image
   const [courseImage, setCourseImage] = useState<string | null>(null);
@@ -749,53 +750,144 @@ export default function CourseDetail() {
             {/* Video Tab */}
             {activeTab === 'video' && (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Video Content</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {podcasts.filter(p => p.is_youtube_video).length > 0 ? 
-                    podcasts.filter(p => p.is_youtube_video).map(podcast => {
-                      const completion = getPodcastCompletion(podcast.id);
-                      const videoId = extractYouTubeVideoId(podcast.video_url || '');
-                      
-                      return (
-                        <div 
-                          key={podcast.id} 
-                          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                          onClick={() => handlePlayPodcast(podcast)}
-                        >
-                          <div className="aspect-video bg-gray-200 rounded-lg mb-3 relative overflow-hidden">
-                            {videoId ? (
-                              <img 
-                                src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`} 
-                                alt={podcast.title}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Youtube className="h-8 w-8 text-gray-400" />
-                              </div>
-                            )}
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="bg-black bg-opacity-50 rounded-full p-2">
-                                <Play className="h-6 w-6 text-white" />
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">Video Content</h2>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setVideoViewMode('list')}
+                      className={`px-3 py-1 rounded-md text-sm ${
+                        videoViewMode === 'list'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      List View
+                    </button>
+                    <button
+                      onClick={() => setVideoViewMode('tile')}
+                      className={`px-3 py-1 rounded-md text-sm ${
+                        videoViewMode === 'tile'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      Tile View
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Video List - Left Side */}
+                  <div className={currentPodcast && currentPodcast.is_youtube_video ? "lg:w-1/2" : "w-full"}>
+                    {podcasts.filter(p => p.is_youtube_video).length > 0 ? (
+                      <div className={videoViewMode === 'list' ? "space-y-3" : "grid grid-cols-1 md:grid-cols-2 gap-4"}>
+                        {podcasts.filter(p => p.is_youtube_video).map(podcast => {
+                          const completion = getPodcastCompletion(podcast.id);
+                          const videoId = extractYouTubeVideoId(podcast.video_url || '');
+                          
+                          return videoViewMode === 'list' ? (
+                            <div 
+                              key={podcast.id} 
+                              className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-50 ${
+                                currentPodcast?.id === podcast.id 
+                                  ? 'bg-blue-50 border border-blue-200' 
+                                  : 'bg-gray-50'
+                              }`}
+                              onClick={() => handlePlayPodcast(podcast)}
+                            >
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 mr-3">
+                                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                    <Youtube className="h-5 w-5 text-red-600" />
+                                  </div>
+                                </div> 
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-sm font-medium text-gray-900 truncate">{podcast.title}</h3>
+                                  <p className="text-xs text-gray-500">YouTube Video</p>
+                                  {completion > 0 && (
+                                    <div className="ml-2 flex items-center">
+                                      <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                        <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                                      </div>
+                                      <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <h3 className="text-sm font-medium text-gray-900 mb-1 truncate">{podcast.title}</h3>
-                          <p className="text-xs text-gray-500 mb-2">YouTube Video</p>
-                          {completion > 0 && (
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                          ) : (
+                            <div 
+                              key={podcast.id} 
+                              className={`border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
+                                currentPodcast?.id === podcast.id 
+                                  ? 'border-red-300 ring-2 ring-red-100' 
+                                  : ''
+                              }`}
+                              onClick={() => handlePlayPodcast(podcast)}
+                            >
+                              <div className="aspect-video bg-gray-200 rounded-lg mb-3 relative overflow-hidden">
+                                {videoId ? (
+                                  <img 
+                                    src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`} 
+                                    alt={podcast.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Youtube className="h-8 w-8 text-gray-400" />
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="bg-black bg-opacity-50 rounded-full p-2">
+                                    <Play className="h-6 w-6 text-white" />
+                                  </div>
+                                </div>
+                              </div>
+                              <h3 className="text-sm font-medium text-gray-900 mb-1 truncate">{podcast.title}</h3>
+                              <p className="text-xs text-gray-500 mb-2">YouTube Video</p>
+                              {completion > 0 && (
+                                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                  <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      );
-                    }) : (
-                      <div className="text-center py-8 text-gray-500 col-span-full">
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
                         <Youtube className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No Video Content</h3>
                         <p className="text-gray-500">This course doesn't have any video content yet.</p>
                       </div>
                     )}
+                  </div>
+                  
+                  {/* YouTube Player - Right Side */}
+                  {currentPodcast && currentPodcast.is_youtube_video && (
+                    <div className="lg:w-1/2">
+                      <div className="bg-gray-50 rounded-lg p-4 h-full">
+                        <div className="mb-4">
+                          <h2 className="text-lg font-bold text-gray-900">{currentPodcast.title}</h2>
+                        </div>
+                        <div className="aspect-video">
+                          {currentPodcast.video_url ? (
+                            <iframe
+                              src={`https://www.youtube.com/embed/${extractYouTubeVideoId(currentPodcast.video_url)}?autoplay=1`}
+                              title={currentPodcast.title}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              className="w-full h-full rounded-lg"
+                            ></iframe>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-lg">
+                              <Youtube className="h-12 w-12 text-gray-400" />
+                              <span className="ml-2 text-gray-500">No video URL available</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
