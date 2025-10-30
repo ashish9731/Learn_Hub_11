@@ -846,10 +846,14 @@ export default function ContentUpload() {
           <h2 className="text-2xl font-bold text-gray-900">Course Library</h2>
           <button
             onClick={() => setShowAddCourseForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
+            className="custom-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
           >
-            <Plus className="h-5 w-5 mr-2" />
-            Add New Course
+            <span className="shadow"></span>
+            <span className="edge"></span>
+            <span className="front">
+              <Plus className="h-5 w-5 mr-2" />
+              <span>Add New Course</span>
+            </span>
           </button>
         </div>
 
@@ -923,15 +927,23 @@ export default function ContentUpload() {
                           setSelectedCourse(course.id);
                           setShowContentUploadForm(true);
                         }}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        className="custom-button text-blue-600 hover:text-blue-800 text-sm font-medium"
                       >
-                        Add Content
+                        <span className="shadow"></span>
+                        <span className="edge"></span>
+                        <span className="front">
+                          <span>Add Content</span>
+                        </span>
                       </button>
                       <button
                         onClick={() => handleDeleteCourse(course.id)}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                        className="custom-button text-red-600 hover:text-red-800 text-sm font-medium"
                       >
-                        Delete
+                        <span className="shadow"></span>
+                        <span className="edge"></span>
+                        <span className="front">
+                          <span>Delete</span>
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -959,10 +971,14 @@ export default function ContentUpload() {
           <div className="mt-4 flex md:mt-0 md:ml-4">
             <button
               onClick={() => window.history.back()}
-              className="inline-flex items-center px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#1e1e1e] hover:bg-[#252525] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+              className="custom-button"
             >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Back
+              <span className="shadow"></span>
+              <span className="edge"></span>
+              <span className="front">
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                <span>Back</span>
+              </span>
             </button>
           </div>
         </div>

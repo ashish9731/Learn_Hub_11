@@ -629,9 +629,13 @@ export default function Analytics() {
             <p className="text-red-600">Error: {error}</p>
             <button 
               onClick={loadSupabaseData}
-              className="mt-2 text-sm text-red-700 hover:text-red-500"
+              className="custom-button mt-2"
             >
-              Try again
+              <span className="shadow"></span>
+              <span className="edge"></span>
+              <span className="front">
+                <span className="text-sm text-red-700 hover:text-red-500">Try again</span>
+              </span>
             </button>
           </div>
         </div>
@@ -654,16 +658,24 @@ export default function Analytics() {
           <div className="mt-4 flex md:mt-0 md:ml-4 space-x-2">
             <button
               onClick={() => window.history.back()}
-              className="inline-flex items-center px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#1e1e1e] hover:bg-[#252525] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+              className="custom-button"
             >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Back
+              <span className="shadow"></span>
+              <span className="edge"></span>
+              <span className="front">
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                <span>Back</span>
+              </span>
             </button>
             <button
               onClick={loadSupabaseData}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="custom-button"
             >
-              Refresh Data
+              <span className="shadow"></span>
+              <span className="edge"></span>
+              <span className="front">
+                <span>Refresh Data</span>
+              </span>
             </button>
           </div>
         </div>

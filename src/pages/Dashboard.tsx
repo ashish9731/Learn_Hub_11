@@ -452,14 +452,14 @@ export default function Dashboard() {
               <button
                 key={button.name}
                 onClick={() => navigate(button.path)}
-                className={`flex items-center px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${
-                  location.pathname === button.path
-                    ? 'bg-[#8b5cf6] text-white'
-                    : 'bg-[#1e1e1e] text-gray-300 hover:bg-[#252525] border border-[#333333]'
-                }`}
+                className={`custom-button ${location.pathname === button.path ? 'bg-[#8b5cf6] text-white' : ''}`}
               >
-                <button.icon className="h-5 w-5 mr-2" />
-                {button.name}
+                <span className="shadow"></span>
+                <span className="edge"></span>
+                <span className="front">
+                  <button.icon className="h-5 w-5 mr-2" />
+                  <span>{button.name}</span>
+                </span>
               </button>
             ))}
           </div>
@@ -643,42 +643,54 @@ export default function Dashboard() {
             <div className="p-6">
               <div className="space-y-3">
                 <button 
-                  className="w-full text-left p-3 border border-[#333333] rounded-lg hover:bg-[#252525] transition-colors"
+                  className="custom-button w-full"
                   onClick={() => handleQuickAction('addAdmin')}
                 >
-                  <div className="flex items-center">
-                    <UserCog className="h-5 w-5 text-[#8b5cf6] mr-3" />
-                    <div>
-                      <h4 className="text-sm font-medium text-white">Add Admin</h4>
-                      <p className="text-xs text-[#a0a0a0]">Create new administrator</p>
+                  <span className="shadow"></span>
+                  <span className="edge"></span>
+                  <span className="front">
+                    <div className="flex items-center w-full">
+                      <UserCog className="h-5 w-5 text-[#8b5cf6] mr-3" />
+                      <div className="text-left">
+                        <h4 className="text-sm font-medium text-white">Add Admin</h4>
+                        <p className="text-xs text-[#a0a0a0]">Create new administrator</p>
+                      </div>
                     </div>
-                  </div>
+                  </span>
                 </button>
                 
                 <button 
-                  className="w-full text-left p-3 border border-[#333333] rounded-lg hover:bg-[#252525] transition-colors"
+                  className="custom-button w-full"
                   onClick={() => handleQuickAction('addUser')}
                 >
-                  <div className="flex items-center">
-                    <Users className="h-5 w-5 text-[#8b5cf6] mr-3" />
-                    <div>
-                      <h4 className="text-sm font-medium text-white">Add User</h4>
-                      <p className="text-xs text-[#a0a0a0]">Create new user account</p>
+                  <span className="shadow"></span>
+                  <span className="edge"></span>
+                  <span className="front">
+                    <div className="flex items-center w-full">
+                      <Users className="h-5 w-5 text-[#8b5cf6] mr-3" />
+                      <div className="text-left">
+                        <h4 className="text-sm font-medium text-white">Add User</h4>
+                        <p className="text-xs text-[#a0a0a0]">Create new user account</p>
+                      </div>
                     </div>
-                  </div>
+                  </span>
                 </button>
                 
                 <button 
-                  className="w-full text-left p-3 border border-[#333333] rounded-lg hover:bg-[#252525] transition-colors"
+                  className="custom-button w-full"
                   onClick={() => handleQuickAction('analytics')}
                 >
-                  <div className="flex items-center">
-                    <BarChart3 className="h-5 w-5 text-[#8b5cf6] mr-3" />
-                    <div>
-                      <h4 className="text-sm font-medium text-white">View Analytics</h4>
-                      <p className="text-xs text-[#a0a0a0]">Check system performance</p>
+                  <span className="shadow"></span>
+                  <span className="edge"></span>
+                  <span className="front">
+                    <div className="flex items-center w-full">
+                      <BarChart3 className="h-5 w-5 text-[#8b5cf6] mr-3" />
+                      <div className="text-left">
+                        <h4 className="text-sm font-medium text-white">View Analytics</h4>
+                        <p className="text-xs text-[#a0a0a0]">Check system performance</p>
+                      </div>
                     </div>
-                  </div>
+                  </span>
                 </button>
               </div>
             </div>

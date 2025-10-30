@@ -365,9 +365,13 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
             <p className="text-red-600">Error: {error}</p>
             <button 
               onClick={() => window.location.reload()}
-              className="mt-2 text-sm text-red-700 hover:text-red-500"
+              className="custom-button mt-2"
             >
-              Try again
+              <span className="shadow"></span>
+              <span className="edge"></span>
+              <span className="front">
+                <span className="text-sm text-red-700 hover:text-red-500">Try again</span>
+              </span>
             </button>
           </div>
         </div>
