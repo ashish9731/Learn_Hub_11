@@ -69,6 +69,10 @@ export default function ContentUpload() {
   const [newCourseTitle, setNewCourseTitle] = useState('');
   const [newCourseLevel, setNewCourseLevel] = useState<'Basics' | 'Intermediate' | 'Advanced'>('Basics');
   
+  // Form visibility state
+  const [showAddCourseForm, setShowAddCourseForm] = useState(true);
+  const [showContentUploadForm, setShowContentUploadForm] = useState(true);
+  
   // Assignment form state
   const [assignmentTitle, setAssignmentTitle] = useState('');
   const [assignmentDescription, setAssignmentDescription] = useState('');
@@ -178,6 +182,29 @@ export default function ContentUpload() {
   const totalCourses = supabaseData.courses?.length || 0;
   const totalPodcasts = supabaseData.podcasts?.length || 0;
   const totalDocuments = supabaseData.pdfs?.length || 0;
+  
+  // Build course hierarchy for content selection
+  const courseHierarchy = supabaseData.courses.map((course) => {
+    // Get podcasts for this course
+    const coursePodcasts = supabaseData.podcasts.filter(
+      (podcast) => podcast.course_id === course.id
+    );
+    
+    // Get PDFs for this course
+    const coursePDFs = supabaseData.pdfs.filter(
+      (pdf) => pdf.course_id === course.id
+    );
+    
+    // Calculate total content
+    const totalContent = coursePodcasts.length + coursePDFs.length;
+    
+    return {
+      ...course,
+      coursePodcasts,
+      coursePDFs,
+      totalContent
+    };
+  });
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -742,6 +769,64 @@ export default function ContentUpload() {
     }
   };
 
+  // Function to manually upload course image
+  const handleCourseImageUpload = async (courseId: string, file: File) => {
+    try {
+      // Upload to Supabase storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `course-images/${courseId}-${Date.now()}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('course-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+      
+      if (uploadError) {
+        console.error('Error uploading course image:', uploadError);
+        alert('Failed to upload course image. Please try again.');
+        return;
+      }
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('course-images')
+        .getPublicUrl(fileName);
+      
+      // Update course with the new image URL
+      try {
+        await supabaseHelpers.updateCourse(courseId, { image_url: publicUrl });
+        console.log('Course image updated successfully');
+        alert('Course image uploaded and saved successfully!');
+        
+        // Reload data to show the new image
+        await loadSupabaseData();
+      } catch (updateError) {
+        console.error('Error updating course with image URL:', updateError);
+        alert('Failed to save image to course. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error uploading course image:', error);
+      alert('Error uploading course image. Please try again.');
+    }
+  };
+
+  // Function to manually delete course image
+  const deleteCourseImage = async (courseId: string) => {
+    try {
+      // Update course to remove image URL
+      await supabaseHelpers.updateCourse(courseId, { image_url: null });
+      console.log('Course image deleted successfully');
+      
+      // Reload data to reflect changes
+      await loadSupabaseData();
+    } catch (error) {
+      console.error('Error deleting course image:', error);
+      alert('Error deleting course image. Please try again.');
+    }
+  };
+
   // Toggle course expansion
   const toggleCourseExpansion = (courseId: string) => {
     setExpandedCourses(prev => ({
@@ -795,21 +880,20 @@ export default function ContentUpload() {
                       <BookOpen className="h-12 w-12 text-gray-400" />
                     </div>
                   )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      generateCourseImage(course.id, course.title);
-                    }}
-                    disabled={isGeneratingImage[course.id]}
-                    className="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 shadow-md disabled:opacity-50"
-                    title="Generate course image"
-                  >
-                    {isGeneratingImage[course.id] ? (
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Image className="h-4 w-4" />
-                    )}
-                  </button>
+                  <label className="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 shadow-md cursor-pointer">
+                    <Image className="h-4 w-4" />
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleCourseImageUpload(course.id, file);
+                        }
+                      }}
+                    />
+                  </label>
                 </div>
                 
                 <div className="p-6">
