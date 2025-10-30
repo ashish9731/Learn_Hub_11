@@ -441,7 +441,7 @@ export default function Dashboard() {
         <div className="mb-8">
           <div>
             <h2 className="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">Super Admin Dashboard</h2>
-            <p className="mt-1 text-sm text-[#a0a0a0]">Manage your learning management system</p>
+            <p className="mt-1 text-sm text-[#f0f0f0]">Manage your learning management system</p>
           </div>
         </div>
 
@@ -487,7 +487,7 @@ export default function Dashboard() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="card-title text-sm font-medium text-gray-300">
+                      <dt className="card-title text-sm font-medium text-[#f0f0f0]">
                         {card.title}
                       </dt>
                       <dd className="text-2xl font-semibold text-white">{card.value}</dd>
@@ -514,7 +514,7 @@ export default function Dashboard() {
                       <UserCog className="h-5 w-5 text-[#8b5cf6]" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-gray-300">
+                      <p className="text-sm text-[#f0f0f0]">
                         {realTimeKPIs.totalAdmins} admin{realTimeKPIs.totalAdmins !== 1 ? 's' : ''} in system
                       </p>
                     </div>
@@ -527,7 +527,7 @@ export default function Dashboard() {
                       <Users className="h-5 w-5 text-[#8b5cf6]" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-gray-300">
+                      <p className="text-sm text-[#f0f0f0]">
                         {realTimeKPIs.totalUsers} user{realTimeKPIs.totalUsers !== 1 ? 's' : ''} registered
                       </p>
                     </div>
@@ -540,7 +540,7 @@ export default function Dashboard() {
                       <BookOpen className="h-5 w-5 text-[#8b5cf6]" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-gray-300">
+                      <p className="text-sm text-[#f0f0f0]">
                         {realTimeKPIs.totalCourses} course{realTimeKPIs.totalCourses !== 1 ? 's' : ''} available
                       </p>
                     </div>
@@ -553,7 +553,7 @@ export default function Dashboard() {
                       <Headphones className="h-5 w-5 text-[#8b5cf6]" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-gray-300">
+                      <p className="text-sm text-[#f0f0f0]">
                         {realTimeKPIs.totalPodcasts} podcast{realTimeKPIs.totalPodcasts !== 1 ? 's' : ''} available
                       </p>
                     </div>
@@ -566,7 +566,7 @@ export default function Dashboard() {
                       <FileText className="h-5 w-5 text-[#8b5cf6]" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-gray-300">
+                      <p className="text-sm text-[#f0f0f0]">
                         {supabaseData.pdfs.length} document{supabaseData.pdfs.length !== 1 ? 's' : ''} uploaded
                       </p>
                     </div>
@@ -588,7 +588,7 @@ export default function Dashboard() {
             <div className="p-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">Admins</span>
+                  <span className="text-sm text-[#f0f0f0]">Admins</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     realTimeKPIs.totalAdmins > 0 ? 'bg-green-900/30 text-green-400' : 'bg-[#252525] text-gray-400'
                   }`}>
@@ -597,7 +597,7 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">Users</span>
+                  <span className="text-sm text-[#f0f0f0]">Users</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     realTimeKPIs.totalUsers > 0 ? 'bg-green-900/30 text-green-400' : 'bg-[#252525] text-gray-400'
                   }`}>
@@ -606,7 +606,7 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">Content</span>
+                  <span className="text-sm text-[#f0f0f0]">Courses</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     realTimeKPIs.totalCourses > 0 ? 'bg-green-900/30 text-green-400' : 'bg-[#252525] text-gray-400'
                   }`}>
@@ -629,6 +629,15 @@ export default function Dashboard() {
                     realTimeKPIs.totalCompanies > 0 ? 'bg-purple-900/30 text-purple-400' : 'bg-[#252525] text-gray-400'
                   }`}>
                     {realTimeKPIs.totalCompanies > 0 ? `${realTimeKPIs.totalCompanies} Active` : 'None'}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[#f0f0f0]">Content Items</span>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    realTimeKPIs.totalCourses > 0 ? 'bg-green-900/30 text-green-400' : 'bg-[#252525] text-gray-400'
+                  }`}>
+                    {realTimeKPIs.totalCourses > 0 ? `${realTimeKPIs.totalCourses} Available` : 'None'}
                   </span>
                 </div>
               </div>

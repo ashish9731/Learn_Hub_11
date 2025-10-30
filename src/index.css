@@ -7,7 +7,8 @@
   --background-secondary: #1e1e1e;
   --background-tertiary: #252525;
   --text-primary: #ffffff; 
-  --text-secondary: #e0e0e0; /* Changed from #a0a0a0 to improve visibility */
+  --text-secondary: #f0f0f0; /* Further improved visibility */
+  --text-tertiary: #d0d0d0; /* Additional text color for better hierarchy */
   --accent-primary: #a855f7;
   --accent-secondary: #9333ea;
   --border-color: #333333;
@@ -137,6 +138,10 @@
   h1, h2, h3, h4, h5, h6 {
     @apply text-white;
   }
+  
+  p {
+    @apply text-[#f0f0f0];
+  }
 }
 
 /* Common component styles */
@@ -167,5 +172,13 @@
     @apply block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm 
            bg-[#252525] text-white
            focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] focus:border-[#8b5cf6];
+  }
+  
+  .text-secondary {
+    @apply text-[#f0f0f0];
+  }
+  
+  .text-tertiary {
+    @apply text-[#d0d0d0];
   }
 }

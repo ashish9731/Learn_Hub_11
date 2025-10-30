@@ -323,7 +323,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="mt-1 text-sm text-[#a0a0a0]">Overview of your learning management system.</p>
+          <p className="mt-1 text-sm text-[#f0f0f0]">Overview of your learning management system.</p>
         </div>
 
         {/* KPI Cards */}
@@ -344,7 +344,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-300 truncate">{card.title}</dt>
+                      <dt className="text-sm font-medium text-[#f0f0f0] truncate">{card.title}</dt>
                       <dd className="text-2xl font-semibold text-white">{card.value}</dd>
                     </dl>
                   </div>
@@ -372,7 +372,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                         <p className="text-sm font-medium text-white">
                           {userProfiles.find(p => p.user_id === user.id)?.full_name || user.email}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-[#f0f0f0]">
                           {supabaseData.userCourses.filter(uc => uc.user_id === user.id).length} courses enrolled
                         </p>
                       </div>

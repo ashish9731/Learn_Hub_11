@@ -385,7 +385,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white">Learning Dashboard</h1>
-          <p className="mt-1 text-sm text-[#a0a0a0]">
+          <p className="mt-1 text-sm text-[#f0f0f0]">
             Track your learning progress and course completion
           </p>
         </div>
@@ -408,7 +408,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-300 truncate">{card.title}</dt>
+                      <dt className="text-sm font-medium text-[#f0f0f0]">{card.title}</dt>
                       <dd className="text-2xl font-semibold text-white">{card.value}</dd>
                     </dl>
                   </div>
