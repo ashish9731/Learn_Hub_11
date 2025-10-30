@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import { useRealtimeSync } from '../../hooks/useSupabase';
@@ -6,7 +6,6 @@ import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Pla
 import PodcastPlayer from '../../components/Media/PodcastPlayer';
 import { useNavigate } from 'react-router-dom';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
-import { stabilityAI } from '../../services/stabilityai';
 
 interface Course {
   id: string;
@@ -80,79 +79,6 @@ export default function MyCourses() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  // State to store generated course images
-  const [courseImages, setCourseImages] = useState<Record<string, string>>({});
-  const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
-  const [isGeneratingImage, setIsGeneratingImage] = useState<Record<string, boolean>>({});
-  
-  // Ref to track which courses have had images generated
-  const generatedImagesRef = useRef<Record<string, boolean>>({});
-
-  // Function to manually generate course image using Stability AI
-  const handleGenerateCourseImage = async (courseId: string, courseTitle: string) => {
-    // Check if Stability AI is configured
-    if (!stabilityAI.isConfigured()) {
-      alert('Stability AI API key is not configured. Please contact administrator.');
-      return;
-    }
-
-    try {
-      setIsGeneratingImage(prev => ({ ...prev, [courseId]: true }));
-      
-      console.log('Generating AI image for course:', courseTitle);
-      const base64Image = await stabilityAI.generateCourseImage(courseTitle);
-      
-      if (base64Image) {
-        // Convert base64 to blob and upload to Supabase storage
-        const binaryString = atob(base64Image);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const blob = new Blob([bytes], { type: 'image/png' });
-        
-        // Upload to Supabase storage
-        const fileName = `course-images/${courseId}-${Date.now()}.png`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('course-images')
-          .upload(fileName, blob, {
-            cacheControl: '3600',
-            upsert: true
-          });
-        
-        if (uploadError) {
-          console.error('Error uploading AI generated image:', uploadError);
-          alert('Failed to upload generated image. Please try again.');
-          setIsGeneratingImage(prev => ({ ...prev, [courseId]: false }));
-          return;
-        }
-        
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('course-images')
-          .getPublicUrl(fileName);
-        
-        // Update course with the new image URL
-        try {
-          await supabaseHelpers.updateCourse(courseId, { image_url: publicUrl });
-          console.log('Course image updated successfully');
-          setCourseImages(prev => ({ ...prev, [courseId]: publicUrl }));
-          alert('Course image generated and saved successfully!');
-        } catch (updateError) {
-          console.error('Error updating course with image URL:', updateError);
-          alert('Failed to save image to course. Please try again.');
-        }
-      } else {
-        alert('Failed to generate course image. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error generating AI course image:', error);
-      alert('Error generating course image. Please try again.');
-    } finally {
-      setIsGeneratingImage(prev => ({ ...prev, [courseId]: false }));
-    }
-  };
-
   // Get default placeholder image based on course title
   const getDefaultImage = (courseTitle: string) => {
     const title = courseTitle.toLowerCase();
@@ -221,7 +147,7 @@ export default function MyCourses() {
           const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === course.id);
           const coursePdfs = supabaseData.pdfs.filter(p => p.course_id === course.id);
           const progress = getCourseProgress(course.id);
-          const courseImage = courseImages[course.id] || getDefaultImage(course.title);
+          const courseImage = course.image_url || getDefaultImage(course.title);
 
           return (
             <div
@@ -229,34 +155,13 @@ export default function MyCourses() {
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
               onClick={() => navigate(`/user/courses/${course.id}`)}
             >
-              <div className="aspect-video bg-gray-200 relative">
-                {loadingImages[course.id] ? (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  </div>
-                ) : (
-                  <img
-                    src={courseImage}
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                    onError={handleImageError}
-                  />
-                )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleGenerateCourseImage(course.id, course.title);
-                  }}
-                  disabled={isGeneratingImage[course.id]}
-                  className="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 shadow-md disabled:opacity-50"
-                  title="Generate course image"
-                >
-                  {isGeneratingImage[course.id] ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Image className="h-4 w-4" />
-                  )}
-                </button>
+              <div className="aspect-video bg-gray-200 relative rounded-xl overflow-hidden">
+                <img
+                  src={courseImage}
+                  alt={course.title}
+                  className="w-full h-full object-cover"
+                  onError={handleImageError}
+                />
               </div>
               
               <div className="p-6">
@@ -410,15 +315,8 @@ export default function MyCourses() {
     );
   };
 
-  const handlePlayPodcast = (podcast: any) => {
-    const relatedPodcasts = supabaseData.podcasts.filter(p => 
-      p.course_id === podcast.course_id && p.id !== podcast.id
-    );
-    
-    setCurrentPodcast({
-      ...podcast,
-      relatedPodcasts
-    });
+  const handlePlayPodcast = (podcast: Podcast) => {
+    setCurrentPodcast(podcast);
     setIsPodcastPlayerOpen(true);
     setIsPodcastPlayerMinimized(false);
   };

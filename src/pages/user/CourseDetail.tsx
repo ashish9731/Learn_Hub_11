@@ -6,7 +6,6 @@ import { supabaseHelpers } from '../../hooks/useSupabase';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
 import QuizComponent from '../../components/Quiz/QuizComponent';
 import PodcastPlayer from '../../components/Media/PodcastPlayer';
-import { stabilityAI } from '../../services/stabilityai';
 
 interface Course {
   id: string;
@@ -96,11 +95,6 @@ export default function CourseDetail() {
 
   // Refs
   const youtubePlayerRef = useRef<HTMLIFrameElement>(null);
-
-  // State for course image
-  const [courseImage, setCourseImage] = useState<string | null>(null);
-  const [loadingImage, setLoadingImage] = useState<boolean>(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   // Load course data when component mounts or courseId changes
   useEffect(() => {
@@ -219,88 +213,6 @@ export default function CourseDetail() {
     }
   }, [userId]);
 
-  // Function to manually generate course image using Stability AI
-  const generateCourseImage = async (courseTitle: string, courseId: string) => {
-    // Check if Stability AI is configured
-    if (!stabilityAI.isConfigured()) {
-      alert('Stability AI API key is not configured. Please contact administrator.');
-      return;
-    }
-
-    try {
-      setIsGeneratingImage(true);
-      
-      console.log('Generating AI image for course:', courseTitle);
-      const base64Image = await stabilityAI.generateCourseImage(courseTitle);
-      
-      if (base64Image) {
-        // Convert base64 to blob and upload to Supabase storage
-        const binaryString = atob(base64Image);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const blob = new Blob([bytes], { type: 'image/png' });
-        
-        // Upload to Supabase storage
-        const fileName = `course-images/${courseId}-${Date.now()}.png`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('course-images')
-          .upload(fileName, blob, {
-            cacheControl: '3600',
-            upsert: true
-          });
-        
-        if (uploadError) {
-          console.error('Error uploading AI generated image:', uploadError);
-          alert('Failed to upload generated image. Please try again.');
-          setIsGeneratingImage(false);
-          return;
-        }
-        
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('course-images')
-          .getPublicUrl(fileName);
-        
-        // Update course with the new image URL
-        try {
-          await supabaseHelpers.updateCourse(courseId, { image_url: publicUrl });
-          console.log('Course image updated successfully');
-          setCourseImage(publicUrl);
-          alert('Course image generated and saved successfully!');
-        } catch (updateError) {
-          console.error('Error updating course with image URL:', updateError);
-          alert('Failed to save image to course. Please try again.');
-        }
-      } else {
-        alert('Failed to generate course image. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error generating AI course image:', error);
-      alert('Error generating course image. Please try again.');
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
-
-  // Get course image with fallback
-  const getCourseImageWithFallback = () => {
-    if (loadingImage) {
-      return 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-    }
-    
-    if (courseImage) {
-      return courseImage;
-    }
-    
-    if (course?.image_url) {
-      return course.image_url;
-    }
-    
-    return getDefaultImage(course?.title || '');
-  };
-
   // Get default placeholder image based on course title
   const getDefaultImage = (courseTitle: string) => {
     const title = courseTitle?.toLowerCase() || '';
@@ -414,11 +326,6 @@ export default function CourseDetail() {
   const handlePlayPodcast = (podcast: any) => {
     console.log("Playing podcast:", podcast);
     setCurrentPodcast(podcast);
-    
-    // Show video player only for YouTube videos
-    if (podcast.is_youtube_video) {
-      setShowVideoPlayer(true);
-    }
   };
 
   // Extract YouTube video ID from URL
@@ -531,55 +438,34 @@ export default function CourseDetail() {
         ) : course ? (
           <>
             {/* Course Header */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
               <div className="md:flex">
                 {/* Course Image - Left Side */}
                 <div className="md:w-1/3">
-                  <div className="aspect-square bg-gray-200 relative">
-                    {loadingImage ? (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                      </div>
-                    ) : courseImage || course?.image_url ? (
+                  <div className="aspect-video bg-gray-200 relative rounded-xl overflow-hidden">
+                    {course?.image_url ? (
                       <img
-                        src={getCourseImageWithFallback()}
+                        src={course.image_url}
                         alt={course.title}
                         className="w-full h-full object-cover"
                         onError={handleImageError}
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 p-4">
-                        <BookOpen className="h-12 w-12 text-gray-400 mb-2" />
-                        <p className="text-gray-500 text-center">No course image</p>
-                        <button
-                          onClick={() => generateCourseImage(course.title, course.id)}
-                          disabled={isGeneratingImage}
-                          className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm flex items-center disabled:opacity-50"
-                        >
-                          {isGeneratingImage ? (
-                            <>
-                              <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <Image className="h-4 w-4 mr-1" />
-                              Generate Image
-                            </>
-                          )}
-                        </button>
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                        <BookOpen className="h-16 w-16 text-indigo-300 mb-4" />
+                        <p className="text-indigo-400 text-center font-medium">No course image</p>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Course Details - Right Side */}
-                <div className="md:w-2/3 p-6">
-                  <div className="flex justify-between items-start mb-4">
+                <div className="md:w-2/3 p-8">
+                  <div className="flex justify-between items-start mb-6">
                     <div>
-                      <h1 className="text-2xl font-bold text-gray-900 mb-2">{course.title}</h1>
+                      <h1 className="text-3xl font-bold text-gray-900 mb-3">{course.title}</h1>
                       {course.level && (
-                        <span className={`px-3 py-1 text-sm rounded-full ${
+                        <span className={`px-4 py-2 text-sm rounded-full font-medium ${
                           course.level === 'Basics' 
                             ? 'bg-green-100 text-green-800' 
                             : course.level === 'Intermediate' 
@@ -590,70 +476,51 @@ export default function CourseDetail() {
                         </span>
                       )}
                     </div>
-                    {(!courseImage && !course?.image_url) && (
-                      <button
-                        onClick={() => generateCourseImage(course.title, course.id)}
-                        disabled={isGeneratingImage}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm flex items-center disabled:opacity-50"
-                      >
-                        {isGeneratingImage ? (
-                          <>
-                            <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <Image className="h-4 w-4 mr-1" />
-                            Generate Image
-                          </>
-                        )}
-                      </button>
-                    )}
                   </div>
 
-                  <p className="text-gray-600 mb-6">{course.description || 'No description provided for this course.'}</p>
+                  <p className="text-gray-700 text-lg mb-8 leading-relaxed">{course.description || 'No description provided for this course.'}</p>
 
                   {/* Course Metadata */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-blue-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-blue-600">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center shadow-sm">
+                      <div className="text-2xl font-bold text-blue-600 mb-1">
                         {categoriesWithProgress.length}
                       </div>
-                      <div className="text-sm text-gray-600">Categories</div>
+                      <div className="text-sm font-medium text-blue-800">Categories</div>
                     </div>
-                    <div className="bg-green-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-green-600">
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center shadow-sm">
+                      <div className="text-2xl font-bold text-green-600 mb-1">
                         {podcasts.length}
                       </div>
-                      <div className="text-sm text-gray-600">Podcasts</div>
+                      <div className="text-sm font-medium text-green-800">Podcasts</div>
                     </div>
-                    <div className="bg-purple-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-purple-600">
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 text-center shadow-sm">
+                      <div className="text-2xl font-bold text-purple-600 mb-1">
                         {pdfs.length}
                       </div>
-                      <div className="text-sm text-gray-600">Documents</div>
+                      <div className="text-sm font-medium text-purple-800">Documents</div>
                     </div>
-                    <div className="bg-yellow-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-yellow-600">
+                    <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 text-center shadow-sm">
+                      <div className="text-2xl font-bold text-amber-600 mb-1">
                         {totalLearningHours.toFixed(1)}
                       </div>
-                      <div className="text-sm text-gray-600">Hours</div>
+                      <div className="text-sm font-medium text-amber-800">Hours</div>
                     </div>
                   </div>
                 </div>
               </div>
               
               {/* Content Type Navigation Buttons - Below Course Image */}
-              <div className="px-6 pb-6">
-                <div className="flex flex-wrap gap-3 justify-center">
+              <div className="px-8 pb-8">
+                <div className="flex flex-wrap gap-4 justify-center">
                   {['audio', 'video', 'docs', 'images', 'templates'].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`flex-1 min-w-[120px] px-6 py-3 rounded-xl font-medium text-base capitalize transition-all duration-200 ${
+                      className={`flex-1 min-w-[140px] px-6 py-4 rounded-2xl font-semibold text-lg capitalize transition-all duration-300 transform hover:scale-105 ${
                         activeTab === tab
-                          ? 'bg-blue-600 text-white shadow-lg transform scale-105'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-xl'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-lg'
                       }`}
                     >
                       {tab}
@@ -786,7 +653,7 @@ export default function CourseDetail() {
                 </div>
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Video List - Left Side */}
-                  <div className={showVideoPlayer && currentPodcast && currentPodcast.is_youtube_video ? "lg:w-1/2" : "w-full"}>
+                  <div className={currentPodcast && currentPodcast.is_youtube_video ? "lg:w-1/2" : "w-full"}>
                     {podcasts.filter(p => p.is_youtube_video).length > 0 ? (
                       <div className={videoViewMode === 'list' ? "space-y-3" : "grid grid-cols-1 md:grid-cols-2 gap-4"}>
                         {podcasts.filter(p => p.is_youtube_video).map(podcast => {
@@ -872,17 +739,11 @@ export default function CourseDetail() {
                   </div>
                   
                   {/* YouTube Player - Right Side */}
-                  {showVideoPlayer && currentPodcast && currentPodcast.is_youtube_video && (
+                  {currentPodcast && currentPodcast.is_youtube_video && (
                     <div className="lg:w-1/2">
                       <div className="bg-gray-50 rounded-lg p-4 h-full">
-                        <div className="flex justify-between items-center mb-4">
+                        <div className="mb-4">
                           <h2 className="text-lg font-bold text-gray-900">{currentPodcast.title}</h2>
-                          <button
-                            onClick={() => setShowVideoPlayer(false)}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            <ChevronLeft className="h-6 w-6" />
-                          </button>
                         </div>
                         <div className="aspect-video">
                           {currentPodcast.video_url ? (
