@@ -635,15 +635,15 @@ export default function CourseDetail() {
               
               {/* Content Type Navigation Buttons - Below Course Image */}
               <div className="px-6 pb-6">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3 justify-center">
                   {['audio', 'video', 'docs', 'images', 'templates'].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`px-4 py-2 rounded-lg font-medium text-sm capitalize ${
+                      className={`flex-1 min-w-[120px] px-6 py-3 rounded-xl font-medium text-base capitalize transition-all duration-200 ${
                         activeTab === tab
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-blue-600 text-white shadow-lg transform scale-105'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
                       }`}
                     >
                       {tab}
