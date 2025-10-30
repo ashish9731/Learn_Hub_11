@@ -630,25 +630,25 @@ export default function CourseDetail() {
                       <div className="text-sm text-gray-600">Hours</div>
                     </div>
                   </div>
-
-                  {/* Navigation Tabs */}
-                  <div className="border-b border-gray-200">
-                    <nav className="-mb-px flex space-x-8">
-                      {['audio', 'video', 'docs', 'images', 'templates'].map((tab) => (
-                        <button
-                          key={tab}
-                          onClick={() => setActiveTab(tab)}
-                          className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${
-                            activeTab === tab
-                              ? 'border-blue-500 text-blue-600'
-                              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                          }`}
-                        >
-                          {tab}
-                        </button>
-                      ))}
-                    </nav>
-                  </div>
+                </div>
+              </div>
+              
+              {/* Content Type Navigation Buttons - Below Course Image */}
+              <div className="px-6 pb-6">
+                <div className="flex flex-wrap gap-2">
+                  {['audio', 'video', 'docs', 'images', 'templates'].map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`px-4 py-2 rounded-lg font-medium text-sm capitalize ${
+                        activeTab === tab
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
