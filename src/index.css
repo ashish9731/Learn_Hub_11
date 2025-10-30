@@ -15,6 +15,20 @@
   --card-hover: #252525;
 }
 
+/* Light mode variables */
+[data-theme="light"] {
+  --background-primary: #ffffff;
+  --background-secondary: #f5f5f5;
+  --background-tertiary: #e5e5e5;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --accent-primary: #8b5cf6;
+  --accent-secondary: #7c3aed;
+  --border-color: #dddddd;
+  --card-background: #ffffff;
+  --card-hover: #f0f0f0;
+}
+
 /* Custom Button Styles */
 .custom-button {
   position: relative;
@@ -69,6 +83,22 @@
   border-radius: 8px;
   transform: translateY(-4px);
   transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+
+/* Light mode button styles */
+[data-theme="light"] .custom-button .front {
+  color: #333333;
+  background: hsl(217, 33%, 85%);
+}
+
+[data-theme="light"] .custom-button .edge {
+  background: linear-gradient(
+    to left,
+    hsl(217, 33%, 84%) 0%,
+    hsl(217, 33%, 68%) 8%,
+    hsl(217, 33%, 68%) 92%,
+    hsl(217, 33%, 84%) 100%
+  );
 }
 
 /* Hover and active states */
@@ -130,12 +160,32 @@
     @apply bg-[#121212] text-white transition-colors duration-200 dark:bg-[#121212] dark:text-white;
   }
   
+  /* Light mode base styles */
+  [data-theme="light"] body {
+    @apply bg-white text-gray-900;
+  }
+  
   input, textarea, select {
     @apply text-gray-900 dark:text-white bg-white dark:bg-[#252525];
   }
   
+  [data-theme="light"] input,
+  [data-theme="light"] textarea,
+  [data-theme="light"] select {
+    @apply text-gray-900 bg-white;
+  }
+  
   h1, h2, h3, h4, h5, h6 {
     @apply text-gray-900 dark:text-white;
+  }
+  
+  [data-theme="light"] h1,
+  [data-theme="light"] h2,
+  [data-theme="light"] h3,
+  [data-theme="light"] h4,
+  [data-theme="light"] h5,
+  [data-theme="light"] h6 {
+    @apply text-gray-900;
   }
 }
 
@@ -145,12 +195,24 @@
     @apply bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333];
   }
   
+  [data-theme="light"] .card {
+    @apply bg-white shadow-sm rounded-lg border border-[#dddddd];
+  }
+  
   .card-header {
     @apply px-6 py-4 border-b border-[#333333];
   }
   
+  [data-theme="light"] .card-header {
+    @apply border-b border-[#dddddd];
+  }
+  
   .card-title {
     @apply text-lg font-medium text-gray-900 dark:text-white;
+  }
+  
+  [data-theme="light"] .card-title {
+    @apply text-gray-900;
   }
   
   .card-body {
@@ -165,6 +227,10 @@
     @apply px-4 py-2 bg-[#252525] hover:bg-[#333333] text-gray-200 font-medium rounded-md shadow-sm;
   }
   
+  [data-theme="light"] .btn-secondary {
+    @apply bg-[#e5e5e5] hover:bg-[#d5d5d5] text-gray-700;
+  }
+  
   .input {
     @apply block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm 
            bg-[#252525] text-white
@@ -172,10 +238,18 @@
            dark:bg-[#252525] dark:text-white dark:border-[#333333];
   }
   
+  [data-theme="light"] .input {
+    @apply bg-white text-gray-900 border-[#dddddd];
+  }
+  
   .select {
     @apply block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm 
            bg-[#252525] text-white
            focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] focus:border-[#8b5cf6]
            dark:bg-[#252525] dark:text-white dark:border-[#333333];
+  }
+  
+  [data-theme="light"] .select {
+    @apply bg-white text-gray-900 border-[#dddddd];
   }
 }

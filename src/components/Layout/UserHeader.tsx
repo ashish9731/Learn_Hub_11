@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { User, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { User, LogOut, Settings, ChevronDown, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../../hooks/useProfile';
 import { extractFirstNameFromEmail } from '../../utils/timeGreeting';
+import { useTheme } from '../../context/ThemeContext';
 
 interface UserHeaderProps {
   onLogout: () => void;
@@ -13,6 +14,7 @@ interface UserHeaderProps {
 export default function UserHeader({ onLogout, userEmail, userRole }: UserHeaderProps) {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const { profile } = useProfile();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleProfileClick = () => {
@@ -60,6 +62,19 @@ export default function UserHeader({ onLogout, userEmail, userRole }: UserHeader
               </div>
             </div>
             <div className="flex items-center gap-x-4 lg:gap-x-6">
+              {/* Theme Toggle Button */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] focus:ring-offset-2"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-5 w-5 text-white" />
+                ) : (
+                  <Moon className="h-5 w-5 text-gray-700" />
+                )}
+              </button>
+
               {/* Profile Dropdown */}
               <div className="relative">
                 <div className="flex items-center space-x-3">

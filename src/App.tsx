@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { supabase } from './lib/supabase';
 import { testSupabaseConnection } from './lib/supabase';
 
+// Import ThemeProvider
+import { ThemeProvider } from './context/ThemeContext';
+
 // Global real-time sync manager
 const setupGlobalRealtimeSync = () => {
   // Create a global channel for all table changes
@@ -122,7 +125,9 @@ import { useTheme } from './context/ThemeContext';
 function App() {
   return (
     <Router>
-      <AppContent />
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </Router>
   );
 }
