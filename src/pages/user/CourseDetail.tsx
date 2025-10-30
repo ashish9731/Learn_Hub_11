@@ -634,7 +634,7 @@ export default function CourseDetail() {
                   {/* Navigation Tabs */}
                   <div className="border-b border-gray-200">
                     <nav className="-mb-px flex space-x-8">
-                      {['podcasts', 'documents', 'quiz'].map((tab) => (
+                      {['audio', 'video', 'docs', 'images', 'templates'].map((tab) => (
                         <button
                           key={tab}
                           onClick={() => setActiveTab(tab)}
@@ -653,16 +653,16 @@ export default function CourseDetail() {
               </div>
             </div>
 
-            {/* Podcasts Tab */}
-            {activeTab === 'podcasts' && (
+            {/* Audio Tab */}
+            {activeTab === 'audio' && (
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Podcasts</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Audio Content</h2>
                 <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Podcast List - Left Side */}
+                  {/* Audio List - Left Side */}
                   <div className="lg:w-1/2">
                     <div className="space-y-3">
-                      {podcasts.length > 0 ? 
-                        podcasts.map(podcast => {
+                      {podcasts.filter(p => !p.is_youtube_video).length > 0 ? 
+                        podcasts.filter(p => !p.is_youtube_video).map(podcast => {
                           const completion = getPodcastCompletion(podcast.id);
                           
                           return (
@@ -699,8 +699,8 @@ export default function CourseDetail() {
                         }) : (
                           <div className="text-center py-8 text-gray-500">
                             <Headphones className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Podcasts</h3>
-                            <p className="text-gray-500">This course doesn't have any podcasts yet.</p>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Audio Content</h3>
+                            <p className="text-gray-500">This course doesn't have any audio content yet.</p>
                           </div>
                         )}
                     </div>
@@ -708,7 +708,7 @@ export default function CourseDetail() {
                   
                   {/* Audio Player - Right Side */}
                   <div className="lg:w-1/2">
-                    {currentPodcast ? (
+                    {currentPodcast && !currentPodcast.is_youtube_video ? (
                       <div className="bg-gray-50 rounded-lg p-4 h-full">
                         <div className="mb-4">
                           <h2 className="text-lg font-bold text-gray-900">{currentPodcast.title}</h2>
@@ -738,7 +738,7 @@ export default function CourseDetail() {
                     ) : (
                       <div className="bg-gray-50 rounded-lg p-8 h-full flex flex-col items-center justify-center text-gray-500">
                         <Headphones className="h-12 w-12 mb-4" />
-                        <p className="text-center">Select a podcast from the playlist to start listening</p>
+                        <p className="text-center">Select an audio file from the playlist to start listening</p>
                       </div>
                     )}
                   </div>
@@ -746,8 +746,62 @@ export default function CourseDetail() {
               </div>
             )}
 
-            {/* Documents Tab */}
-            {activeTab === 'documents' && (
+            {/* Video Tab */}
+            {activeTab === 'video' && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Video Content</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {podcasts.filter(p => p.is_youtube_video).length > 0 ? 
+                    podcasts.filter(p => p.is_youtube_video).map(podcast => {
+                      const completion = getPodcastCompletion(podcast.id);
+                      const videoId = extractYouTubeVideoId(podcast.video_url || '');
+                      
+                      return (
+                        <div 
+                          key={podcast.id} 
+                          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                          onClick={() => handlePlayPodcast(podcast)}
+                        >
+                          <div className="aspect-video bg-gray-200 rounded-lg mb-3 relative overflow-hidden">
+                            {videoId ? (
+                              <img 
+                                src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`} 
+                                alt={podcast.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Youtube className="h-8 w-8 text-gray-400" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="bg-black bg-opacity-50 rounded-full p-2">
+                                <Play className="h-6 w-6 text-white" />
+                              </div>
+                            </div>
+                          </div>
+                          <h3 className="text-sm font-medium text-gray-900 mb-1 truncate">{podcast.title}</h3>
+                          <p className="text-xs text-gray-500 mb-2">YouTube Video</p>
+                          {completion > 0 && (
+                            <div className="w-full bg-gray-200 rounded-full h-1.5">
+                              <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }) : (
+                      <div className="text-center py-8 text-gray-500 col-span-full">
+                        <Youtube className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Video Content</h3>
+                        <p className="text-gray-500">This course doesn't have any video content yet.</p>
+                      </div>
+                    )}
+                </div>
+              </div>
+            )}
+
+            {/* Docs Tab */}
+            {activeTab === 'docs' && (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Documents</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -783,6 +837,106 @@ export default function CourseDetail() {
                         <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No Documents</h3>
                         <p className="text-gray-500">This course doesn't have any documents yet.</p>
+                      </div>
+                    )}
+                </div>
+              </div>
+            )}
+
+            {/* Images Tab */}
+            {activeTab === 'images' && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Images & Infographics</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pdfs.filter(pdf => 
+                    pdf.title.toLowerCase().includes('.jpg') || 
+                    pdf.title.toLowerCase().includes('.jpeg') || 
+                    pdf.title.toLowerCase().includes('.png') || 
+                    pdf.title.toLowerCase().includes('.gif') ||
+                    pdf.title.toLowerCase().includes('.svg')
+                  ).length > 0 ? 
+                    pdfs.filter(pdf => 
+                      pdf.title.toLowerCase().includes('.jpg') || 
+                      pdf.title.toLowerCase().includes('.jpeg') || 
+                      pdf.title.toLowerCase().includes('.png') || 
+                      pdf.title.toLowerCase().includes('.gif') ||
+                      pdf.title.toLowerCase().includes('.svg')
+                    ).map(pdf => (
+                      <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="aspect-video bg-gray-200 rounded-lg mb-3 overflow-hidden">
+                          <img 
+                            src={pdf.pdf_url} 
+                            alt={pdf.title}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <h3 className="text-sm font-medium text-gray-900 mb-1 truncate">{pdf.title}</h3>
+                        <p className="text-xs text-gray-500 mb-2">Image</p>
+                        <a 
+                          href={pdf.pdf_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Image className="h-3 w-3 mr-1" />
+                          View Image
+                        </a>
+                      </div>
+                    )) : (
+                      <div className="text-center py-8 text-gray-500 col-span-full">
+                        <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Images</h3>
+                        <p className="text-gray-500">This course doesn't have any images or infographics yet.</p>
+                      </div>
+                    )}
+                </div>
+              </div>
+            )}
+
+            {/* Templates Tab */}
+            {activeTab === 'templates' && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Templates & Other Content</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {pdfs.filter(pdf => 
+                    !pdf.title.toLowerCase().includes('.jpg') && 
+                    !pdf.title.toLowerCase().includes('.jpeg') && 
+                    !pdf.title.toLowerCase().includes('.png') && 
+                    !pdf.title.toLowerCase().includes('.gif') &&
+                    !pdf.title.toLowerCase().includes('.svg')
+                  ).length > 0 ? 
+                    pdfs.filter(pdf => 
+                      !pdf.title.toLowerCase().includes('.jpg') && 
+                      !pdf.title.toLowerCase().includes('.jpeg') && 
+                      !pdf.title.toLowerCase().includes('.png') && 
+                      !pdf.title.toLowerCase().includes('.gif') &&
+                      !pdf.title.toLowerCase().includes('.svg')
+                    ).map(pdf => (
+                      <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0 p-2 bg-blue-100 rounded-lg">
+                            <FileText className="h-8 w-8 text-blue-600" />
+                          </div>
+                          <div className="ml-3 flex-1">
+                            <h3 className="text-sm font-medium text-gray-900 mb-1">{pdf.title}</h3>
+                            <p className="text-xs text-gray-500 mb-3">Template/Document</p>
+                            <a 
+                              href={pdf.pdf_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                            >
+                              <FileText className="h-3 w-3 mr-1" />
+                              View Template
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="text-center py-8 text-gray-500 col-span-full">
+                        <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Templates</h3>
+                        <p className="text-gray-500">This course doesn't have any templates or other content yet.</p>
                       </div>
                     )}
                 </div>
