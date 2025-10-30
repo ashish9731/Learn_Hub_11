@@ -29,8 +29,8 @@ AS $$
   SELECT 
     u.id as user_id,
     u.email,
-    -- Calculate total hours with decimal precision (show even 10 seconds of play)
-    ROUND(COALESCE(SUM(ucs.total_seconds_played) / 3600.0, 0)::numeric, 2) as total_hours,
+    -- Calculate total hours with decimal precision (show even seconds of play)
+    ROUND(COALESCE(SUM(ucs.total_seconds_played) / 3600.0, 0)::numeric, 4) as total_hours, -- Increased precision to 4 decimal places
     -- Count completed courses (all podcasts in course 100% complete)
     COUNT(DISTINCT CASE 
       WHEN ucs.total_podcasts_in_course > 0 AND ucs.completed_podcasts = ucs.total_podcasts_in_course 

@@ -36,14 +36,13 @@ export default function PodcastPlayer({
       loadSavedProgress();
     }
     
-    // Set up interval to save progress periodically
+    // Set up interval to save progress every 40 seconds
     if (userId) {
       progressSaveInterval.current = setInterval(() => {
         if (audioRef.current && audioRef.current.currentTime > 0 && !progressSaved) {
           const currentTime = Date.now();
-          // Save progress every 40 seconds or when significant progress is made
-          if (currentTime - lastSaveTime.current > 40000 || 
-              (audioRef.current && audioRef.current.currentTime > 1)) {
+          // Save progress every 40 seconds as per requirement
+          if (currentTime - lastSaveTime.current > 40000) {
             saveProgress();
             lastSaveTime.current = currentTime;
           }
@@ -138,19 +137,26 @@ export default function PodcastPlayer({
       const currentTime = audioRef.current.currentTime;
       const duration = audioRef.current.duration || 0;
       
-      // Prevent seeking forward beyond allowed time (30-second jumps max)
-      if (currentTime > maxAllowedTime + 30) {
-        // If user tried to drag forward beyond allowed time, reset to max allowed
+      // Prevent ANY seeking forward - user can only progress naturally
+      if (currentTime > maxAllowedTime + 1) { // Allow only 1 second forward jump maximum
+        // If user tried to drag forward, reset to max allowed time
         audioRef.current.currentTime = maxAllowedTime;
         return;
       }
       
+      // Prevent ANY backward seeking
+      if (currentTime < lastValidTime - 1) { // Allow only 1 second backward jump maximum
+        // If user tried to drag backward, reset to last valid time
+        audioRef.current.currentTime = lastValidTime;
+        return;
+      }
+      
       // Update last valid time (allow natural progression)
-      if (currentTime <= maxAllowedTime + 2) {
+      if (currentTime >= lastValidTime && currentTime <= maxAllowedTime + 1) {
         setLastValidTime(currentTime);
       }
       
-      // Update max allowed time as user progresses naturally
+      // Update max allowed time as user progresses naturally (only forward)
       if (currentTime > maxAllowedTime) {
         setMaxAllowedTime(currentTime);
       }
@@ -171,9 +177,10 @@ export default function PodcastPlayer({
     if (audioRef.current) {
       const currentTime = audioRef.current.currentTime;
       
-      // Prevent seeking forward beyond max allowed time
-      if (currentTime > maxAllowedTime + 30) {
-        audioRef.current.currentTime = maxAllowedTime;
+      // Prevent ANY seeking - user can only progress naturally
+      if (currentTime > maxAllowedTime + 1 || currentTime < lastValidTime - 1) {
+        // Reset to last valid time if seeking detected
+        audioRef.current.currentTime = lastValidTime;
       }
     }
   };

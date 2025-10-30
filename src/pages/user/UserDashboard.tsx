@@ -281,7 +281,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       }
     });
     
-    // Convert total seconds to hours with decimal precision
+    // Convert total seconds to hours with decimal precision (show even seconds)
     const totalHours = totalSeconds / 3600;
     const averageProgress = progressCount > 0 ? Math.round(totalProgress / progressCount) : 0;
     
@@ -289,52 +289,85 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       assignedCourses,
       completedCourses,
       totalHours: Math.round(totalHours * 100) / 100, // Round to 2 decimal places for accuracy
-      averageProgress
+      averageProgress,
+      // Add detailed stats for KPI drill-down
+      totalMinutes: Math.round(totalSeconds / 60), // Show total minutes for better granularity
+      totalSecondsPlayed: Math.round(totalSeconds) // Show total seconds played
     };
   };
 
-  // Prepare chart data
+  // Prepare chart data with more details
   const prepareChartData = () => {
     const courseProgressData = supabaseData.userCourses.map(uc => {
       const coursePodcasts = podcastProgress.filter(p => 
-        supabaseData.courses.find(c => c.id === uc.course_id)?.id
+        p.podcast_id && supabaseData.podcasts.some(podcast => 
+          podcast.id === p.podcast_id && podcast.course_id === uc.course_id
+        )
       );
       
       const totalProgress = coursePodcasts.reduce((sum, p) => sum + (p.progress_percent || 0), 0);
       const avgProgress = coursePodcasts.length > 0 ? Math.round(totalProgress / coursePodcasts.length) : 0;
       
+      // Calculate time spent on this course
+      let courseTimeSeconds = 0;
+      coursePodcasts.forEach(progress => {
+        const duration = progress.duration || 0;
+        const timeSpent = duration * (progress.progress_percent / 100);
+        courseTimeSeconds += timeSpent;
+      });
+      
       return {
         name: uc.courses.title.length > 15 ? `${uc.courses.title.substring(0, 15)}...` : uc.courses.title,
-        progress: avgProgress
+        progress: avgProgress,
+        timeSpent: Math.round(courseTimeSeconds / 60), // Time spent in minutes
+        modulesCompleted: coursePodcasts.filter(p => (p.progress_percent || 0) >= 100).length,
+        totalModules: coursePodcasts.length
       };
     });
     
-    // Progress distribution data
+    // Progress distribution data - more accurate identification of in-progress courses
     const progressDistribution = [
-      { name: 'Not Started', value: supabaseData.userCourses.filter(uc => {
-        const courseProgress = podcastProgress.filter(p => 
-          supabaseData.courses.find(c => c.id === uc.course_id)?.id
-        );
-        return courseProgress.length === 0 || courseProgress.every(p => (p.progress_percent || 0) === 0);
-      }).length },
-      { name: 'In Progress', value: supabaseData.userCourses.filter(uc => {
-        const courseProgress = podcastProgress.filter(p => 
-          supabaseData.courses.find(c => c.id === uc.course_id)?.id
-        );
-        return courseProgress.some(p => (p.progress_percent || 0) > 0 && (p.progress_percent || 0) < 100);
-      }).length },
-      { name: 'Completed', value: supabaseData.userCourses.filter(uc => {
-        const courseProgress = podcastProgress.filter(p => 
-          supabaseData.courses.find(c => c.id === uc.course_id)?.id
-        );
-        return courseProgress.length > 0 && courseProgress.every(p => (p.progress_percent || 0) >= 100);
-      }).length }
+      { 
+        name: 'Not Started', 
+        value: supabaseData.userCourses.filter(uc => {
+          const courseProgress = podcastProgress.filter(p => 
+            supabaseData.podcasts.some(podcast => 
+              podcast.id === p.podcast_id && podcast.course_id === uc.course_id
+            )
+          );
+          return courseProgress.length === 0 || courseProgress.every(p => (p.progress_percent || 0) === 0);
+        }).length 
+      },
+      { 
+        name: 'In Progress', 
+        value: supabaseData.userCourses.filter(uc => {
+          const courseProgress = podcastProgress.filter(p => 
+            supabaseData.podcasts.some(podcast => 
+              podcast.id === p.podcast_id && podcast.course_id === uc.course_id
+            )
+          );
+          // A course is in progress if at least one podcast has progress > 0 and < 100
+          return courseProgress.some(p => (p.progress_percent || 0) > 0 && (p.progress_percent || 0) < 100);
+        }).length 
+      },
+      { 
+        name: 'Completed', 
+        value: supabaseData.userCourses.filter(uc => {
+          const courseProgress = podcastProgress.filter(p => 
+            supabaseData.podcasts.some(podcast => 
+              podcast.id === p.podcast_id && podcast.course_id === uc.course_id
+            )
+          );
+          // A course is completed if all podcasts have 100% progress
+          return courseProgress.length > 0 && courseProgress.every(p => (p.progress_percent || 0) >= 100);
+        }).length 
+      }
     ];
     
     return { courseProgressData, progressDistribution };
   };
 
-  const { assignedCourses, completedCourses, totalHours, averageProgress } = calculateKPIs();
+  const { assignedCourses, completedCourses, totalHours, averageProgress, totalMinutes, totalSecondsPlayed } = calculateKPIs();
   const { courseProgressData, progressDistribution } = prepareChartData();
 
   // Colors for pie chart
@@ -392,24 +425,56 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
-            { title: 'Assigned Courses', value: assignedCourses, icon: BookOpen, color: 'bg-[#8b5cf6]' },
-            { title: 'Completed Courses', value: completedCourses, icon: CheckCircle, color: 'bg-[#10b981]' },
-            { title: 'Total Hours', value: totalHours, icon: Clock, color: 'bg-[#f59e0b]' },
-            { title: 'Avg. Progress', value: `${averageProgress}%`, icon: TrendingUp, color: 'bg-[#3b82f6]' }
+            { 
+              title: 'Assigned Courses', 
+              value: assignedCourses, 
+              icon: BookOpen, 
+              color: 'bg-[#8b5cf6]',
+              subtitle: 'Total courses assigned to you'
+            },
+            { 
+              title: 'Completed Courses', 
+              value: completedCourses, 
+              icon: CheckCircle, 
+              color: 'bg-[#10b981]',
+              subtitle: 'Courses finished successfully'
+            },
+            { 
+              title: 'Total Hours', 
+              value: totalHours, 
+              icon: Clock, 
+              color: 'bg-[#f59e0b]',
+              subtitle: `${totalMinutes} minutes played`
+            },
+            { 
+              title: 'Avg. Progress', 
+              value: `${averageProgress}%`, 
+              icon: TrendingUp, 
+              color: 'bg-[#3b82f6]',
+              subtitle: 'Across all courses'
+            }
           ].map((card, index) => (
-            <div key={index} className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg overflow-hidden">
+            <div 
+              key={index} 
+              className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
+              onClick={() => {
+                // Show detailed modal or navigate to detailed view when KPI is clicked
+                alert(`Detailed view for ${card.title} would be shown here.
+
+Total time played: ${totalMinutes} minutes (${totalSecondsPlayed} seconds)
+
+Click on individual courses below to see module details.`);
+              }}
+            >
               <div className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className={`${card.color} rounded-md p-3`}>
-                      <card.icon className="h-6 w-6 text-white" />
-                    </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-300">{card.title}</p>
+                    <p className="text-3xl font-bold mt-2">{card.value}</p>
+                    <p className="text-xs text-gray-400 mt-1">{card.subtitle}</p>
                   </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-300">{card.title}</dt>
-                      <dd className="text-2xl font-semibold text-white">{card.value}</dd>
-                    </dl>
+                  <div className={`${card.color} p-3 rounded-lg`}>
+                    <card.icon className="h-8 w-8 text-white" />
                   </div>
                 </div>
               </div>
@@ -417,125 +482,191 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
           ))}
         </div>
 
-        {/* Charts */}
+        {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Course Progress Chart */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg">
-            <div className="px-6 py-4 border-b border-white/10">
-              <h3 className="text-lg font-medium text-white">Course Progress</h3>
-            </div>
-            <div className="p-6 h-80">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+            <h2 className="text-xl font-bold mb-6">Course Progress</h2>
+            <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={courseProgressData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
-                  <YAxis stroke="rgba(255,255,255,0.5)" domain={[0, 100]} />
+                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.7)" />
+                  <YAxis stroke="rgba(255,255,255,0.7)" domain={[0, 100]} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)' }}
-                    itemStyle={{ color: 'white' }}
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(0,0,0,0.8)', 
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '0.5rem'
+                    }}
+                    formatter={(value, name) => {
+                      if (name === 'progress') {
+                        return [`${value}%`, 'Progress'];
+                      }
+                      return [value, name];
+                    }}
+                    labelFormatter={(label) => `Course: ${label}`}
                   />
-                  <Bar dataKey="progress" fill="#8b5cf6" name="Progress %" />
+                  <Bar dataKey="progress" fill="#8b5cf6" name="Progress %" radius={[4, 4, 0, 0]}>
+                    {courseProgressData.map((entry, index) => (
+                      <cell 
+                        key={`cell-${index}`} 
+                        fill={entry.progress >= 100 ? '#10b981' : entry.progress > 0 ? '#f59e0b' : '#6b7280'} 
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            
+            {/* Course Details */}
+            <div className="mt-6 space-y-4 max-h-60 overflow-y-auto">
+              <h3 className="font-medium text-gray-300">Course Details</h3>
+              {courseProgressData.map((course, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <div className="flex-1">
+                    <p className="font-medium text-white">{course.name}</p>
+                    <p className="text-sm text-gray-400">
+                      {course.modulesCompleted} of {course.totalModules} modules completed
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-white">{course.progress}%</p>
+                    <p className="text-sm text-gray-400">{course.timeSpent} min</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Progress Distribution */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg">
-            <div className="px-6 py-4 border-b border-white/10">
-              <h3 className="text-lg font-medium text-white">Progress Distribution</h3>
-            </div>
-            <div className="p-6 h-80">
+          {/* Progress Distribution Chart */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+            <h2 className="text-xl font-bold mb-6">Progress Distribution</h2>
+            <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={progressDistribution}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
+                    labelLine={true}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) => `${name}: ${percent ? (percent * 100).toFixed(0) : '0'}%`}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   >
                     {progressDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[index % COLORS.length]} 
+                      />
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)' }}
-                    itemStyle={{ color: 'white' }}
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(0,0,0,0.8)', 
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '0.5rem'
+                    }}
+                    formatter={(value) => [value, 'Courses']}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
+            
+            {/* Progress Legend */}
+            <div className="mt-6 grid grid-cols-3 gap-4">
+              {progressDistribution.map((item, index) => (
+                <div key={index} className="flex items-center">
+                  <div 
+                    className="w-4 h-4 rounded-full mr-2" 
+                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                  ></div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{item.name}</p>
+                    <p className="text-xs text-gray-400">{item.value} courses</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Assigned Courses */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg">
-          <div className="px-6 py-4 border-b border-white/10">
-            <h3 className="text-lg font-medium text-white">My Courses</h3>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {supabaseData.userCourses.length > 0 ? (
-                supabaseData.userCourses.map((userCourse) => {
-                  const course = userCourse.courses;
-                  const courseProgress = podcastProgress.filter(p => 
-                    supabaseData.courses.find(c => c.id === userCourse.course_id)?.id
-                  );
-                  const totalProgress = courseProgress.reduce((sum, p) => sum + (p.progress_percent || 0), 0);
-                  const avgProgress = courseProgress.length > 0 ? Math.round(totalProgress / courseProgress.length) : 0;
-                  
-                  return (
-                    <div 
-                      key={userCourse.course_id} 
-                      className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer transition-all duration-300 border border-white/10"
-                      onClick={() => navigate(`/user/courses/${userCourse.course_id}`)}
-                    >
-                      <div className="flex items-center">
-                        {course.image_url ? (
-                          <img 
-                            src={course.image_url} 
-                            alt={course.title} 
-                            className="h-12 w-12 rounded-md object-cover mr-4"
-                          />
-                        ) : (
-                          <div className="h-12 w-12 rounded-md bg-[#8b5cf6]/20 flex items-center justify-center mr-4">
-                            <BookOpen className="h-6 w-6 text-[#8b5cf6]" />
-                          </div>
-                        )}
-                        <div>
-                          <h4 className="text-sm font-medium text-white">{course.title}</h4>
-                          <p className="text-xs text-gray-300">
-                            {course.level || 'Not specified'} • Assigned on {new Date(userCourse.assigned_at).toLocaleDateString()}
-                          </p>
-                        </div>
+        {/* Recently Accessed Courses */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+          <h2 className="text-xl font-bold mb-6">Recently Accessed Courses</h2>
+          {supabaseData.userCourses.length === 0 ? (
+            <div className="text-center py-12">
+              <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-white">No courses assigned</h3>
+              <p className="mt-1 text-sm text-gray-300">
+                Contact your administrator to get access to courses.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {supabaseData.userCourses.slice(0, 3).map((userCourse) => {
+                const course = userCourse.courses;
+                const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === course.id);
+                const courseProgressItems = podcastProgress.filter(p => 
+                  coursePodcasts.some(podcast => podcast.id === p.podcast_id)
+                );
+                
+                // Calculate course progress
+                const totalProgress = courseProgressItems.reduce((sum, p) => sum + (p.progress_percent || 0), 0);
+                const progressPercent = courseProgressItems.length > 0 ? Math.round(totalProgress / courseProgressItems.length) : 0;
+                
+                // Find last accessed time
+                const lastAccessed = courseProgressItems.length > 0 
+                  ? new Date(Math.max(...courseProgressItems.map(p => new Date(p.last_played_at || 0).getTime())))
+                  : null;
+                
+                return (
+                  <div 
+                    key={userCourse.course_id}
+                    className="bg-white/5 rounded-xl border border-white/10 p-5 hover:bg-white/10 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/user/courses/${course.id}`)}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="font-semibold text-white line-clamp-2">{course.title}</h3>
+                      {course.level && (
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          course.level === 'Basics' 
+                            ? 'bg-green-500/20 text-green-300' 
+                            : course.level === 'Intermediate' 
+                              ? 'bg-yellow-500/20 text-yellow-300' 
+                              : 'bg-red-500/20 text-red-300'
+                        }`}>
+                          {course.level}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Progress</span>
+                        <span className="text-white font-medium">{progressPercent}%</span>
                       </div>
-                      <div className="flex items-center">
-                        <div className="w-24 bg-white/20 rounded-full h-2 mr-3">
-                          <div 
-                            className="bg-[#8b5cf6] h-2 rounded-full" 
-                            style={{ width: `${avgProgress}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm font-medium text-white">{avgProgress}%</span>
+                      
+                      <div className="w-full bg-white/20 rounded-full h-2">
+                        <div
+                          className="bg-[#8b5cf6] h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${progressPercent}%` }}
+                        ></div>
+                      </div>
+                      
+                      <div className="flex justify-between text-xs text-gray-400">
+                        <span>{coursePodcasts.length} modules</span>
+                        {lastAccessed && (
+                          <span>Last accessed: {lastAccessed.toLocaleDateString()}</span>
+                        )}
                       </div>
                     </div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-8">
-                  <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-white">No courses assigned</h3>
-                  <p className="mt-1 text-sm text-gray-300">
-                    Contact your administrator to get access to courses.
-                  </p>
-                </div>
-              )}
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

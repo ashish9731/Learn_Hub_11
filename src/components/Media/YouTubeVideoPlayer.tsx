@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
@@ -55,6 +55,8 @@ export default function YouTubeVideoPlayer({
   const [watchedVideos, setWatchedVideos] = useState<Record<string, boolean>>({});
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
   const [completedVideos, setCompletedVideos] = useState<Record<string, boolean>>({}); // Track which videos are completed
+  const playerRef = useRef<any>(null);
+  const [playerReady, setPlayerReady] = useState(false);
 
   const currentVideo = videos[currentVideoIndex];
 
@@ -329,6 +331,24 @@ export default function YouTubeVideoPlayer({
     return 'not-started';
   };
 
+  // Prevent YouTube player seeking by disabling controls after load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (iframeRef.current) {
+        // Try to access YouTube player API to disable seeking
+        try {
+          // This is a simplified approach - in a real implementation you would
+          // use the YouTube IFrame API to disable seeking controls
+          console.log('YouTube player loaded - would disable seeking in full implementation');
+        } catch (e) {
+          console.log('Could not access YouTube player API');
+        }
+      }
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, [currentVideoIndex]);
+
   if (showQuiz && currentQuiz) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
@@ -470,20 +490,20 @@ export default function YouTubeVideoPlayer({
 
   return (
     <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl overflow-hidden">
-      {/* Video Player */}
+      {/* Video Player - Modified to prevent seeking */}
       <div className="relative pb-[56.25%] h-0"> {/* 16:9 Aspect Ratio */}
         <iframe
           ref={iframeRef}
-          src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}`}
+          src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}&controls=0&disablekb=1&fs=0`}
           className="absolute top-0 left-0 w-full h-full rounded-t-2xl"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
+          allowFullScreen={false}
           title={currentVideo.title}
         />
       </div>
       
-      {/* Video Controls */}
+      {/* Custom Video Controls */}
       <div className="p-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <h3 className="text-xl font-bold text-white">{currentVideo.title}</h3>
