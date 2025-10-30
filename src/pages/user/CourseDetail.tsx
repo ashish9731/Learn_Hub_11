@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, Music, Folder, User, Image, RefreshCw } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, ChevronLeft, Music, Folder, User, Image, RefreshCw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
@@ -34,6 +34,14 @@ interface Podcast {
   video_url: string | null;
   is_youtube_video: boolean;
   created_by: string | null;
+  created_at: string;
+}
+
+interface PDF {
+  id: string;
+  title: string;
+  course_id: string;
+  pdf_url: string;
   created_at: string;
 }
 
@@ -82,11 +90,129 @@ export default function CourseDetail() {
   const [quizCategoryName, setQuizCategoryName] = useState<string | null>(null);
   const [showFinalQuiz, setShowFinalQuiz] = useState(false);
   const [allModulesCompleted, setAllModulesCompleted] = useState(false);
+  const [totalLearningHours, setTotalLearningHours] = useState<number>(0);
 
   // State for course image
   const [courseImage, setCourseImage] = useState<string | null>(null);
   const [loadingImage, setLoadingImage] = useState<boolean>(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+  // Load course data when component mounts or courseId changes
+  useEffect(() => {
+    const loadCourseData = async () => {
+      if (!courseId) {
+        setError('No course ID provided');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Load course details
+        const { data: courseData, error: courseError } = await supabase
+          .from('courses')
+          .select('*')
+          .eq('id', courseId)
+          .single();
+
+        if (courseError) {
+          throw new Error(`Failed to load course: ${courseError.message}`);
+        }
+
+        if (!courseData) {
+          throw new Error('Course not found');
+        }
+
+        setCourse(courseData);
+
+        // Load categories for this course
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('content-categories')
+          .select('*')
+          .eq('course_id', courseId);
+
+        if (categoriesError) {
+          console.error('Error loading categories:', categoriesError);
+        } else {
+          setCategories(categoriesData || []);
+        }
+
+        // Load podcasts for this course
+        const { data: podcastsData, error: podcastsError } = await supabase
+          .from('podcasts')
+          .select('*')
+          .eq('course_id', courseId);
+
+        if (podcastsError) {
+          console.error('Error loading podcasts:', podcastsError);
+        } else {
+          setPodcasts(podcastsData || []);
+          
+          // Calculate total learning hours based on podcast durations
+          let totalHours = 0;
+          if (podcastsData) {
+            // For now, we'll estimate 30 minutes per podcast as a placeholder
+            // In a real implementation, you would sum the actual durations
+            totalHours = podcastsData.length * 0.5;
+          }
+          setTotalLearningHours(totalHours);
+        }
+
+        // Load PDFs for this course
+        const { data: pdfsData, error: pdfsError } = await supabase
+          .from('pdfs')
+          .select('*')
+          .eq('course_id', courseId);
+
+        if (pdfsError) {
+          console.error('Error loading PDFs:', pdfsError);
+        } else {
+          setPdfs(pdfsData || []);
+        }
+
+        // If we have a course image URL, use it
+        if (courseData.image_url) {
+          setCourseImage(courseData.image_url);
+        }
+      } catch (err) {
+        console.error('Error loading course data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load course data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCourseData();
+  }, [courseId]);
+
+  // Load user authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUserId(session.user.id);
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (err) {
+        console.error('Error checking authentication:', err);
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Load podcast progress when user ID changes
+  useEffect(() => {
+    if (userId) {
+      loadPodcastProgress();
+    }
+  }, [userId]);
 
   // Function to manually generate course image using Stability AI
   const generateCourseImage = async (courseTitle: string, courseId: string) => {
