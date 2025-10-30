@@ -261,6 +261,17 @@ export default function CourseDetail() {
     return true;
   };
 
+  // Check if a YouTube video is unlocked (previous videos must be completed)
+  const isVideoUnlocked = (videoIndex: number, videos: any[]) => {
+    // First video is always unlocked
+    if (videoIndex === 0) return true;
+    
+    // Check if previous video is completed
+    const previousVideo = videos[videoIndex - 1];
+    const progress = podcastProgress[previousVideo.id]; // Using podcast_progress for YouTube videos too
+    return progress && progress.progress_percent >= 100;
+  };
+
   // Get the completion percentage for a podcast
   const getPodcastCompletion = (podcastId: string) => {
     const progress = podcastProgress[podcastId];
@@ -396,15 +407,19 @@ export default function CourseDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate('/user/courses')}
-        className="flex items-center text-blue-400 hover:text-blue-300 mb-6 group"
-      >
-        <ChevronLeft className="h-5 w-5 mr-1 transition-transform group-hover:-translate-x-1" />
-        <span className="font-medium">Back to Courses</span>
-      </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
+      {/* Glassmorphism Header */}
+      <div className="bg-white/10 backdrop-blur-lg rounded-b-2xl border-b border-white/20 shadow-xl p-6 mb-8">
+        <div className="max-w-7xl mx-auto">
+          <button
+            onClick={() => navigate('/user/courses')}
+            className="flex items-center text-blue-400 hover:text-blue-300 mb-6 group"
+          >
+            <ChevronLeft className="h-5 w-5 mr-1 transition-transform group-hover:-translate-x-1" />
+            <span className="font-medium">Back to Courses</span>
+          </button>
+        </div>
+      </div>
 
       {/* Debug component for troubleshooting - only shown in development */}
       {process.env.NODE_ENV === 'development' && (
@@ -416,11 +431,13 @@ export default function CourseDetail() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+            </div>
           </div>
         ) : error ? (
-          <div className="bg-red-900 border border-red-700 rounded-lg p-4">
+          <div className="bg-red-900/30 backdrop-blur-lg rounded-2xl border border-red-500/30 shadow-xl p-6">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
@@ -532,7 +549,7 @@ export default function CourseDetail() {
 
             {/* Audio Tab */}
             {activeTab === 'audio' && (
-              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Audio Content</h2>
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Audio List - Left Side */}
@@ -586,7 +603,7 @@ export default function CourseDetail() {
                   {/* Audio Player - Right Side */}
                   <div className="lg:w-1/2">
                     {currentPodcast && !currentPodcast.is_youtube_video ? (
-                      <div className="bg-gray-800 rounded-lg p-4 h-full border border-gray-700">
+                      <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-4 h-full">
                         <div className="mb-4">
                           <h2 className="text-lg font-bold text-white">{currentPodcast.title}</h2>
                         </div>
@@ -613,7 +630,7 @@ export default function CourseDetail() {
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-gray-800 rounded-lg p-8 h-full flex flex-col items-center justify-center text-gray-400 border border-gray-700">
+                      <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-8 h-full flex flex-col items-center justify-center text-gray-300">
                         <Headphones className="h-12 w-12 mb-4" />
                         <p className="text-center">Select an audio file from the playlist to start listening</p>
                       </div>
@@ -625,7 +642,7 @@ export default function CourseDetail() {
 
             {/* Video Tab */}
             {activeTab === 'video' && (
-              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-semibold text-white">Video Content</h2>
                   <div className="flex space-x-2">
@@ -741,12 +758,12 @@ export default function CourseDetail() {
                   {/* YouTube Player - Right Side */}
                   {currentPodcast && currentPodcast.is_youtube_video && (
                     <div className="lg:w-1/2">
-                      <div className="bg-gray-800 rounded-lg p-4 h-full border border-gray-700">
+                      <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-4 h-full">
                         <div className="flex justify-between items-center mb-4">
                           <h2 className="text-lg font-bold text-white">{currentPodcast.title}</h2>
                           <button
                             onClick={() => setCurrentPodcast(null)}
-                            className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-gray-700"
+                            className="text-gray-300 hover:text-white p-1 rounded-full hover:bg-white/10"
                           >
                             <X className="h-6 w-6" />
                           </button>
@@ -777,7 +794,7 @@ export default function CourseDetail() {
 
             {/* Docs Tab */}
             {activeTab === 'docs' && (
-              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Documents</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {pdfs.length > 0 ? 
@@ -820,7 +837,7 @@ export default function CourseDetail() {
 
             {/* Images Tab */}
             {activeTab === 'images' && (
-              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Images & Infographics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {pdfs.filter(pdf => 
@@ -870,7 +887,7 @@ export default function CourseDetail() {
 
             {/* Templates Tab */}
             {activeTab === 'templates' && (
-              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Templates & Other Content</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {pdfs.filter(pdf => 
@@ -920,11 +937,11 @@ export default function CourseDetail() {
 
             {/* Quiz Tab */}
             {activeTab === 'quiz' && (
-              <div className="bg-gray-900 rounded-lg shadow-md p-6 border border-gray-800">
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Quiz</h2>
                 <div className="space-y-4">
                   {/* Quiz Content */}
-                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                  <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
                     <h3 className="text-lg font-medium text-white mb-2">Module Quiz</h3>
                     <p className="text-gray-300 mb-4">Test your knowledge on the course modules.</p>
                     <button
@@ -935,7 +952,7 @@ export default function CourseDetail() {
                     </button>
                   </div>
 
-                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                  <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
                     <h3 className="text-lg font-medium text-white mb-2">Final Quiz</h3>
                     <p className="text-gray-300 mb-4">Complete the final quiz to finish the course.</p>
                     <button
@@ -951,13 +968,13 @@ export default function CourseDetail() {
 
             {/* Media Player */}
             {currentPodcast && activeTab === 'podcasts' && (
-              <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
-                <div className="bg-gray-900 rounded-lg p-6 max-w-2xl w-full border border-gray-700">
+              <div className="fixed inset-0 bg-black/80 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6 max-w-2xl w-full">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold text-white">{currentPodcast.title}</h2>
                     <button
                       onClick={() => setCurrentPodcast(null)}
-                      className="text-gray-400 hover:text-white"
+                      className="text-gray-300 hover:text-white"
                     >
                       <ChevronLeft className="h-6 w-6" />
                     </button>
@@ -988,10 +1005,10 @@ export default function CourseDetail() {
             )}
           </>
         ) : (
-          <div className="text-center py-12">
+          <div className="text-center py-12 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
             <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Course not found</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <h3 className="mt-2 text-sm font-medium text-white">Course not found</h3>
+            <p className="mt-1 text-sm text-gray-300">
               The requested course could not be found.
             </p>
           </div>

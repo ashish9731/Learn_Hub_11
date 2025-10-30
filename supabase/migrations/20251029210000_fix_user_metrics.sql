@@ -1,15 +1,3 @@
-/*
-  # Fix user metrics calculation to properly show courses in progress and partial minutes
-
-  1. Update get_current_user_metrics function to:
-    - Properly calculate courses in progress (any podcast with > 0 progress)
-    - Show partial hours correctly (even 10 seconds of play)
-    - Ensure consistency between frontend and backend calculations
-*/
-
--- Drop the existing function first
-DROP FUNCTION IF EXISTS get_current_user_metrics();
-
 -- Create the updated get_current_user_metrics function
 CREATE OR REPLACE FUNCTION get_current_user_metrics()
 RETURNS TABLE(
@@ -48,22 +36,21 @@ AS $$
       WHEN ucs.total_podcasts_in_course > 0 AND ucs.completed_podcasts = ucs.total_podcasts_in_course 
       THEN ucs.course_id 
     END) as completed_courses,
-    -- Count courses in progress (any podcast in course has progress > 0)
+    -- Count in-progress courses (at least one podcast started but not completed)
     COUNT(DISTINCT CASE 
-      WHEN ucs.podcasts_with_progress > 0 AND ucs.completed_podcasts < ucs.total_podcasts_in_course
+      WHEN ucs.podcasts_with_progress > 0 AND 
+           (ucs.total_podcasts_in_course = 0 OR ucs.completed_podcasts < ucs.total_podcasts_in_course)
       THEN ucs.course_id 
     END) as in_progress_courses,
-    -- Calculate average completion across all podcast progress
-    COALESCE(ROUND(AVG(pp.progress_percent), 2), 0) as average_completion
+    -- Calculate average completion across all podcasts with progress
+    COALESCE(ROUND(AVG(CASE 
+      WHEN ucs.podcasts_with_progress > 0 
+      THEN (ucs.total_seconds_played / NULLIF(SUM(pp.duration) FILTER (WHERE pp.user_id = u.id), 0)) * 100
+      ELSE 0 
+    END)::numeric, 2), 0) as average_completion
   FROM users u
   LEFT JOIN user_course_stats ucs ON u.id = ucs.user_id
-  LEFT JOIN podcast_progress pp ON u.id = pp.user_id
+  LEFT JOIN podcast_progress pp ON pp.user_id = u.id
   WHERE u.id = auth.uid()
   GROUP BY u.id, u.email;
 $$;
-
--- Grant execute permissions
-GRANT EXECUTE ON FUNCTION get_current_user_metrics() TO authenticated;
-
--- Refresh the schema cache
-NOTIFY pgrst, 'reload schema';

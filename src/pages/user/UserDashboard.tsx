@@ -252,7 +252,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     const assignedCourses = supabaseData.userCourses.length;
     const completedCourses = supabaseData.userCourses.filter(uc => uc.completed).length;
     
-    // Calculate total learning hours based on actual podcast durations
+    // Calculate total learning hours based on actual podcast durations from progress data
     let totalSeconds = 0;
     let totalProgress = 0;
     let progressCount = 0;
@@ -265,32 +265,30 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       assignedCourseIds.has(podcast.course_id)
     );
     
-    // Sum up the durations of all assigned podcasts
-    assignedPodcasts.forEach(podcast => {
-      // For YouTube videos, we might not have exact duration, so we'll estimate
-      // For audio files, we should have duration from the upload process
-      const duration = podcast.duration || (podcast.is_youtube_video ? 1800 : 1200); // Default 30min for YouTube, 20min for audio
-      totalSeconds += duration;
-    });
-    
-    // Calculate average progress based on podcast progress
+    // Calculate total hours based on actual progress data, not estimates
     podcastProgress.forEach(progress => {
       // Only count progress for podcasts in assigned courses
       const podcast = assignedPodcasts.find(p => p.id === progress.podcast_id);
       if (podcast) {
+        // Use actual duration from progress data, not estimates
+        const duration = progress.duration || 0;
+        // Calculate actual time spent based on progress percentage
+        const timeSpent = duration * (progress.progress_percent / 100);
+        totalSeconds += timeSpent;
+        
         totalProgress += progress.progress_percent || 0;
         progressCount++;
       }
     });
     
-    // Convert total seconds to hours
+    // Convert total seconds to hours with decimal precision
     const totalHours = totalSeconds / 3600;
     const averageProgress = progressCount > 0 ? Math.round(totalProgress / progressCount) : 0;
     
     return {
       assignedCourses,
       completedCourses,
-      totalHours: Math.round(totalHours * 10) / 10, // Round to 1 decimal place
+      totalHours: Math.round(totalHours * 100) / 100, // Round to 2 decimal places for accuracy
       averageProgress
     };
   };
@@ -344,12 +342,12 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
 
   if (loading) {
     return (
-      <div className="py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto"></div>
+              <p className="mt-4 text-gray-300">Loading dashboard...</p>
             </div>
           </div>
         </div>
@@ -359,20 +357,18 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
 
   if (error) {
     return (
-      <div className="py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <p className="text-red-600">Error: {error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="custom-button mt-2"
-            >
-              <span className="shadow"></span>
-              <span className="edge"></span>
-              <span className="front">
-                <span className="text-sm text-red-700 hover:text-red-500">Try again</span>
-              </span>
-            </button>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+            <div className="text-center py-12">
+              <div className="text-red-400 mb-4">Error: {error}</div>
+              <button 
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-red-600/20 backdrop-blur-lg border border-red-500/30 rounded-lg text-red-300 hover:bg-red-600/30 transition-colors"
+              >
+                Try again
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -381,13 +377,16 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
 
   // Dashboard view - KPIs and charts only
   return (
-    <div className="py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">Learning Dashboard</h1>
-          <p className="mt-1 text-sm text-[#f0f0f0]">
-            Track your learning progress and course completion
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Glassmorphism Header */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">Learning Dashboard</h1>
+              <p className="text-gray-300 mt-1">Track your learning progress and course completion</p>
+            </div>
+          </div>
         </div>
 
         {/* KPI Cards */}
@@ -398,7 +397,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
             { title: 'Total Hours', value: totalHours, icon: Clock, color: 'bg-[#f59e0b]' },
             { title: 'Avg. Progress', value: `${averageProgress}%`, icon: TrendingUp, color: 'bg-[#3b82f6]' }
           ].map((card, index) => (
-            <div key={index} className="bg-[#1e1e1e] overflow-hidden shadow-sm rounded-lg border border-[#333333]">
+            <div key={index} className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg overflow-hidden">
               <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -408,7 +407,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-[#f0f0f0]">{card.title}</dt>
+                      <dt className="text-sm font-medium text-gray-300">{card.title}</dt>
                       <dd className="text-2xl font-semibold text-white">{card.value}</dd>
                     </dl>
                   </div>
@@ -421,18 +420,18 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Course Progress Chart */}
-          <div className="bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333]">
-            <div className="px-6 py-4 border-b border-[#333333]">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg">
+            <div className="px-6 py-4 border-b border-white/10">
               <h3 className="text-lg font-medium text-white">Course Progress</h3>
             </div>
             <div className="p-6 h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={courseProgressData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
-                  <XAxis dataKey="name" stroke="#a0a0a0" />
-                  <YAxis stroke="#a0a0a0" domain={[0, 100]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
+                  <YAxis stroke="rgba(255,255,255,0.5)" domain={[0, 100]} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333333' }}
+                    contentStyle={{ backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)' }}
                     itemStyle={{ color: 'white' }}
                   />
                   <Bar dataKey="progress" fill="#8b5cf6" name="Progress %" />
@@ -442,8 +441,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
           </div>
 
           {/* Progress Distribution */}
-          <div className="bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333]">
-            <div className="px-6 py-4 border-b border-[#333333]">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg">
+            <div className="px-6 py-4 border-b border-white/10">
               <h3 className="text-lg font-medium text-white">Progress Distribution</h3>
             </div>
             <div className="p-6 h-80">
@@ -464,7 +463,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#1e1e1e', borderColor: '#333333' }}
+                    contentStyle={{ backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)' }}
                     itemStyle={{ color: 'white' }}
                   />
                 </PieChart>
@@ -474,8 +473,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         </div>
 
         {/* Assigned Courses */}
-        <div className="bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333]">
-          <div className="px-6 py-4 border-b border-[#333333]">
+        <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg">
+          <div className="px-6 py-4 border-b border-white/10">
             <h3 className="text-lg font-medium text-white">My Courses</h3>
           </div>
           <div className="p-6">
@@ -492,7 +491,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                   return (
                     <div 
                       key={userCourse.course_id} 
-                      className="flex items-center justify-between p-4 bg-[#252525] rounded-lg hover:bg-[#333333] cursor-pointer"
+                      className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer transition-all duration-300 border border-white/10"
                       onClick={() => navigate(`/user/courses/${userCourse.course_id}`)}
                     >
                       <div className="flex items-center">
@@ -509,13 +508,13 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                         )}
                         <div>
                           <h4 className="text-sm font-medium text-white">{course.title}</h4>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-gray-300">
                             {course.level || 'Not specified'} • Assigned on {new Date(userCourse.assigned_at).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center">
-                        <div className="w-24 bg-[#333333] rounded-full h-2 mr-3">
+                        <div className="w-24 bg-white/20 rounded-full h-2 mr-3">
                           <div 
                             className="bg-[#8b5cf6] h-2 rounded-full" 
                             style={{ width: `${avgProgress}%` }}
@@ -530,7 +529,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                 <div className="text-center py-8">
                   <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-2 text-sm font-medium text-white">No courses assigned</h3>
-                  <p className="mt-1 text-sm text-[#a0a0a0]">
+                  <p className="mt-1 text-sm text-gray-300">
                     Contact your administrator to get access to courses.
                   </p>
                 </div>

@@ -54,6 +54,7 @@ export default function YouTubeVideoPlayer({
   const [quizPassed, setQuizPassed] = useState<boolean | null>(null);
   const [watchedVideos, setWatchedVideos] = useState<Record<string, boolean>>({});
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
+  const [completedVideos, setCompletedVideos] = useState<Record<string, boolean>>({}); // Track which videos are completed
 
   const currentVideo = videos[currentVideoIndex];
 
@@ -70,19 +71,35 @@ export default function YouTubeVideoPlayer({
       if (!userId) return;
       
       try {
-        // For YouTube videos, we'll track completion rather than detailed progress
-        const watchedVideoIds = videos.map(v => v.id);
-        if (watchedVideoIds.length === 0) return;
+        // Load which videos have been completed
+        const completedVideoIds = videos.map(v => v.id);
+        if (completedVideoIds.length === 0) return;
         
-        // In a real implementation, you might track actual watch time
-        // For now, we'll just mark videos as watched when they're completed
+        // Initialize watched videos state
         setWatchedVideos(prev => {
           const newWatched = { ...prev };
-          watchedVideoIds.forEach(id => {
+          completedVideoIds.forEach(id => {
             newWatched[id] = newWatched[id] || false;
           });
           return newWatched;
         });
+        
+        // Load completion status from database
+        const { data, error } = await supabase
+          .from('podcast_progress')
+          .select('*')
+          .eq('user_id', userId)
+          .in('podcast_id', completedVideoIds);
+          
+        if (!error && data) {
+          const completedStatus: Record<string, boolean> = {};
+          data.forEach(item => {
+            if (item.progress_percent >= 100) {
+              completedStatus[item.podcast_id] = true;
+            }
+          });
+          setCompletedVideos(completedStatus);
+        }
       } catch (error) {
         console.error('Error loading video progress:', error);
       }
@@ -98,8 +115,20 @@ export default function YouTubeVideoPlayer({
         [videoId]: true
       }));
       
-      // Save completion status to database
-      // In a real implementation, you might save more detailed progress
+      setCompletedVideos(prev => ({
+        ...prev,
+        [videoId]: true
+      }));
+      
+      // Save completion status to database (using podcast_progress table for YouTube videos too)
+      await supabaseHelpers.savePodcastProgressWithRetry(
+        userId,
+        videoId,
+        1800, // Default 30 minutes for YouTube videos
+        1800, // Same duration
+        100 // 100% completion
+      );
+      
       console.log(`Video ${videoId} marked as watched`);
     } catch (error) {
       console.error('Error marking video as watched:', error);
@@ -114,8 +143,16 @@ export default function YouTubeVideoPlayer({
     if (currentVideoIndex === videos.length - 1) {
       generateQuiz();
     } else {
-      // Automatically move to next video
-      setCurrentVideoIndex(currentVideoIndex + 1);
+      // Automatically move to next video only if previous one is completed
+      const nextVideo = videos[currentVideoIndex + 1];
+      const previousVideoCompleted = currentVideoIndex === 0 || completedVideos[videos[currentVideoIndex].id];
+      
+      if (previousVideoCompleted) {
+        setCurrentVideoIndex(currentVideoIndex + 1);
+      } else {
+        // Show message that previous video must be completed first
+        alert('You must complete the previous video before moving to the next one.');
+      }
     }
   };
 
@@ -126,8 +163,16 @@ export default function YouTubeVideoPlayer({
   };
 
   const handleSkipForward = () => {
+    // Only allow skipping forward if previous video is completed
     if (currentVideoIndex < videos.length - 1) {
-      setCurrentVideoIndex(currentVideoIndex + 1);
+      const previousVideoCompleted = currentVideoIndex === 0 || completedVideos[videos[currentVideoIndex].id];
+      
+      if (previousVideoCompleted) {
+        setCurrentVideoIndex(currentVideoIndex + 1);
+      } else {
+        // Show message that previous video must be completed first
+        alert('You must complete the previous video before moving to the next one.');
+      }
     } else {
       // Last video, show quiz
       generateQuiz();
@@ -204,72 +249,20 @@ export default function YouTubeVideoPlayer({
               {
                 id: 'a7',
                 answer_text: 'Takeaway 1',
-                is_correct: false,
-                explanation: 'This was a minor point.'
+                is_correct: true,
+                explanation: 'This was the main takeaway.'
               },
               {
                 id: 'a8',
                 answer_text: 'Takeaway 2',
-                is_correct: true,
-                explanation: 'This was the main takeaway.'
+                is_correct: false,
+                explanation: 'This was a secondary point.'
               },
               {
                 id: 'a9',
                 answer_text: 'Takeaway 3',
                 is_correct: false,
-                explanation: 'This was not mentioned.'
-              }
-            ]
-          },
-          {
-            id: 'q4',
-            question_text: 'Which example was used to illustrate the main point?',
-            question_type: 'multiple_choice',
-            difficulty: 'medium',
-            answers: [
-              {
-                id: 'a10',
-                answer_text: 'Example A',
-                is_correct: true,
-                explanation: 'This example was used to illustrate the point.'
-              },
-              {
-                id: 'a11',
-                answer_text: 'Example B',
-                is_correct: false,
-                explanation: 'This example was not used.'
-              },
-              {
-                id: 'a12',
-                answer_text: 'Example C',
-                is_correct: false,
-                explanation: 'This example was not relevant.'
-              }
-            ]
-          },
-          {
-            id: 'q5',
-            question_text: 'What should you remember most from this module?',
-            question_type: 'multiple_choice',
-            difficulty: 'easy',
-            answers: [
-              {
-                id: 'a13',
-                answer_text: 'Remember this',
-                is_correct: true,
-                explanation: 'This is the key point to remember.'
-              },
-              {
-                id: 'a14',
-                answer_text: 'Remember that',
-                is_correct: false,
-                explanation: 'This is less important.'
-              },
-              {
-                id: 'a15',
-                answer_text: 'Remember other',
-                is_correct: false,
-                explanation: 'This was not emphasized.'
+                explanation: 'This was not covered.'
               }
             ]
           }
@@ -280,8 +273,7 @@ export default function YouTubeVideoPlayer({
       setShowQuiz(true);
     } catch (error) {
       console.error('Error generating quiz:', error);
-      // In case of error, just complete the module
-      if (onComplete) onComplete();
+      alert('Failed to generate quiz. Please try again.');
     }
   };
 
@@ -297,89 +289,28 @@ export default function YouTubeVideoPlayer({
     
     let correctAnswers = 0;
     
+    // Grade the quiz
     currentQuiz.questions.forEach(question => {
-      const selectedAnswerId = quizAnswers[question.id];
-      if (selectedAnswerId) {
-        const selectedAnswer = question.answers.find(a => a.id === selectedAnswerId);
-        if (selectedAnswer?.is_correct) {
+      const userAnswerId = quizAnswers[question.id];
+      if (userAnswerId) {
+        const correctAnswer = question.answers.find(a => a.is_correct);
+        if (correctAnswer && correctAnswer.id === userAnswerId) {
           correctAnswers++;
         }
       }
     });
     
     const score = Math.round((correctAnswers / currentQuiz.questions.length) * 100);
-    const passed = score >= 70; // 70% to pass
-    
     setQuizScore(score);
-    setQuizPassed(passed);
     setQuizSubmitted(true);
     
-    // Save quiz results
-    saveQuizResults(score, passed);
-  };
-
-  const saveQuizResults = async (score: number, passed: boolean) => {
-    if (!userId || !currentQuiz) return;
+    // Consider quiz passed if score is 70% or higher
+    const passed = score >= 70;
+    setQuizPassed(passed);
     
-    try {
-      // Create a module quiz record
-      const { data: moduleQuizData, error: moduleQuizError } = await supabase
-        .from('module_quizzes')
-        .insert({
-          course_id: courseId,
-          category_id: currentVideo.category_id,
-          title: currentQuiz.title,
-          description: currentQuiz.description,
-          created_by: userId
-        })
-        .select()
-        .single();
-      
-      if (moduleQuizError) {
-        console.error('Error creating module quiz:', moduleQuizError);
-        return;
-      }
-      
-      // Create quiz attempt record
-      const { data: attemptData, error: attemptError } = await supabase
-        .from('user_quiz_attempts')
-        .insert({
-          user_id: userId,
-          module_quiz_id: moduleQuizData.id,
-          started_at: new Date().toISOString(),
-          completed_at: new Date().toISOString(),
-          score: score,
-          total_questions: currentQuiz.questions.length,
-          passed: passed
-        })
-        .select()
-        .single();
-      
-      if (attemptError) {
-        console.error('Error creating quiz attempt:', attemptError);
-        return;
-      }
-      
-      // Save individual question answers
-      for (const question of currentQuiz.questions) {
-        const selectedAnswerId = quizAnswers[question.id];
-        if (selectedAnswerId) {
-          const selectedAnswer = question.answers.find(a => a.id === selectedAnswerId);
-          
-          await supabase
-            .from('user_quiz_answers')
-            .insert({
-              attempt_id: attemptData.id,
-              question_id: question.id,
-              selected_answer_id: selectedAnswerId,
-              is_correct: selectedAnswer?.is_correct || false
-            });
-        }
-      }
-      
-      console.log('Quiz results saved successfully');
-    } catch (error) {
-      console.error('Error saving quiz results:', error);
+    // If quiz is passed, mark the entire module as completed
+    if (passed && onComplete) {
+      onComplete();
     }
   };
 
@@ -392,223 +323,271 @@ export default function YouTubeVideoPlayer({
     setCurrentQuiz(null);
   };
 
-  const completeModule = () => {
-    resetQuiz();
-    if (onComplete) onComplete();
+  const getVideoStatus = (videoId: string) => {
+    if (completedVideos[videoId]) return 'completed';
+    if (watchedVideos[videoId]) return 'in-progress';
+    return 'not-started';
   };
 
   if (showQuiz && currentQuiz) {
     return (
-      <div className="bg-[#1e1e1e] rounded-lg border border-[#333333] p-6">
-        <h2 className="text-xl font-bold text-white mb-4">{currentQuiz.title}</h2>
-        {currentQuiz.description && (
-          <p className="text-sm text-[#a0a0a0] mb-6">{currentQuiz.description}</p>
-        )}
-        
-        {!quizSubmitted ? (
-          <>
-            <div className="space-y-6">
-              {currentQuiz.questions.map((question, index) => (
-                <div key={question.id} className="bg-[#252525] rounded-lg p-4">
-                  <h3 className="font-medium text-white mb-3">
-                    {index + 1}. {question.question_text}
-                  </h3>
-                  <div className="space-y-2">
-                    {question.answers.map((answer) => (
-                      <label 
-                        key={answer.id} 
-                        className="flex items-center p-3 rounded-lg cursor-pointer hover:bg-[#333333]"
-                      >
-                        <input
-                          type="radio"
-                          name={`question-${question.id}`}
-                          value={answer.id}
-                          checked={quizAnswers[question.id] === answer.id}
-                          onChange={() => handleQuizAnswer(question.id, answer.id)}
-                          className="h-4 w-4 text-[#8b5cf6] focus:ring-[#8b5cf6]"
-                        />
-                        <span className="ml-3 text-sm text-white">{answer.answer_text}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={submitQuiz}
-                disabled={Object.keys(quizAnswers).length !== currentQuiz.questions.length}
-                className="px-4 py-2 bg-[#8b5cf6] text-white rounded-md disabled:opacity-50"
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">{currentQuiz.title}</h2>
+              <button 
+                onClick={resetQuiz}
+                className="text-gray-500 hover:text-gray-700"
               >
-                Submit Quiz
+                <XCircle className="h-6 w-6" />
               </button>
             </div>
-          </>
-        ) : (
-          <div className="text-center py-8">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-[#252525]">
-              {quizPassed ? (
-                <CheckCircle className="h-6 w-6 text-green-500" />
-              ) : (
-                <XCircle className="h-6 w-6 text-red-500" />
-              )}
-            </div>
-            <h3 className="mt-2 text-lg font-medium text-white">
-              {quizPassed ? 'Quiz Passed!' : 'Quiz Failed'}
-            </h3>
-            <p className="mt-1 text-sm text-[#a0a0a0]">
-              You scored {quizScore}% ({Object.keys(quizAnswers).filter(q => {
-                const question = currentQuiz.questions.find(qs => qs.id === q);
-                const selectedAnswer = question?.answers.find(a => a.id === quizAnswers[q]);
-                return selectedAnswer?.is_correct;
-              }).length}/{currentQuiz.questions.length} correct)
-            </p>
             
-            {quizPassed ? (
-              <div className="mt-6">
-                <p className="text-sm text-green-400">
-                  Congratulations! You've successfully completed this module.
-                </p>
-                <button
-                  onClick={completeModule}
-                  className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                >
-                  Continue to Next Module
-                </button>
-              </div>
-            ) : (
-              <div className="mt-6">
-                <p className="text-sm text-red-400">
-                  You need to score at least 70% to pass. Please review the material and try again.
-                </p>
-                <div className="mt-4 flex justify-center space-x-3">
+            {currentQuiz.description && (
+              <p className="text-gray-600 mb-6">{currentQuiz.description}</p>
+            )}
+            
+            {!quizSubmitted ? (
+              <>
+                <div className="space-y-8">
+                  {currentQuiz.questions.map((question, index) => (
+                    <div key={question.id} className="border-b border-gray-200 pb-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        {index + 1}. {question.question_text}
+                      </h3>
+                      
+                      <div className="space-y-3">
+                        {question.answers.map(answer => (
+                          <div key={answer.id} className="flex items-start">
+                            <input
+                              type="radio"
+                              id={`${question.id}-${answer.id}`}
+                              name={question.id}
+                              value={answer.id}
+                              checked={quizAnswers[question.id] === answer.id}
+                              onChange={() => handleQuizAnswer(question.id, answer.id)}
+                              className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label 
+                              htmlFor={`${question.id}-${answer.id}`} 
+                              className="ml-3 text-gray-700"
+                            >
+                              {answer.answer_text}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-8 flex justify-end">
                   <button
-                    onClick={resetQuiz}
-                    className="px-4 py-2 bg-[#8b5cf6] text-white rounded-md hover:bg-[#7c3aed]"
+                    onClick={submitQuiz}
+                    disabled={Object.keys(quizAnswers).length !== currentQuiz.questions.length}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Retry Quiz
+                    Submit Quiz
                   </button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <div className="flex justify-center mb-4">
+                  {quizPassed ? (
+                    <CheckCircle className="h-16 w-16 text-green-500" />
+                  ) : (
+                    <XCircle className="h-16 w-16 text-red-500" />
+                  )}
+                </div>
+                
+                <h3 className="text-2xl font-bold mb-2">
+                  {quizPassed ? 'Quiz Passed!' : 'Quiz Failed'}
+                </h3>
+                
+                <p className="text-lg mb-4">
+                  Your score: <span className="font-bold">{quizScore}%</span>
+                </p>
+                
+                {quizPassed ? (
+                  <p className="text-green-600 mb-6">
+                    Congratulations! You've successfully completed this module.
+                  </p>
+                ) : (
+                  <p className="text-red-600 mb-6">
+                    You need to score at least 70% to pass. Please review the content and try again.
+                  </p>
+                )}
+                
+                <div className="flex justify-center space-x-4">
+                  {!quizPassed && (
+                    <button
+                      onClick={resetQuiz}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      Try Again
+                    </button>
+                  )}
+                  
                   <button
-                    onClick={completeModule}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                    onClick={() => {
+                      resetQuiz();
+                      if (quizPassed && onComplete) {
+                        onComplete();
+                      }
+                    }}
+                    className="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700"
                   >
-                    Skip for Now
+                    {quizPassed ? 'Continue' : 'Close'}
                   </button>
                 </div>
               </div>
             )}
           </div>
-        )}
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentVideo) {
+    return (
+      <div className="bg-gray-900 rounded-lg p-8 text-center">
+        <p className="text-gray-400">No videos available</p>
       </div>
     );
   }
 
   const videoId = getYouTubeVideoId(currentVideo.video_url);
   
+  if (!videoId) {
+    return (
+      <div className="bg-gray-900 rounded-lg p-8 text-center">
+        <p className="text-red-400">Invalid YouTube URL</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-[#1e1e1e] rounded-lg border border-[#333333] overflow-hidden">
-      {/* Video Info */}
-      <div className="p-4 border-b border-[#333333]">
-        <h2 className="text-lg font-medium text-white truncate">{currentVideo.title}</h2>
-        <div className="mt-1 flex items-center text-sm text-[#a0a0a0]">
-          <span>{currentVideoIndex + 1} of {videos.length}</span>
-          <span className="mx-2">•</span>
-          <span>
-            {watchedVideos[currentVideo.id] ? 'Watched' : 'Not watched'}
-          </span>
-        </div>
+    <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl overflow-hidden">
+      {/* Video Player */}
+      <div className="relative pb-[56.25%] h-0"> {/* 16:9 Aspect Ratio */}
+        <iframe
+          ref={iframeRef}
+          src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}`}
+          className="absolute top-0 left-0 w-full h-full rounded-t-2xl"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          title={currentVideo.title}
+        />
       </div>
       
-      {/* YouTube Video Player */}
-      <div className="p-4">
-        {videoId ? (
-          <div className="relative pb-[56.25%] h-0"> {/* 16:9 Aspect Ratio */}
-            <iframe
-              ref={iframeRef}
-              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1`}
-              className="absolute top-0 left-0 w-full h-full rounded-lg"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title={currentVideo.title}
-            ></iframe>
-          </div>
-        ) : (
-          <div className="bg-[#252525] rounded-lg p-8 text-center">
-            <p className="text-[#a0a0a0]">Invalid YouTube URL</p>
-          </div>
-        )}
-        
-        {/* Controls */}
-        <div className="mt-4 flex items-center justify-between">
+      {/* Video Controls */}
+      <div className="p-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <h3 className="text-xl font-bold text-white">{currentVideo.title}</h3>
+          
           <div className="flex items-center space-x-2">
             <button
               onClick={handleSkipBack}
               disabled={currentVideoIndex === 0}
-              className="p-2 rounded-full text-[#a0a0a0] hover:text-white disabled:opacity-50"
+              className="p-2 rounded-full bg-gray-700 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors"
             >
               <RotateCcw className="h-5 w-5" />
             </button>
             
             <button
               onClick={handleSkipForward}
-              className="p-2 rounded-full text-[#a0a0a0] hover:text-white"
+              disabled={currentVideoIndex === videos.length - 1 && !completedVideos[videos[currentVideoIndex].id]}
+              className="p-2 rounded-full bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
             >
-              {currentVideoIndex === videos.length - 1 ? 'Complete Module' : 'Next Video'}
+              <Play className="h-5 w-5" />
             </button>
           </div>
-          
-          <div className="flex items-center">
-            {watchedVideos[currentVideo.id] && (
-              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-            )}
-            <span className="text-sm text-[#a0a0a0]">
-              {watchedVideos[currentVideo.id] ? 'Completed' : 'In Progress'}
+        </div>
+        
+        {/* Video Progress */}
+        <div className="mb-6">
+          <div className="flex justify-between text-sm text-gray-300 mb-2">
+            <span>Video {currentVideoIndex + 1} of {videos.length}</span>
+            <span>
+              {completedVideos[currentVideo.id] ? (
+                <span className="text-green-400">Completed</span>
+              ) : watchedVideos[currentVideo.id] ? (
+                <span className="text-yellow-400">In Progress</span>
+              ) : (
+                <span className="text-gray-400">Not Started</span>
+              )}
             </span>
           </div>
-        </div>
-      </div>
-      
-      {/* Video List */}
-      <div className="border-t border-[#333333] max-h-60 overflow-y-auto">
-        {videos.map((video, index) => (
-          <div 
-            key={video.id}
-            className={`flex items-center p-3 cursor-pointer ${
-              index === currentVideoIndex 
-                ? 'bg-[#252525]' 
-                : 'hover:bg-[#252525]'
-            }`}
-            onClick={() => {
-              if (index !== currentVideoIndex) {
-                setCurrentVideoIndex(index);
-              }
-            }}
-          >
-            <div className="flex-shrink-0 w-8 text-center">
-              {watchedVideos[video.id] ? (
-                <CheckCircle className="h-4 w-4 text-green-500 mx-auto" />
-              ) : (
-                <span className="text-xs text-[#a0a0a0]">{index + 1}</span>
-              )}
-            </div>
-            <div className="ml-3 flex-1 min-w-0">
-              <p className={`text-sm truncate ${
-                index === currentVideoIndex ? 'text-white font-medium' : 'text-[#a0a0a0]'
-              }`}>
-                {video.title}
-              </p>
-            </div>
-            <div className="flex-shrink-0">
-              {watchedVideos[video.id] ? (
-                <CheckCircle className="h-4 w-4 text-green-500" />
-              ) : (
-                <span className="text-xs text-[#a0a0a0]">Pending</span>
-              )}
-            </div>
+          
+          <div className="w-full bg-gray-700 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((currentVideoIndex + 1) / videos.length) * 100}%` }}
+            ></div>
           </div>
-        ))}
+        </div>
+        
+        {/* Video List */}
+        <div className="border-t border-gray-700 pt-6">
+          <h4 className="text-lg font-semibold text-white mb-4">Video Series</h4>
+          
+          <div className="space-y-3 max-h-60 overflow-y-auto">
+            {videos.map((video, index) => {
+              const status = getVideoStatus(video.id);
+              const isCurrent = index === currentVideoIndex;
+              
+              return (
+                <div 
+                  key={video.id}
+                  className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${
+                    isCurrent 
+                      ? 'bg-blue-900/30 border border-blue-600' 
+                      : 'bg-gray-800/50 hover:bg-gray-700/50'
+                  } ${
+                    status === 'completed' ? 'border-l-4 border-green-500' :
+                    status === 'in-progress' ? 'border-l-4 border-yellow-500' :
+                    'border-l-4 border-gray-600'
+                  }`}
+                  onClick={() => {
+                    // Only allow navigating to previous videos or next if previous is completed
+                    if (index <= currentVideoIndex || (index === currentVideoIndex + 1 && completedVideos[videos[currentVideoIndex].id])) {
+                      setCurrentVideoIndex(index);
+                    } else {
+                      alert('You must complete the previous video before accessing this one.');
+                    }
+                  }}
+                >
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-3">
+                    {status === 'completed' ? (
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                    ) : status === 'in-progress' ? (
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                    ) : (
+                      <span className="text-xs text-gray-400">{index + 1}</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm truncate ${
+                      isCurrent ? 'text-white font-medium' : 'text-gray-300'
+                    }`}>
+                      {video.title}
+                    </p>
+                  </div>
+                  
+                  {isCurrent && (
+                    <div className="flex-shrink-0 ml-2">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -23,10 +23,13 @@ export default function PodcastPlayer({
   const [progressSaved, setProgressSaved] = useState(false);
   const lastSaveTime = useRef<number>(0);
   const [lastValidTime, setLastValidTime] = useState<number>(0);
+  const [maxAllowedTime, setMaxAllowedTime] = useState<number>(0); // Track maximum allowed time
 
   useEffect(() => {
     // Reset player state when podcast changes
     setIsLoading(true);
+    setLastValidTime(0);
+    setMaxAllowedTime(0);
 
     // Load saved progress if available
     if (userId) {
@@ -38,8 +41,8 @@ export default function PodcastPlayer({
       progressSaveInterval.current = setInterval(() => {
         if (audioRef.current && audioRef.current.currentTime > 0 && !progressSaved) {
           const currentTime = Date.now();
-          // Save progress every 30 seconds or when significant progress is made
-          if (currentTime - lastSaveTime.current > 30000 || 
+          // Save progress every 40 seconds or when significant progress is made
+          if (currentTime - lastSaveTime.current > 40000 || 
               (audioRef.current && audioRef.current.currentTime > 1)) {
             saveProgress();
             lastSaveTime.current = currentTime;
@@ -78,8 +81,10 @@ export default function PodcastPlayer({
       
       if (data && audioRef.current) {
         // Only set if audio is loaded and has duration
-        audioRef.current.currentTime = data.playback_position || 0;
-        setLastValidTime(data.playback_position || 0);
+        const savedTime = data.playback_position || 0;
+        audioRef.current.currentTime = savedTime;
+        setLastValidTime(savedTime);
+        setMaxAllowedTime(savedTime); // User can only go forward from saved position
       }
     } catch (error) {
       console.error('Error loading podcast progress:', error);
@@ -116,6 +121,9 @@ export default function PodcastPlayer({
 
       setProgressSaved(true);
       
+      // Update max allowed time
+      setMaxAllowedTime(playbackPosition);
+      
       // Call the progress update callback if provided
       if (onProgressUpdate) {
         onProgressUpdate(progressPercent, duration, playbackPosition);
@@ -130,18 +138,21 @@ export default function PodcastPlayer({
       const currentTime = audioRef.current.currentTime;
       const duration = audioRef.current.duration || 0;
       
-      // Prevent seeking forward (dragging) - only allow natural progression
-      if (currentTime > lastValidTime + 2) { // Allow 2 seconds of natural progression
-        // If user tried to drag forward, reset to last valid time
-        if (lastValidTime > 0) {
-          audioRef.current.currentTime = lastValidTime;
-          return;
-        }
+      // Prevent seeking forward beyond allowed time (30-second jumps max)
+      if (currentTime > maxAllowedTime + 30) {
+        // If user tried to drag forward beyond allowed time, reset to max allowed
+        audioRef.current.currentTime = maxAllowedTime;
+        return;
       }
       
       // Update last valid time (allow natural progression)
-      if (currentTime <= lastValidTime + 2) {
+      if (currentTime <= maxAllowedTime + 2) {
         setLastValidTime(currentTime);
+      }
+      
+      // Update max allowed time as user progresses naturally
+      if (currentTime > maxAllowedTime) {
+        setMaxAllowedTime(currentTime);
       }
       
       // Reset progressSaved flag when time changes significantly
@@ -160,9 +171,9 @@ export default function PodcastPlayer({
     if (audioRef.current) {
       const currentTime = audioRef.current.currentTime;
       
-      // Prevent seeking forward beyond last valid time
-      if (currentTime > lastValidTime + 2 && lastValidTime > 0) {
-        audioRef.current.currentTime = lastValidTime;
+      // Prevent seeking forward beyond max allowed time
+      if (currentTime > maxAllowedTime + 30) {
+        audioRef.current.currentTime = maxAllowedTime;
       }
     }
   };

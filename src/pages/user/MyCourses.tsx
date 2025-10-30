@@ -106,12 +106,25 @@ export default function MyCourses() {
     const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === courseId);
     if (coursePodcasts.length === 0) return 0;
 
-    const totalProgress = coursePodcasts.reduce((sum, podcast) => {
+    // Calculate progress based on actual time spent, not just percentage averages
+    let totalPossibleTime = 0;
+    let totalTimeSpent = 0;
+    
+    coursePodcasts.forEach(podcast => {
       const progress = getProgressForPodcast(podcast.id);
-      return sum + (progress?.progress_percent || 0);
-    }, 0);
+      if (progress) {
+        // Use actual duration from progress data
+        const duration = progress.duration || 0;
+        const timeSpent = duration * (progress.progress_percent / 100);
+        totalTimeSpent += timeSpent;
+        totalPossibleTime += duration;
+      }
+    });
 
-    return Math.round(totalProgress / coursePodcasts.length);
+    if (totalPossibleTime === 0) return 0;
+    
+    // Return percentage based on actual time spent vs possible time
+    return Math.round((totalTimeSpent / totalPossibleTime) * 100);
   };
 
   const getProgressForPodcast = (podcastId: string) => {
@@ -130,10 +143,10 @@ export default function MyCourses() {
     
     if (!assignedCourses || assignedCourses.length === 0) {
       return (
-        <div className="text-center py-12">
+        <div className="text-center py-12 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
           <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No courses assigned</h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <h3 className="mt-2 text-sm font-medium text-white">No courses assigned</h3>
+          <p className="mt-1 text-sm text-gray-300">
             Contact your administrator to get access to courses.
           </p>
         </div>
@@ -152,10 +165,10 @@ export default function MyCourses() {
           return (
             <div
               key={course.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+              className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
               onClick={() => navigate(`/user/courses/${course.id}`)}
             >
-              <div className="aspect-video bg-gray-200 relative rounded-xl overflow-hidden">
+              <div className="aspect-video bg-gray-800 relative rounded-t-xl overflow-hidden">
                 <img
                   src={courseImage}
                   alt={course.title}
@@ -164,42 +177,30 @@ export default function MyCourses() {
                 />
               </div>
               
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">
+              <div className="p-5">
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="text-lg font-semibold text-white line-clamp-2">
                     {course.title}
                   </h3>
                   {course.level && (
                     <span className={`px-2 py-1 text-xs rounded-full ${
                       course.level === 'Basics' 
-                        ? 'bg-green-100 text-green-800' 
+                        ? 'bg-green-500/20 text-green-300' 
                         : course.level === 'Intermediate' 
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-yellow-500/20 text-yellow-300' 
+                          : 'bg-red-500/20 text-red-300'
                     }`}>
                       {course.level}
                     </span>
                   )}
                 </div>
                 
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                <p className="text-sm text-gray-300 mb-4 line-clamp-2">
                   {course.description || `This course contains ${courseCategories.length} categories with ${coursePodcasts.length} podcasts and ${coursePdfs.length} documents to help you master the subject.`}
                 </p>
 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Progress</span>
-                    <span>{progress}%</span>
-                  </div>
-                  
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm text-gray-500">
+                  <div className="flex items-center justify-between text-sm text-gray-300">
                     <div className="flex items-center">
                       <Folder className="h-4 w-4 mr-1" />
                       <span>{courseCategories.length} categories</span>
@@ -211,6 +212,20 @@ export default function MyCourses() {
                     <div className="flex items-center">
                       <FileText className="h-4 w-4 mr-1" />
                       <span>{coursePdfs.length} documents</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-300">Progress</span>
+                      <span className="text-white font-medium">{progress}%</span>
+                    </div>
+                    
+                    <div className="w-full bg-white/20 rounded-full h-2">
+                      <div
+                        className="bg-[#8b5cf6] h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progress}%` }}
+                      ></div>
                     </div>
                   </div>
                 </div>
@@ -229,10 +244,10 @@ export default function MyCourses() {
 
     if (courseCategories.length === 0) {
       return (
-        <div className="text-center py-12">
+        <div className="text-center py-12 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
           <Folder className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No categories found</h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <h3 className="mt-2 text-sm font-medium text-white">No categories found</h3>
+          <p className="mt-1 text-sm text-gray-300">
             This course doesn't have any categories yet.
           </p>
         </div>
@@ -244,11 +259,11 @@ export default function MyCourses() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => setSelectedCourse(null)}
-            className="text-blue-600 hover:text-blue-800 font-medium"
+            className="text-blue-400 hover:text-blue-300 font-medium flex items-center"
           >
             ← Back to Courses
           </button>
-          <h2 className="text-xl font-semibold text-gray-900">{selectedCourse.title}</h2>
+          <h2 className="text-xl font-semibold text-white">{selectedCourse.title}</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -256,8 +271,8 @@ export default function MyCourses() {
             const categoryPodcasts = supabaseData.podcasts.filter(p => p.category_id === category.id);
             
             return (
-              <div key={category.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4">
+              <div key={category.id} className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-600 to-purple-700 p-4 rounded-t-xl">
                   <div className="flex items-center">
                     <Folder className="h-8 w-8 text-white mr-3" />
                     <div>
@@ -269,7 +284,7 @@ export default function MyCourses() {
 
                 <div className="p-4">
                   {category.description && (
-                    <p className="text-gray-600 text-sm mb-4">{category.description}</p>
+                    <p className="text-gray-300 text-sm mb-4">{category.description}</p>
                   )}
 
                   <div className="space-y-2">
@@ -279,25 +294,25 @@ export default function MyCourses() {
                       return (
                         <div
                           key={podcast.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                          className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer transition-colors border border-white/10"
                           onClick={() => handlePlayPodcast(podcast)}
                         >
                           <div className="flex items-center flex-1">
-                            <Play className="h-4 w-4 text-blue-600 mr-2" />
-                            <span className="text-sm font-medium text-gray-900 truncate">
+                            <Play className="h-4 w-4 text-blue-400 mr-2" />
+                            <span className="text-sm font-medium text-white truncate">
                               {podcast.title}
                             </span>
                           </div>
                           
                           {progress && progress.progress_percent > 0 && (
                             <div className="flex items-center ml-2">
-                              <div className="w-12 bg-gray-200 rounded-full h-1.5 mr-2">
+                              <div className="w-12 bg-white/20 rounded-full h-1.5 mr-2">
                                 <div
-                                  className="bg-blue-600 h-1.5 rounded-full"
+                                  className="bg-blue-500 h-1.5 rounded-full"
                                   style={{ width: `${progress.progress_percent}%` }}
                                 ></div>
                               </div>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-300">
                                 {progress.progress_percent}%
                               </span>
                             </div>
@@ -701,51 +716,54 @@ export default function MyCourses() {
 
   if (error) {
     return (
-      <div className="p-6">
-        <div className="text-center py-12">
-          <div className="text-red-600">Error loading courses: {error}</div>
-          {error.includes('Authentication') && (
-            <button
-              onClick={() => {
-                // Redirect to login page
-                window.location.href = '/login';
-              }}
-              className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-              Go to Login
-            </button>
-          )}
-        </div>
-        
-        {/* Debug component for troubleshooting */}
-        <div className="mt-8">
-          <h3 className="text-lg font-bold mb-4">Debug Information</h3>
-          <DebugUserCourses />
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+            <div className="text-center py-12">
+              <div className="text-red-400 mb-4">Error loading courses: {error}</div>
+              {error.includes('Authentication') && (
+                <button
+                  onClick={() => {
+                    // Redirect to login page
+                    window.location.href = '/login';
+                  }}
+                  className="mt-4 px-4 py-2 bg-red-600/20 backdrop-blur-lg border border-red-500/30 rounded-lg text-red-300 hover:bg-red-600/30 transition-colors"
+                >
+                  Go to Login
+                </button>
+              )}
+            </div>
+            
+            {/* Debug component for troubleshooting */}
+            <div className="mt-8">
+              <h3 className="text-lg font-bold mb-4 text-white">Debug Information</h3>
+              <DebugUserCourses />
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Courses</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
+      {/* Glassmorphism Header */}
+      <div className="bg-white/10 backdrop-blur-lg rounded-b-2xl border-b border-white/20 shadow-xl p-6 mb-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold mb-2">My Courses</h1>
+          <p className="text-gray-300">Access your assigned courses and track your learning progress.</p>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Courses</h1>
-          <p className="text-gray-600">Access your assigned courses and track your learning progress.</p>
-        </div>
-
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+            </div>
           </div>
         ) : error ? (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-red-900/30 backdrop-blur-lg rounded-2xl border border-red-500/30 shadow-xl p-6">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
@@ -753,8 +771,8 @@ export default function MyCourses() {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">Error loading courses</h3>
-                <div className="mt-2 text-sm text-red-700">
+                <h3 className="text-sm font-medium text-red-300">Error loading courses</h3>
+                <div className="mt-2 text-sm text-red-200">
                   <p>{error}</p>
                 </div>
               </div>
