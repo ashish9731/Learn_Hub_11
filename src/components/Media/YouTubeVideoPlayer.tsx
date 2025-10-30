@@ -3,6 +3,14 @@ import { Play, Pause, RotateCcw, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 
+// Extend Window interface for YouTube API
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
 interface Video {
   id: string;
   title: string;
@@ -57,6 +65,8 @@ export default function YouTubeVideoPlayer({
   const [completedVideos, setCompletedVideos] = useState<Record<string, boolean>>({}); // Track which videos are completed
   const playerRef = useRef<any>(null);
   const [playerReady, setPlayerReady] = useState(false);
+  const [lastValidTime, setLastValidTime] = useState<number>(0);
+  const [maxAllowedTime, setMaxAllowedTime] = useState<number>(0);
 
   const currentVideo = videos[currentVideoIndex];
 
@@ -65,6 +75,85 @@ export default function YouTubeVideoPlayer({
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  // Load YouTube IFrame API
+  useEffect(() => {
+    // Load YouTube IFrame API if not already loaded
+    if (!(window as any).YT) {
+      const scriptTag = document.createElement('script');
+      scriptTag.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(scriptTag);
+      
+      // Set up global callback for when API is ready
+      (window as any).onYouTubeIframeAPIReady = () => {
+        console.log('YouTube IFrame API loaded');
+      };
+    }
+  }, []);
+
+  // Initialize YouTube player
+  useEffect(() => {
+    if (!(window as any).YT || playerRef.current) return;
+    
+    const videoId = getYouTubeVideoId(currentVideo.video_url);
+    if (!videoId) return;
+    
+    // Wait a bit for the iframe to be ready
+    const timer = setTimeout(() => {
+      if (iframeRef.current) {
+        try {
+          playerRef.current = new (window as any).YT.Player(iframeRef.current, {
+            events: {
+              'onReady': (event: any) => {
+                console.log('YouTube player ready');
+                setPlayerReady(true);
+                // Disable all controls to prevent seeking
+                event.target.setPlaybackQuality('hd720');
+              },
+              'onStateChange': (event: any) => {
+                handlePlayerStateChange(event);
+              }
+            }
+          });
+        } catch (error) {
+          console.error('Error initializing YouTube player:', error);
+        }
+      }
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [currentVideoIndex, currentVideo.video_url]);
+
+  // Handle player state changes
+  const handlePlayerStateChange = (event: any) => {
+    const player = event.target;
+    const currentTime = player.getCurrentTime();
+    
+    // Prevent seeking forward beyond allowed time
+    if (currentTime > maxAllowedTime + 1) {
+      player.seekTo(lastValidTime, true);
+      return;
+    }
+    
+    // Prevent seeking backward
+    if (currentTime < lastValidTime - 1) {
+      player.seekTo(lastValidTime, true);
+      return;
+    }
+    
+    // Update valid time tracking
+    if (currentTime >= lastValidTime) {
+      setLastValidTime(currentTime);
+      if (currentTime > maxAllowedTime) {
+        setMaxAllowedTime(currentTime);
+      }
+    }
+    
+    // Handle video end
+    if (event.data === (window as any).YT.PlayerState.ENDED) {
+      handleVideoEnd();
+    }
   };
 
   // Load saved progress for all videos
@@ -161,6 +250,9 @@ export default function YouTubeVideoPlayer({
   const handleSkipBack = () => {
     if (currentVideoIndex > 0) {
       setCurrentVideoIndex(currentVideoIndex - 1);
+      // Reset time tracking for new video
+      setLastValidTime(0);
+      setMaxAllowedTime(0);
     }
   };
 
@@ -171,6 +263,9 @@ export default function YouTubeVideoPlayer({
       
       if (previousVideoCompleted) {
         setCurrentVideoIndex(currentVideoIndex + 1);
+        // Reset time tracking for new video
+        setLastValidTime(0);
+        setMaxAllowedTime(0);
       } else {
         // Show message that previous video must be completed first
         alert('You must complete the previous video before moving to the next one.');
@@ -331,24 +426,6 @@ export default function YouTubeVideoPlayer({
     return 'not-started';
   };
 
-  // Prevent YouTube player seeking by disabling controls after load
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (iframeRef.current) {
-        // Try to access YouTube player API to disable seeking
-        try {
-          // This is a simplified approach - in a real implementation you would
-          // use the YouTube IFrame API to disable seeking controls
-          console.log('YouTube player loaded - would disable seeking in full implementation');
-        } catch (e) {
-          console.log('Could not access YouTube player API');
-        }
-      }
-    }, 2000);
-    
-    return () => clearTimeout(timer);
-  }, [currentVideoIndex]);
-
   if (showQuiz && currentQuiz) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
@@ -494,7 +571,7 @@ export default function YouTubeVideoPlayer({
       <div className="relative pb-[56.25%] h-0"> {/* 16:9 Aspect Ratio */}
         <iframe
           ref={iframeRef}
-          src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}&controls=0&disablekb=1&fs=0`}
+          src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}&controls=0&disablekb=1&fs=0&rel=0&modestbranding=1`}
           className="absolute top-0 left-0 w-full h-full rounded-t-2xl"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -575,6 +652,9 @@ export default function YouTubeVideoPlayer({
                     // Only allow navigating to previous videos or next if previous is completed
                     if (index <= currentVideoIndex || (index === currentVideoIndex + 1 && completedVideos[videos[currentVideoIndex].id])) {
                       setCurrentVideoIndex(index);
+                      // Reset time tracking for new video
+                      setLastValidTime(0);
+                      setMaxAllowedTime(0);
                     } else {
                       alert('You must complete the previous video before accessing this one.');
                     }
