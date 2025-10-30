@@ -53,9 +53,11 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   const [supabaseData, setSupabaseData] = useState<{
     courses: Course[];
     userCourses: UserCourse[];
+    podcasts: any[]; // Add podcasts to state
   }>({
     courses: [],
-    userCourses: []
+    userCourses: [],
+    podcasts: []
   });
   const [podcastProgress, setPodcastProgress] = useState<PodcastProgress[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,21 +77,36 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       
       // Load courses using regular supabase client to respect RLS policies
       let coursesData = [];
+      let podcastsData = [];
+      
       try {
-        const { data, error } = await supabase
+        const { data: courses, error: coursesError } = await supabase
           .from('courses')
           .select('*')
           .order('created_at', { ascending: false });
         
-        if (error) {
-          console.error('Error fetching courses with RLS:', error);
+        if (coursesError) {
+          console.error('Error fetching courses with RLS:', coursesError);
           coursesData = [];
         } else {
-          coursesData = data || [];
+          coursesData = courses || [];
         }
-      } catch (courseError) {
-        console.error('Exception fetching courses:', courseError);
+        
+        // Load podcasts for all courses
+        const { data: podcasts, error: podcastsError } = await supabase
+          .from('podcasts')
+          .select('*');
+        
+        if (podcastsError) {
+          console.error('Error fetching podcasts:', podcastsError);
+          podcastsData = [];
+        } else {
+          podcastsData = podcasts || [];
+        }
+      } catch (dataError) {
+        console.error('Exception fetching data:', dataError);
         coursesData = [];
+        podcastsData = [];
       }
       
       // Filter courses to show only courses assigned to this specific user
@@ -101,7 +118,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       setSupabaseData(prev => ({
         ...prev,
         courses: assignedCourses,
-        userCourses: userCoursesData || []
+        userCourses: userCoursesData || [],
+        podcasts: podcastsData || []
       }));
     } catch (err) {
       console.error('Failed to load user data:', err);
@@ -135,6 +153,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   // Real-time sync for all relevant tables
   useRealtimeSync('user-courses', loadUserData);
   useRealtimeSync('courses', loadUserData);
+  useRealtimeSync('podcasts', loadUserData);
   useRealtimeSync('podcast-progress', loadPodcastProgress);
 
   // Get user ID on component mount
@@ -233,17 +252,38 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     const assignedCourses = supabaseData.userCourses.length;
     const completedCourses = supabaseData.userCourses.filter(uc => uc.completed).length;
     
-    // Calculate total learning hours
-    let totalHours = 0;
+    // Calculate total learning hours based on actual podcast durations
+    let totalSeconds = 0;
     let totalProgress = 0;
     let progressCount = 0;
     
+    // Get all podcasts for assigned courses
+    const assignedCourseIds = new Set(supabaseData.userCourses.map(uc => uc.course_id));
+    
+    // Filter podcasts that belong to assigned courses
+    const assignedPodcasts = supabaseData.podcasts.filter(podcast => 
+      assignedCourseIds.has(podcast.course_id)
+    );
+    
+    // Sum up the durations of all assigned podcasts
+    assignedPodcasts.forEach(podcast => {
+      // For YouTube videos, we might not have exact duration, so we'll estimate
+      // For audio files, we should have duration from the upload process
+      const duration = podcast.duration || (podcast.is_youtube_video ? 1800 : 1200); // Default 30min for YouTube, 20min for audio
+      totalSeconds += duration;
+    });
+    
+    // Convert total seconds to hours
+    const totalHours = totalSeconds / 3600;
+    
+    // Calculate average progress based on podcast progress
     podcastProgress.forEach(progress => {
-      const duration = typeof progress.duration === 'string' ? 
-        parseFloat(progress.duration) : (progress.duration || 0);
-      totalHours += (duration * (progress.progress_percent || 0) / 100) / 3600;
-      totalProgress += progress.progress_percent || 0;
-      progressCount++;
+      // Only count progress for podcasts in assigned courses
+      const podcast = assignedPodcasts.find(p => p.id === progress.podcast_id);
+      if (podcast) {
+        totalProgress += progress.progress_percent || 0;
+        progressCount++;
+      }
     });
     
     const averageProgress = progressCount > 0 ? Math.round(totalProgress / progressCount) : 0;
@@ -251,7 +291,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     return {
       assignedCourses,
       completedCourses,
-      totalHours: Math.round(totalHours * 10) / 10,
+      totalHours: Math.round(totalHours * 10) / 10, // Round to 1 decimal place
       averageProgress
     };
   };
