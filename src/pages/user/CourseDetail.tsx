@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, ChevronLeft, Music, Folder, User, Image, RefreshCw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -92,6 +92,10 @@ export default function CourseDetail() {
   const [allModulesCompleted, setAllModulesCompleted] = useState(false);
   const [totalLearningHours, setTotalLearningHours] = useState<number>(0);
   const [videoViewMode, setVideoViewMode] = useState<'list' | 'tile'>('list');
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+
+  // Refs
+  const youtubePlayerRef = useRef<HTMLIFrameElement>(null);
 
   // State for course image
   const [courseImage, setCourseImage] = useState<string | null>(null);
@@ -410,6 +414,11 @@ export default function CourseDetail() {
   const handlePlayPodcast = (podcast: any) => {
     console.log("Playing podcast:", podcast);
     setCurrentPodcast(podcast);
+    
+    // Show video player only for YouTube videos
+    if (podcast.is_youtube_video) {
+      setShowVideoPlayer(true);
+    }
   };
 
   // Extract YouTube video ID from URL
@@ -777,7 +786,7 @@ export default function CourseDetail() {
                 </div>
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Video List - Left Side */}
-                  <div className={currentPodcast && currentPodcast.is_youtube_video ? "lg:w-1/2" : "w-full"}>
+                  <div className={showVideoPlayer && currentPodcast && currentPodcast.is_youtube_video ? "lg:w-1/2" : "w-full"}>
                     {podcasts.filter(p => p.is_youtube_video).length > 0 ? (
                       <div className={videoViewMode === 'list' ? "space-y-3" : "grid grid-cols-1 md:grid-cols-2 gap-4"}>
                         {podcasts.filter(p => p.is_youtube_video).map(podcast => {
@@ -863,16 +872,23 @@ export default function CourseDetail() {
                   </div>
                   
                   {/* YouTube Player - Right Side */}
-                  {currentPodcast && currentPodcast.is_youtube_video && (
+                  {showVideoPlayer && currentPodcast && currentPodcast.is_youtube_video && (
                     <div className="lg:w-1/2">
                       <div className="bg-gray-50 rounded-lg p-4 h-full">
-                        <div className="mb-4">
+                        <div className="flex justify-between items-center mb-4">
                           <h2 className="text-lg font-bold text-gray-900">{currentPodcast.title}</h2>
+                          <button
+                            onClick={() => setShowVideoPlayer(false)}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            <ChevronLeft className="h-6 w-6" />
+                          </button>
                         </div>
                         <div className="aspect-video">
                           {currentPodcast.video_url ? (
                             <iframe
-                              src={`https://www.youtube.com/embed/${extractYouTubeVideoId(currentPodcast.video_url)}?autoplay=1`}
+                              ref={youtubePlayerRef}
+                              src={`https://www.youtube.com/embed/${extractYouTubeVideoId(currentPodcast.video_url)}?autoplay=1&enablejsapi=1`}
                               title={currentPodcast.title}
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                               allowFullScreen
