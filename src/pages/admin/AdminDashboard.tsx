@@ -151,9 +151,11 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         });
         
         const totalPodcastSeconds = adminPodcasts.reduce((total: number, podcast: any) => {
-          // Use actual duration if available, otherwise estimate
-          const duration = podcast.duration || (podcast.is_youtube_video ? 1800 : 1200);
-          return total + duration;
+          // Only count podcasts with actual duration data
+          if (podcast.duration && podcast.duration > 0) {
+            return total + podcast.duration;
+          }
+          return total;
         }, 0);
         
         // Convert to hours

@@ -164,11 +164,13 @@ export default function Dashboard() {
       // Calculate actual time based on uploaded content durations
       let totalLearningHours = 0;
       if (podcastsData && podcastsData.length > 0) {
-        // Sum up durations of all podcasts
+        // Sum up durations of all podcasts that have actual duration data
         const totalPodcastSeconds = podcastsData.reduce((total: number, podcast: any) => {
-          // Use actual duration if available, otherwise estimate
-          const duration = podcast.duration || (podcast.is_youtube_video ? 1800 : 1200);
-          return total + duration;
+          // Only count podcasts with actual duration data
+          if (podcast.duration && podcast.duration > 0) {
+            return total + podcast.duration;
+          }
+          return total;
         }, 0);
         
         // Convert to hours
