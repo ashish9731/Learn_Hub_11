@@ -9,13 +9,14 @@ import {
   CheckCircle,
   BarChart3,
   TrendingUp,
-  Users
+  Users,
+  X
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import { useRealtimeSync } from '../../hooks/useSupabase';
 import { useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
 interface Course {
   id: string;
@@ -53,7 +54,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   const [supabaseData, setSupabaseData] = useState<{
     courses: Course[];
     userCourses: UserCourse[];
-    podcasts: any[]; // Add podcasts to state
+    podcasts: any[];
   }>({
     courses: [],
     userCourses: [],
@@ -63,6 +64,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [showKpiModal, setShowKpiModal] = useState(false);
+  const [selectedKpi, setSelectedKpi] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Load user data - only assigned courses
@@ -458,12 +461,9 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
               key={index} 
               className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
               onClick={() => {
-                // Show detailed modal or navigate to detailed view when KPI is clicked
-                alert(`Detailed view for ${card.title} would be shown here.
-
-Total time played: ${totalMinutes} minutes (${totalSecondsPlayed} seconds)
-
-Click on individual courses below to see module details.`);
+                // Show detailed modal when KPI is clicked
+                setSelectedKpi(card.title);
+                setShowKpiModal(true);
               }}
             >
               <div className="p-6">
@@ -509,7 +509,7 @@ Click on individual courses below to see module details.`);
                   />
                   <Bar dataKey="progress" fill="#8b5cf6" name="Progress %" radius={[4, 4, 0, 0]}>
                     {courseProgressData.map((entry, index) => (
-                      <cell 
+                      <Cell 
                         key={`cell-${index}`} 
                         fill={entry.progress >= 100 ? '#10b981' : entry.progress > 0 ? '#f59e0b' : '#6b7280'} 
                       />
@@ -550,10 +550,12 @@ Click on individual courses below to see module details.`);
                     cx="50%"
                     cy="50%"
                     labelLine={true}
-                    outerRadius={80}
+                    outerRadius={60}
+                    innerRadius={30}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => percent ? `${name}: ${(percent * 100).toFixed(0)}%` : `${name}`}
+                    paddingAngle={2}
                   >
                     {progressDistribution.map((entry, index) => (
                       <Cell 
@@ -669,6 +671,281 @@ Click on individual courses below to see module details.`);
           )}
         </div>
       </div>
+
+      {/* KPI Drill-down Modal */}
+      {showKpiModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 to-black rounded-2xl border border-white/20 shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">
+                  {selectedKpi} Details
+                </h2>
+                <button 
+                  onClick={() => setShowKpiModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              
+              {selectedKpi === 'Assigned Courses' && (
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-4">Assigned Courses Overview</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
+                      <p className="text-gray-300">Total Assigned</p>
+                      <p className="text-3xl font-bold text-white">{assignedCourses}</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
+                      <p className="text-gray-300">Completed</p>
+                      <p className="text-3xl font-bold text-green-400">{completedCourses}</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
+                      <p className="text-gray-300">In Progress</p>
+                      <p className="text-3xl font-bold text-yellow-400">
+                        {supabaseData.userCourses.filter(uc => {
+                          const courseProgress = podcastProgress.filter(p => 
+                            supabaseData.podcasts.some(podcast => 
+                              podcast.id === p.podcast_id && podcast.course_id === uc.course_id
+                            )
+                          );
+                          return courseProgress.some(p => (p.progress_percent || 0) > 0 && (p.progress_percent || 0) < 100);
+                        }).length}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <h4 className="text-lg font-semibold text-white mb-4">Course List</h4>
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {supabaseData.userCourses.map((userCourse, index) => {
+                      const course = userCourse.courses;
+                      const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === course.id);
+                      const courseProgressItems = podcastProgress.filter(p => 
+                        coursePodcasts.some(podcast => podcast.id === p.podcast_id)
+                      );
+                      
+                      // Calculate course progress
+                      const totalProgress = courseProgressItems.reduce((sum, p) => sum + (p.progress_percent || 0), 0);
+                      const progressPercent = courseProgressItems.length > 0 ? Math.round(totalProgress / courseProgressItems.length) : 0;
+                      
+                      return (
+                        <div key={index} className="bg-white/5 rounded-xl border border-white/10 p-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <h5 className="font-semibold text-white">{course.title}</h5>
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              progressPercent >= 100 ? 'bg-green-500/20 text-green-300' :
+                              progressPercent > 0 ? 'bg-yellow-500/20 text-yellow-300' :
+                              'bg-gray-500/20 text-gray-300'
+                            }`}>
+                              {progressPercent >= 100 ? 'Completed' : progressPercent > 0 ? 'In Progress' : 'Not Started'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="text-gray-400">{coursePodcasts.length} modules</span>
+                            <span className="text-white">{progressPercent}%</span>
+                          </div>
+                          <div className="w-full bg-white/20 rounded-full h-2">
+                            <div
+                              className="bg-[#8b5cf6] h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${progressPercent}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {selectedKpi === 'Total Hours' && (
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-4">Learning Time Overview</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
+                      <p className="text-gray-300">Total Hours</p>
+                      <p className="text-3xl font-bold text-white">{totalHours}</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
+                      <p className="text-gray-300">Total Minutes</p>
+                      <p className="text-3xl font-bold text-white">{totalMinutes}</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
+                      <p className="text-gray-300">Total Seconds</p>
+                      <p className="text-3xl font-bold text-white">{totalSecondsPlayed}</p>
+                    </div>
+                  </div>
+                  
+                  <h4 className="text-lg font-semibold text-white mb-4">Time Distribution by Course</h4>
+                  <div className="h-80 mb-6">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={courseProgressData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                        <XAxis dataKey="name" stroke="rgba(255,255,255,0.7)" />
+                        <YAxis stroke="rgba(255,255,255,0.7)" />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'rgba(0,0,0,0.8)', 
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '0.5rem'
+                          }}
+                          formatter={(value) => [`${value} min`, 'Time Spent']}
+                        />
+                        <Bar dataKey="timeSpent" fill="#f59e0b" name="Time Spent (min)">
+                          {courseProgressData.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={entry.timeSpent > 0 ? '#f59e0b' : '#6b7280'} 
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  <h4 className="text-lg font-semibold text-white mb-4">Learning Progression</h4>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={courseProgressData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                        <XAxis dataKey="name" stroke="rgba(255,255,255,0.7)" />
+                        <YAxis stroke="rgba(255,255,255,0.7)" domain={[0, 100]} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'rgba(0,0,0,0.8)', 
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '0.5rem'
+                          }}
+                          formatter={(value) => [`${value}%`, 'Progress']}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="progress" 
+                          stroke="#8b5cf6" 
+                          strokeWidth={2}
+                          dot={{ r: 4 }}
+                          activeDot={{ r: 6 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+              
+              {selectedKpi === 'Completed Courses' && (
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-4">Course Completion Overview</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
+                      <p className="text-gray-300">Completed Courses</p>
+                      <p className="text-3xl font-bold text-green-400">{completedCourses}</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
+                      <p className="text-gray-300">Completion Rate</p>
+                      <p className="text-3xl font-bold text-white">
+                        {assignedCourses > 0 ? Math.round((completedCourses / assignedCourses) * 100) : 0}%
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <h4 className="text-lg font-semibold text-white mb-4">Completed Courses</h4>
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {supabaseData.userCourses.filter(uc => {
+                      const courseProgress = podcastProgress.filter(p => 
+                        supabaseData.podcasts.some(podcast => 
+                          podcast.id === p.podcast_id && podcast.course_id === uc.course_id
+                        )
+                      );
+                      return courseProgress.length > 0 && courseProgress.every(p => (p.progress_percent || 0) >= 100);
+                    }).map((userCourse, index) => {
+                      const course = userCourse.courses;
+                      const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === course.id);
+                      const courseProgressItems = podcastProgress.filter(p => 
+                        coursePodcasts.some(podcast => podcast.id === p.podcast_id)
+                      );
+                      
+                      // Calculate time spent
+                      let courseTimeSeconds = 0;
+                      courseProgressItems.forEach(progress => {
+                        const duration = progress.duration || 0;
+                        const timeSpent = duration * (progress.progress_percent / 100);
+                        courseTimeSeconds += timeSpent;
+                      });
+                      
+                      return (
+                        <div key={index} className="bg-white/5 rounded-xl border border-white/10 p-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <h5 className="font-semibold text-white">{course.title}</h5>
+                            <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-300">
+                              Completed
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Time Spent</span>
+                            <span className="text-white">{Math.round(courseTimeSeconds / 60)} minutes</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {selectedKpi === 'Avg. Progress' && (
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-4">Average Progress Overview</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
+                      <p className="text-gray-300">Average Progress</p>
+                      <p className="text-3xl font-bold text-white">{averageProgress}%</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
+                      <p className="text-gray-300">Courses with Progress</p>
+                      <p className="text-3xl font-bold text-white">
+                        {supabaseData.userCourses.filter(uc => {
+                          const courseProgress = podcastProgress.filter(p => 
+                            supabaseData.podcasts.some(podcast => 
+                              podcast.id === p.podcast_id && podcast.course_id === uc.course_id
+                            )
+                          );
+                          return courseProgress.some(p => (p.progress_percent || 0) > 0);
+                        }).length}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <h4 className="text-lg font-semibold text-white mb-4">Progress Distribution</h4>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={courseProgressData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                        <XAxis dataKey="name" stroke="rgba(255,255,255,0.7)" />
+                        <YAxis stroke="rgba(255,255,255,0.7)" domain={[0, 100]} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'rgba(0,0,0,0.8)', 
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '0.5rem'
+                          }}
+                          formatter={(value) => [`${value}%`, 'Progress']}
+                        />
+                        <Bar dataKey="progress" fill="#3b82f6" name="Progress %">
+                          {courseProgressData.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={entry.progress >= 100 ? '#10b981' : entry.progress > 0 ? '#f59e0b' : '#6b7280'} 
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
