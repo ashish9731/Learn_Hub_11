@@ -1625,6 +1625,23 @@ export default function ContentUpload() {
             </div>
           )}
         </div>
+        
+        {/* Manage Course Section - For Admins Only */}
+        <div className="bg-[#1e1e1e] shadow rounded-lg p-6 border border-[#333333] mt-8">
+          <h3 className="text-lg font-medium text-white mb-6">Manage Courses</h3>
+          <p className="text-sm text-[#a0a0a0] mb-6">Admins can manage course content, add, edit, or delete courses and their content</p>
+          
+          <div className="text-center py-8 text-[#a0a0a0]">
+            <BookOpen className="mx-auto h-12 w-12 text-[#333333]" />
+            <h3 className="mt-2 text-sm font-medium text-white">Course Management for Admins</h3>
+            <p className="mt-1 text-sm text-[#a0a0a0]">
+              This section is only visible to Admins for managing course content.
+            </p>
+            <p className="mt-2 text-xs text-[#a0a0a0]">
+              Admins can add, edit, or delete courses and their content. Changes will be immediately reflected for assigned users.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
