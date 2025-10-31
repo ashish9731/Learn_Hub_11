@@ -843,7 +843,7 @@ export default function ContentUpload() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Course Library</h2>
+          <h2 className="text-2xl font-bold text-white">Course Library</h2>
           <button
             onClick={() => setShowAddCourseForm(true)}
             className="custom-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
@@ -866,90 +866,219 @@ export default function ContentUpload() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCourses.map((course) => (
-              <div key={course.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="aspect-video bg-gray-200 relative">
-                  {course.image_url ? (
-                    <img
-                      src={course.image_url}
-                      alt={course.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                      <BookOpen className="h-12 w-12 text-gray-400" />
+          <div className="space-y-6">
+            {filteredCourses.map((course) => {
+              // Get content for this course
+              const coursePodcasts = supabaseData.podcasts.filter(
+                (podcast) => podcast.course_id === course.id
+              );
+              
+              const coursePDFs = supabaseData.pdfs.filter(
+                (pdf) => pdf.course_id === course.id
+              );
+              
+              const isExpanded = expandedCourses[course.id];
+              
+              return (
+                <div key={course.id} className="bg-[#1e1e1e] rounded-lg shadow-md overflow-hidden border border-[#333333]">
+                  {/* Course Header */}
+                  <div 
+                    className="p-6 cursor-pointer hover:bg-[#252525]"
+                    onClick={() => toggleCourseExpansion(course.id)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-start space-x-4">
+                        <div className="aspect-video w-32 bg-gray-200 relative rounded-lg overflow-hidden flex-shrink-0">
+                          {course.image_url ? (
+                            <img
+                              src={course.image_url}
+                              alt={course.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                              <BookOpen className="h-8 w-8 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center mb-2">
+                            <h3 className="text-lg font-semibold text-white">{course.title}</h3>
+                            {course.level && (
+                              <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                course.level === 'Basics' 
+                                  ? 'bg-green-900/30 text-green-400' 
+                                  : course.level === 'Intermediate' 
+                                    ? 'bg-yellow-900/30 text-yellow-400' 
+                                    : 'bg-red-900/30 text-red-400'
+                              }`}>
+                                {course.level}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-[#a0a0a0] mb-3 line-clamp-2">
+                            {course.description || 'No description provided'}
+                          </p>
+                          <div className="flex items-center text-xs text-[#8b5cf6]">
+                            <span className="mr-4">
+                              {coursePodcasts.length} podcast{coursePodcasts.length !== 1 ? 's' : ''}
+                            </span>
+                            <span>
+                              {coursePDFs.length} document{coursePDFs.length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        {isExpanded ? (
+                          <ChevronDown className="h-5 w-5 text-[#a0a0a0]" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-[#a0a0a0]" />
+                        )}
+                      </div>
                     </div>
-                  )}
-                  <label className="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 shadow-md cursor-pointer">
-                    <Image className="h-4 w-4" />
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          handleCourseImageUpload(course.id, file);
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{course.title}</h3>
-                    {course.level && (
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        course.level === 'Basics' 
-                          ? 'bg-green-100 text-green-800' 
-                          : course.level === 'Intermediate' 
-                            ? 'bg-yellow-100 text-yellow-800' 
-                            : 'bg-red-100 text-red-800'
-                      }`}>
-                        {course.level}
-                      </span>
-                    )}
                   </div>
                   
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                    {course.description || 'No description provided'}
-                  </p>
-
-                  <div className="flex justify-between items-center">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedCourse(course.id);
-                          setShowContentUploadForm(true);
-                        }}
-                        className="custom-button text-blue-600 hover:text-blue-800 text-sm font-medium"
-                      >
-                        <span className="shadow"></span>
-                        <span className="edge"></span>
-                        <span className="front">
-                          <span>Add Content</span>
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCourse(course.id)}
-                        className="custom-button text-red-600 hover:text-red-800 text-sm font-medium"
-                      >
-                        <span className="shadow"></span>
-                        <span className="edge"></span>
-                        <span className="front">
-                          <span>Delete</span>
-                        </span>
-                      </button>
+                  {/* Course Content (Expanded View) */}
+                  {isExpanded && (
+                    <div className="px-6 pb-6 border-t border-[#333333]">
+                      <div className="pt-4">
+                        {/* Podcasts Section */}
+                        {coursePodcasts.length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium text-[#8b5cf6] mb-2 flex items-center">
+                              <Headphones className="h-4 w-4 mr-2" />
+                              Podcasts ({coursePodcasts.length})
+                            </h4>
+                            <div className="space-y-2">
+                              {coursePodcasts.map((podcast) => (
+                                <div key={podcast.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
+                                  <Music className="h-4 w-4 text-[#8b5cf6] mr-3" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-white truncate">{podcast.title}</p>
+                                    {podcast.is_youtube_video && (
+                                      <p className="text-xs text-[#a0a0a0">YouTube Video</p>
+                                    )}
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    {podcast.is_youtube_video ? (
+                                      <a 
+                                        href={podcast.video_url || '#'} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-blue-400 hover:text-blue-300"
+                                      >
+                                        View
+                                      </a>
+                                    ) : (
+                                      <a 
+                                        href={podcast.mp3_url || '#'} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-blue-400 hover:text-blue-300"
+                                      >
+                                        Play
+                                      </a>
+                                    )}
+                                    <button
+                                      onClick={() => handleDeletePodcast(podcast.id)}
+                                      className="text-xs text-red-400 hover:text-red-300"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Documents Section */}
+                        {coursePDFs.length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium text-purple-400 mb-2 flex items-center">
+                              <FileText className="h-4 w-4 mr-2" />
+                              Documents ({coursePDFs.length})
+                            </h4>
+                            <div className="space-y-2">
+                              {coursePDFs.map((pdf) => (
+                                <div key={pdf.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
+                                  <FileText className="h-4 w-4 text-purple-500 mr-3" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-white truncate">{pdf.title}</p>
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <a 
+                                      href={pdf.pdf_url || '#'} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-blue-400 hover:text-blue-300"
+                                    >
+                                      View
+                                    </a>
+                                    <button
+                                      onClick={() => handleDeletePDF(pdf.id)}
+                                      className="text-xs text-red-400 hover:text-red-300"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {coursePodcasts.length === 0 && coursePDFs.length === 0 && (
+                          <div className="text-center py-4 text-[#a0a0a0]">
+                            <p className="text-sm">No content uploaded yet</p>
+                            <button
+                              onClick={() => {
+                                setSelectedCourse(course.id);
+                                setShowContentUploadForm(true);
+                              }}
+                              className="mt-2 text-sm text-blue-400 hover:text-blue-300"
+                            >
+                              Upload content
+                            </button>
+                          </div>
+                        )}
+                        
+                        {/* Action Buttons */}
+                        <div className="flex justify-end space-x-3 pt-4">
+                          <button
+                            onClick={() => {
+                              setSelectedCourse(course.id);
+                              setShowContentUploadForm(true);
+                            }}
+                            className="custom-button text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            <span className="shadow"></span>
+                            <span className="edge"></span>
+                            <span className="front">
+                              <span>Add Content</span>
+                            </span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCourse(course.id)}
+                            className="custom-button text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            <span className="shadow"></span>
+                            <span className="edge"></span>
+                            <span className="front">
+                              <span>Delete Course</span>
+                            </span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
