@@ -810,7 +810,9 @@ export default function CourseDetail() {
                             </div>
                             <div className="ml-3 flex-1">
                               <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
-                              <p className="text-xs text-gray-400 mb-3">PDF Document</p>
+                              <p className="text-xs text-gray-400 mb-3">
+                                {pdf.content_type === 'docs' ? 'PDF Document' : 'Template/Document'}
+                              </p>
                               <a 
                                 href={pdf.pdf_url} 
                                 target="_blank" 
@@ -823,7 +825,7 @@ export default function CourseDetail() {
                                 }}
                               >
                                 <FileText className="h-3 w-3 mr-1" />
-                                View Document
+                                {pdf.content_type === 'docs' ? 'View Document' : 'View Template'}
                               </a>
                             </div>
                           </div>
@@ -899,7 +901,9 @@ export default function CourseDetail() {
                             </div>
                             <div className="ml-3 flex-1">
                               <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
-                              <p className="text-xs text-gray-400 mb-3">Template/Document</p>
+                              <p className="text-xs text-gray-400 mb-3">
+                                {pdf.content_type === 'templates' ? 'Template/Document' : 'PDF Document'}
+                              </p>
                               <a 
                                 href={pdf.pdf_url} 
                                 target="_blank" 
@@ -907,7 +911,7 @@ export default function CourseDetail() {
                                 className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                               >
                                 <FileText className="h-3 w-3 mr-1" />
-                                View Template
+                                {pdf.content_type === 'templates' ? 'View Template' : 'View Document'}
                               </a>
                             </div>
                           </div>
