@@ -796,8 +796,8 @@ export default function CourseDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
                     const docs = pdfs.filter(pdf => {
-                      const isDoc = pdf.content_type === 'docs';
-                      console.log(`Filtering ${pdf.title}: content_type=${pdf.content_type}, isDoc=${isDoc}`);
+                      const isDoc = pdf && pdf.content_type === 'docs';
+                      console.log(`Filtering ${pdf?.title}: content_type=${pdf?.content_type}, isDoc=${isDoc}`);
                       return isDoc;
                     });
                     console.log('Docs filtered:', docs);
@@ -811,7 +811,7 @@ export default function CourseDetail() {
                             <div className="ml-3 flex-1">
                               <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
                               <p className="text-xs text-gray-400 mb-3">
-                                {pdf.content_type === 'docs' ? 'PDF Document' : 'Template/Document'}
+                                {(pdf && pdf.content_type === 'docs') ? 'PDF Document' : 'Template/Document'}
                               </p>
                               <a 
                                 href={pdf.pdf_url} 
@@ -825,7 +825,7 @@ export default function CourseDetail() {
                                 }}
                               >
                                 <FileText className="h-3 w-3 mr-1" />
-                                {pdf.content_type === 'docs' ? 'View Document' : 'View Template'}
+                                {(pdf && pdf.content_type === 'docs') ? 'View Document' : 'View Template'}
                               </a>
                             </div>
                           </div>
@@ -847,8 +847,8 @@ export default function CourseDetail() {
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Images & Infographics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pdfs.filter(pdf => pdf.content_type === 'images').length > 0 ? 
-                    pdfs.filter(pdf => pdf.content_type === 'images').map(pdf => (
+                  {pdfs.filter(pdf => pdf && pdf.content_type === 'images').length > 0 ? 
+                    pdfs.filter(pdf => pdf && pdf.content_type === 'images').map(pdf => (
                       <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
                         <div className="aspect-video bg-gray-700 rounded-lg mb-3 overflow-hidden">
                           <img 
@@ -887,8 +887,8 @@ export default function CourseDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
                     const templates = pdfs.filter(pdf => {
-                      const isTemplate = pdf.content_type === 'templates';
-                      console.log(`Filtering ${pdf.title}: content_type=${pdf.content_type}, isTemplate=${isTemplate}`);
+                      const isTemplate = pdf && pdf.content_type === 'templates';
+                      console.log(`Filtering ${pdf?.title}: content_type=${pdf?.content_type}, isTemplate=${isTemplate}`);
                       return isTemplate;
                     });
                     console.log('Templates filtered:', templates);
@@ -902,7 +902,7 @@ export default function CourseDetail() {
                             <div className="ml-3 flex-1">
                               <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
                               <p className="text-xs text-gray-400 mb-3">
-                                {pdf.content_type === 'templates' ? 'Template/Document' : 'PDF Document'}
+                                {(pdf && pdf.content_type === 'templates') ? 'Template/Document' : 'PDF Document'}
                               </p>
                               <a 
                                 href={pdf.pdf_url} 
@@ -911,7 +911,7 @@ export default function CourseDetail() {
                                 className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                               >
                                 <FileText className="h-3 w-3 mr-1" />
-                                {pdf.content_type === 'templates' ? 'View Template' : 'View Document'}
+                                {(pdf && pdf.content_type === 'templates') ? 'View Template' : 'View Document'}
                               </a>
                             </div>
                           </div>
