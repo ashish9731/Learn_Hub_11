@@ -42,6 +42,7 @@ interface PDF {
   pdf_url: string;
   created_by: string | null;
   created_at: string;
+  content_type?: string; // Add content_type field as optional
 }
 
 interface Company {
@@ -146,7 +147,10 @@ export default function ContentUpload() {
         courses: coursesData || [],
         categories: categoriesData || [],
         podcasts: podcastsData || [],
-        pdfs: pdfsData || [],
+        pdfs: (pdfsData || []).map(pdf => ({
+          ...pdf,
+          content_type: pdf.content_type || 'docs' // Ensure all PDFs have a content_type
+        })),
         companies: companiesData || [],
         users: usersData || []
       });
@@ -1005,11 +1009,18 @@ export default function ContentUpload() {
                                 <div key={pdf.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
                                   <FileText className="h-4 w-4 text-purple-500 mr-3" />
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-white truncate">{pdf.title}</p>
+                                    <p className="text-sm text-white truncate">
+                                      {pdf?.title || 'Untitled Document'}
+                                    </p>
+                                    {pdf && pdf.content_type && (
+                                      <p className="text-xs text-[#a0a0a0]">
+                                        Type: {pdf.content_type}
+                                      </p>
+                                    )}
                                   </div>
                                   <div className="flex space-x-2">
                                     <a 
-                                      href={pdf.pdf_url || '#'} 
+                                      href={pdf?.pdf_url || '#'} 
                                       target="_blank" 
                                       rel="noopener noreferrer"
                                       className="text-xs text-blue-400 hover:text-blue-300"
