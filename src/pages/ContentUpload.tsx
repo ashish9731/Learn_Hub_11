@@ -60,6 +60,10 @@ interface User {
 }
 
 export default function ContentUpload() {
+  // Current user state
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUserLoading, setCurrentUserLoading] = useState(true);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [contentTitle, setContentTitle] = useState('');
   const [contentDescription, setContentDescription] = useState('');
@@ -102,6 +106,10 @@ export default function ContentUpload() {
   const [expandedCourses, setExpandedCourses] = useState<Record<string, boolean>>({});
   const [isUploading, setIsUploading] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState<Record<string, boolean>>({});
+  
+  // User course assignment state - Added for Super Admin management
+  const [userCourses, setUserCourses] = useState<any[]>([]);
+  const [loadingUserCourses, setLoadingUserCourses] = useState(false);
 
   // Predefined categories
   const predefinedCategories = ['Books', 'HBR', 'TED Talks', 'Concept'];
@@ -178,8 +186,41 @@ export default function ContentUpload() {
   useRealtimeSync('users', loadSupabaseData);
   useRealtimeSync('user-courses', loadSupabaseData);
 
+  // Fetch current user
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+      } finally {
+        setCurrentUserLoading(false);
+      }
+    };
+    
+    fetchCurrentUser();
+  }, []);
+
   useEffect(() => {
     loadSupabaseData();
+  }, []);
+
+  // Load user courses effect - Added for Super Admin management
+  useEffect(() => {
+    const loadUserCourses = async () => {
+      try {
+        setLoadingUserCourses(true);
+        const userCoursesData = await supabaseHelpers.getAllUserCourses();
+        setUserCourses(userCoursesData || []);
+      } catch (error) {
+        console.error('Error loading user courses:', error);
+      } finally {
+        setLoadingUserCourses(false);
+      }
+    };
+    
+    loadUserCourses();
   }, []);
 
   // Calculate metrics from real Supabase data
@@ -654,6 +695,77 @@ export default function ContentUpload() {
     } catch (error) {
       console.error('Failed to create assignment:', error);
       alert('Failed to create assignment. Please try again.');
+    }
+  };
+
+  // Assign course to user - Added for Super Admin management
+  const assignCourseToUser = async (userId: string, courseId: string) => {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data, error } = await supabase
+        .from('user_courses')
+        .insert({
+          user_id: userId,
+          course_id: courseId,
+          assigned_at: new Date().toISOString(),
+          assigned_by: user.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      // Reload user courses to reflect changes
+      const userCoursesData = await supabaseHelpers.getAllUserCourses();
+      setUserCourses(userCoursesData || []);
+      
+      // Trigger real-time update
+      window.dispatchEvent(new CustomEvent('supabase-user-courses-changed'));
+      
+      return data;
+    } catch (error) {
+      console.error('Error assigning course to user:', error);
+      throw error;
+    }
+  };
+
+  // Remove course from user - Added for Super Admin management
+  const removeCourseFromUser = async (userCourseId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_courses')
+        .delete()
+        .eq('id', userCourseId);
+
+      if (error) throw error;
+      
+      // Reload user courses to reflect changes
+      const userCoursesData = await supabaseHelpers.getAllUserCourses();
+      setUserCourses(userCoursesData || []);
+      
+      // Trigger real-time update
+      window.dispatchEvent(new CustomEvent('supabase-user-courses-changed'));
+    } catch (error) {
+      console.error('Error removing course from user:', error);
+      throw error;
+    }
+  };
+
+  // Load user courses when component mounts - Added for Super Admin management
+  const loadUserCourses = async () => {
+    try {
+      setLoadingUserCourses(true);
+      const userCoursesData = await supabaseHelpers.getAllUserCourses();
+      setUserCourses(userCoursesData || []);
+    } catch (error) {
+      console.error('Error loading user courses:', error);
+    } finally {
+      setLoadingUserCourses(false);
     }
   };
 
@@ -1598,6 +1710,176 @@ export default function ContentUpload() {
             </div>
           </div>
         </div>
+        
+        {/* Manage Course Assignments - Super Admin Only */}
+        {currentUser?.role === 'super_admin' && (
+          <div className="bg-[#1e1e1e] shadow rounded-lg p-6 border border-[#333333] mt-8">
+            <h3 className="text-lg font-medium text-white mb-6">Manage Course Assignments</h3>
+            <p className="text-sm text-[#a0a0a0] mb-6">View and manage all course assignments to admins with full CRUD capabilities</p>
+            
+            {loadingUserCourses ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {userCourses.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-[#333333]">
+                      <thead className="bg-[#252525]">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                            Course
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                            Assigned To
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                            Assigned By
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                            Assigned Date
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-[#1e1e1e] divide-y divide-[#333333]">
+                        {userCourses.map((userCourse) => {
+                          const course = supabaseData.courses.find(c => c.id === userCourse.course_id);
+                          const assignedUser = supabaseData.users.find(u => u.id === userCourse.user_id);
+                          const assignedByUser = supabaseData.users.find(u => u.id === userCourse.assigned_by);
+                          
+                          return (
+                            <tr key={userCourse.id} className="hover:bg-[#252525]">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-10 w-10">
+                                    {course?.image_url ? (
+                                      <img className="h-10 w-10 rounded-md" src={course.image_url} alt={course.title} />
+                                    ) : (
+                                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10" />
+                                    )}
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-white">{course?.title || 'Unknown Course'}</div>
+                                    {course?.level && (
+                                      <div className="text-sm text-[#a0a0a0]">{course.level}</div>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-white">{assignedUser?.email || 'Unknown User'}</div>
+                                <div className="text-sm text-[#a0a0a0]">
+                                  {assignedUser?.role === 'admin' ? 'Admin' : 'User'}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                                {assignedByUser?.email || 'Unknown'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-[#a0a0a0]">
+                                {new Date(userCourse.assigned_at).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button
+                                  onClick={() => removeCourseFromUser(userCourse.id)}
+                                  className="text-red-400 hover:text-red-300"
+                                >
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-[#a0a0a0]">
+                    <BookOpen className="mx-auto h-12 w-12 text-[#333333]" />
+                    <h3 className="mt-2 text-sm font-medium text-white">No course assignments</h3>
+                    <p className="mt-1 text-sm text-[#a0a0a0]">
+                      Course assignments will appear here once created.
+                    </p>
+                  </div>
+                )}
+                
+                {/* Quick Assignment Form */}
+                <div className="border-t border-[#333333] pt-6">
+                  <h4 className="text-md font-medium text-white mb-4">Quick Assign Course</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label htmlFor="quick-assign-course" className="block text-sm font-medium text-white mb-2">
+                        Select Course
+                      </label>
+                      <select
+                        id="quick-assign-course"
+                        className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                      >
+                        <option value="">Choose a course...</option>
+                        {supabaseData.courses.map((course) => (
+                          <option key={course.id} value={course.id}>
+                            {course.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="quick-assign-user" className="block text-sm font-medium text-white mb-2">
+                        Select Admin
+                      </label>
+                      <select
+                        id="quick-assign-user"
+                        className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                      >
+                        <option value="">Choose an admin...</option>
+                        {supabaseData.users
+                          .filter(user => user.role === 'admin')
+                          .map((user) => (
+                            <option key={user.id} value={user.id}>
+                              {user.email} ({user.role})
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                    
+                    <div className="flex items-end">
+                      <button
+                        onClick={async () => {
+                          const courseSelect = document.getElementById('quick-assign-course') as HTMLSelectElement;
+                          const userSelect = document.getElementById('quick-assign-user') as HTMLSelectElement;
+                          const courseId = courseSelect.value;
+                          const userId = userSelect.value;
+                          
+                          if (!courseId || !userId) {
+                            alert('Please select both a course and an admin');
+                            return;
+                          }
+                          
+                          try {
+                            await assignCourseToUser(userId, courseId);
+                            // Reset selects
+                            courseSelect.value = '';
+                            userSelect.value = '';
+                            alert('Course assigned successfully!');
+                          } catch (error) {
+                            alert('Failed to assign course: ' + (error as Error).message);
+                          }
+                        }}
+                        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                      >
+                        Assign Course
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
