@@ -102,6 +102,10 @@ export default function ContentUpload() {
   const [expandedCourses, setExpandedCourses] = useState<Record<string, boolean>>({});
   const [isUploading, setIsUploading] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState<Record<string, boolean>>({});
+  
+  // Assigned courses state for Super Admin viewing
+  const [assignedCourses, setAssignedCourses] = useState<any[]>([]);
+  const [loadingAssignedCourses, setLoadingAssignedCourses] = useState(false);
 
   // Predefined categories
   const predefinedCategories = ['Books', 'HBR', 'TED Talks', 'Concept'];
@@ -180,6 +184,24 @@ export default function ContentUpload() {
 
   useEffect(() => {
     loadSupabaseData();
+  }, []);
+
+  // Load assigned courses for Super Admin viewing
+  useEffect(() => {
+    const loadAssignedCourses = async () => {
+      try {
+        setLoadingAssignedCourses(true);
+        // Load assigned courses from the database
+        const assignedCoursesData = await supabaseHelpers.getAllUserCourses();
+        setAssignedCourses(assignedCoursesData || []);
+      } catch (error) {
+        console.error('Error loading assigned courses:', error);
+      } finally {
+        setLoadingAssignedCourses(false);
+      }
+    };
+    
+    loadAssignedCourses();
   }, []);
 
   // Calculate metrics from real Supabase data
@@ -1597,6 +1619,92 @@ export default function ContentUpload() {
               </button>
             </div>
           </div>
+        </div>
+        
+        {/* View Assigned Courses - Super Admin Only */}
+        <div className="bg-[#1e1e1e] shadow rounded-lg p-6 border border-[#333333] mt-8">
+          <h3 className="text-lg font-medium text-white mb-6">View Assigned Courses</h3>
+          <p className="text-sm text-[#a0a0a0] mb-6">View all course assignments to admins</p>
+          
+          {loadingAssignedCourses ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {assignedCourses.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-[#333333]">
+                    <thead className="bg-[#252525]">
+                      <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                          Course
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                          Assigned To
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                          Assigned By
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#a0a0a0] uppercase tracking-wider">
+                          Assigned Date
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-[#1e1e1e] divide-y divide-[#333333]">
+                      {assignedCourses.map((assignedCourse) => {
+                        const course = supabaseData.courses.find(c => c.id === assignedCourse.course_id);
+                        const assignedUser = supabaseData.users.find(u => u.id === assignedCourse.user_id);
+                        const assignedByUser = supabaseData.users.find(u => u.id === assignedCourse.assigned_by);
+                        
+                        return (
+                          <tr key={assignedCourse.id} className="hover:bg-[#252525]">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-10 w-10">
+                                  {course?.image_url ? (
+                                    <img className="h-10 w-10 rounded-md" src={course.image_url} alt={course.title} />
+                                  ) : (
+                                    <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10" />
+                                  )}
+                                </div>
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-white">{course?.title || 'Unknown Course'}</div>
+                                  {course?.level && (
+                                    <div className="text-sm text-[#a0a0a0]">{course.level}</div>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-white">{assignedUser?.email || 'Unknown User'}</div>
+                              <div className="text-sm text-[#a0a0a0]">
+                                {assignedUser?.role === 'admin' ? 'Admin' : 'User'}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                              {assignedByUser?.email || 'Unknown'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[#a0a0a0]">
+                              {new Date(assignedCourse.assigned_at).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-[#a0a0a0]">
+                  <BookOpen className="mx-auto h-12 w-12 text-[#333333]" />
+                  <h3 className="mt-2 text-sm font-medium text-white">No course assignments</h3>
+                  <p className="mt-1 text-sm text-[#a0a0a0]">
+                    Course assignments will appear here once created.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
