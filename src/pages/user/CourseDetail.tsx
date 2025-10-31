@@ -797,8 +797,8 @@ export default function CourseDetail() {
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Documents</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pdfs.length > 0 ? 
-                    pdfs.map(pdf => (
+                  {pdfs.filter(pdf => pdf.content_type === 'docs').length > 0 ? 
+                    pdfs.filter(pdf => pdf.content_type === 'docs').map(pdf => (
                       <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
                         <div className="flex items-start">
                           <div className="flex-shrink-0 p-2 bg-blue-900 rounded-lg">
@@ -840,20 +840,8 @@ export default function CourseDetail() {
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Images & Infographics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pdfs.filter(pdf => 
-                    pdf.title.toLowerCase().includes('.jpg') || 
-                    pdf.title.toLowerCase().includes('.jpeg') || 
-                    pdf.title.toLowerCase().includes('.png') || 
-                    pdf.title.toLowerCase().includes('.gif') ||
-                    pdf.title.toLowerCase().includes('.svg')
-                  ).length > 0 ? 
-                    pdfs.filter(pdf => 
-                      pdf.title.toLowerCase().includes('.jpg') || 
-                      pdf.title.toLowerCase().includes('.jpeg') || 
-                      pdf.title.toLowerCase().includes('.png') || 
-                      pdf.title.toLowerCase().includes('.gif') ||
-                      pdf.title.toLowerCase().includes('.svg')
-                    ).map(pdf => (
+                  {pdfs.filter(pdf => pdf.content_type === 'images').length > 0 ? 
+                    pdfs.filter(pdf => pdf.content_type === 'images').map(pdf => (
                       <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
                         <div className="aspect-video bg-gray-700 rounded-lg mb-3 overflow-hidden">
                           <img 
@@ -890,20 +878,8 @@ export default function CourseDetail() {
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Templates & Other Content</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pdfs.filter(pdf => 
-                    !pdf.title.toLowerCase().includes('.jpg') && 
-                    !pdf.title.toLowerCase().includes('.jpeg') && 
-                    !pdf.title.toLowerCase().includes('.png') && 
-                    !pdf.title.toLowerCase().includes('.gif') &&
-                    !pdf.title.toLowerCase().includes('.svg')
-                  ).length > 0 ? 
-                    pdfs.filter(pdf => 
-                      !pdf.title.toLowerCase().includes('.jpg') && 
-                      !pdf.title.toLowerCase().includes('.jpeg') && 
-                      !pdf.title.toLowerCase().includes('.png') && 
-                      !pdf.title.toLowerCase().includes('.gif') &&
-                      !pdf.title.toLowerCase().includes('.svg')
-                    ).map(pdf => (
+                  {pdfs.filter(pdf => pdf.content_type === 'templates').length > 0 ? 
+                    pdfs.filter(pdf => pdf.content_type === 'templates').map(pdf => (
                       <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
                         <div className="flex items-start">
                           <div className="flex-shrink-0 p-2 bg-blue-900 rounded-lg">

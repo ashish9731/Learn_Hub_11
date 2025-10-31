@@ -579,12 +579,13 @@ export default function ContentUpload() {
 
         console.log('File uploaded, creating PDF record...');
         
-        // Create PDF record
+        // Create PDF record with content_type
         const { data: pdfData, error: pdfError } = await supabaseHelpers.createPDF({
           title: contentTitle,
           course_id: selectedCourse,
           pdf_url: publicUrl,
-          created_by: user.id
+          created_by: user.id,
+          content_type: contentType // Add content_type field
         });
 
         if (pdfError) {
