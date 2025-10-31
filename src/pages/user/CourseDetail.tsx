@@ -167,7 +167,7 @@ export default function CourseDetail() {
           console.error('Error loading PDFs:', pdfsError);
         } else {
           console.log('PDFs loaded:', pdfsData);
-          // Log content_type for each PDF
+          // Log content_type for each PDF to debug
           pdfsData?.forEach(pdf => {
             console.log(`PDF: ${pdf.title}, content_type: ${pdf.content_type}`);
           });

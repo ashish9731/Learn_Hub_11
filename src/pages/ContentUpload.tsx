@@ -549,7 +549,13 @@ export default function ContentUpload() {
           .getPublicUrl(fileName);
 
         console.log('File uploaded, creating PDF record...');
-        console.log('Content type being set:', contentType);
+        console.log('Setting content_type to:', contentType);
+        
+        // Validate content_type is one of the allowed values
+        const validContentTypes = ['docs', 'images', 'templates'];
+        if (!validContentTypes.includes(contentType)) {
+          throw new Error(`Invalid content type: ${contentType}`);
+        }
         
         // Create PDF record with content_type
         const { data: pdfData, error: pdfError } = await supabaseHelpers.createPDF({
