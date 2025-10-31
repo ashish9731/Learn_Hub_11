@@ -89,7 +89,6 @@ export default function CourseDetail() {
   const [quizCategoryName, setQuizCategoryName] = useState<string | null>(null);
   const [showFinalQuiz, setShowFinalQuiz] = useState(false);
   const [allModulesCompleted, setAllModulesCompleted] = useState(false);
-  const [totalLearningHours, setTotalLearningHours] = useState<number>(0);
   const [videoViewMode, setVideoViewMode] = useState<'list' | 'tile'>('list');
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
 
@@ -156,7 +155,6 @@ export default function CourseDetail() {
             // In a real implementation, you would sum the actual durations
             totalHours = podcastsData.length * 0.5;
           }
-          setTotalLearningHours(totalHours);
         }
 
         // Load PDFs for this course
@@ -498,7 +496,7 @@ export default function CourseDetail() {
                   <p className="text-gray-300 text-lg mb-8 leading-relaxed">{course.description || 'No description provided for this course.'}</p>
 
                   {/* Course Metadata */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
                       <div className="text-2xl font-bold text-blue-400 mb-1">
                         {categoriesWithProgress.length}
@@ -516,12 +514,6 @@ export default function CourseDetail() {
                         {pdfs.length}
                       </div>
                       <div className="text-sm font-medium text-gray-300">Documents</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
-                      <div className="text-2xl font-bold text-amber-400 mb-1">
-                        {totalLearningHours.toFixed(1)}
-                      </div>
-                      <div className="text-sm font-medium text-gray-300">Hours</div>
                     </div>
                   </div>
                 </div>
