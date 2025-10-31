@@ -102,6 +102,10 @@ export default function ContentUpload() {
   const [expandedCourses, setExpandedCourses] = useState<Record<string, boolean>>({});
   const [isUploading, setIsUploading] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState<Record<string, boolean>>({});
+  
+  // User course assignment state
+  const [userCourses, setUserCourses] = useState<any[]>([]);
+  const [loadingUserCourses, setLoadingUserCourses] = useState(false);
 
   // Predefined categories
   const predefinedCategories = ['Books', 'HBR', 'TED Talks', 'Concept'];
@@ -180,6 +184,23 @@ export default function ContentUpload() {
 
   useEffect(() => {
     loadSupabaseData();
+  }, []);
+
+  // Load user courses effect
+  useEffect(() => {
+    const loadUserCourses = async () => {
+      try {
+        setLoadingUserCourses(true);
+        const userCoursesData = await supabaseHelpers.getAllUserCourses();
+        setUserCourses(userCoursesData || []);
+      } catch (error) {
+        console.error('Error loading user courses:', error);
+      } finally {
+        setLoadingUserCourses(false);
+      }
+    };
+    
+    loadUserCourses();
   }, []);
 
   // Calculate metrics from real Supabase data
@@ -811,10 +832,6 @@ export default function ContentUpload() {
     }
   };
 
-  // State for managing user course assignments
-  const [userCourses, setUserCourses] = useState<any[]>([]);
-  const [loadingUserCourses, setLoadingUserCourses] = useState(false);
-
   // Load user course assignments
   const loadUserCourses = async () => {
     try {
@@ -851,7 +868,8 @@ export default function ContentUpload() {
       if (error) throw error;
       
       // Reload user courses to reflect changes
-      await loadUserCourses();
+      const userCoursesData = await supabaseHelpers.getAllUserCourses();
+      setUserCourses(userCoursesData || []);
       
       // Trigger real-time update
       window.dispatchEvent(new CustomEvent('supabase-user-courses-changed'));
@@ -874,7 +892,8 @@ export default function ContentUpload() {
       if (error) throw error;
       
       // Reload user courses to reflect changes
-      await loadUserCourses();
+      const userCoursesData = await supabaseHelpers.getAllUserCourses();
+      setUserCourses(userCoursesData || []);
       
       // Trigger real-time update
       window.dispatchEvent(new CustomEvent('supabase-user-courses-changed'));
@@ -1575,6 +1594,27 @@ export default function ContentUpload() {
                   
                   <div className="flex items-end">
                     <button
+                      onClick={async () => {
+                        const courseSelect = document.getElementById('quick-assign-course') as HTMLSelectElement;
+                        const userSelect = document.getElementById('quick-assign-user') as HTMLSelectElement;
+                        const courseId = courseSelect.value;
+                        const userId = userSelect.value;
+                        
+                        if (!courseId || !userId) {
+                          alert('Please select both a course and a user');
+                          return;
+                        }
+                        
+                        try {
+                          await assignCourseToUser(userId, courseId);
+                          // Reset selects
+                          courseSelect.value = '';
+                          userSelect.value = '';
+                          alert('Course assigned successfully!');
+                        } catch (error) {
+                          alert('Failed to assign course: ' + (error as Error).message);
+                        }
+                      }}
                       className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
                     >
                       Assign Course
@@ -1585,146 +1625,10 @@ export default function ContentUpload() {
             </div>
           )}
         </div>
-                                  <ChevronRight className="h-4 w-4 text-[#a0a0a0]" />
-                                )}
-                              </div>
-                              <BookOpen className="h-4 w-4 text-[#8b5cf6] mr-2" />
-                              <span className="text-sm font-medium text-white">{course.title}</span>
-                            </div>
-                            <span className="text-xs text-[#a0a0a0]">
-                              {course.totalContent} items
-                            </span>
-                          </div>
-                          
-                          {/* Course Content */}
-                          {expandedCourses[course.id] && (
-                            <div className="pl-6 pr-3 pb-3">
-                              {/* Podcasts Section */}
-                              {course.coursePodcasts.length > 0 && (
-                                <div className="mb-3">
-                                  <h5 className="text-xs font-medium text-[#8b5cf6] mb-2 flex items-center">
-                                    <Headphones className="h-3 w-3 mr-1" />
-                                    Podcasts ({course.coursePodcasts.length})
-                                  </h5>
-                                  <div className="space-y-1 ml-3">
-                                    {course.coursePodcasts.map((podcast) => {
-                                      const isSelected = selectedCourses.includes(podcast.id);
-                                      return (
-                                        <div
-                                          key={podcast.id}
-                                          className={`flex items-center p-1 rounded cursor-pointer transition-colors ${
-                                            isSelected ? 'bg-blue-900/30' : 'hover:bg-[#252525]'
-                                          }`}
-                                          onClick={() => {
-                                            setSelectedCourses(prev => 
-                                              prev.includes(podcast.id)
-                                                ? prev.filter(id => id !== podcast.id)
-                                                : [...prev, podcast.id]
-                                            );
-                                          }}
-                                        >
-                                          <input
-                                            type="checkbox"
-                                            checked={isSelected}
-                                            onChange={() => {}}
-                                            className="h-3 w-3 text-blue-600 mr-2"
-                                          />
-                                          <Music className="h-3 w-3 text-[#8b5cf6] mr-1" />
-                                          <span className="text-xs text-white">{podcast.title}</span>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {/* Documents Section */}
-                              {course.coursePDFs.length > 0 && (
-                                <div className="mb-3">
-                                  <h5 className="text-xs font-medium text-purple-400 mb-2 flex items-center">
-                                    <FileText className="h-3 w-3 mr-1" />
-                                    Documents ({course.coursePDFs.length})
-                                  </h5>
-                                  <div className="space-y-1 ml-3">
-                                    {course.coursePDFs.map((pdf) => {
-                                      const isSelected = selectedCourses.includes(pdf.id);
-                                      return (
-                                        <div
-                                          key={pdf.id}
-                                          className={`flex items-center p-1 rounded cursor-pointer transition-colors ${
-                                            isSelected ? 'bg-purple-900/30' : 'bg-[#1e1e1e] hover:bg-[#252525]'
-                                          }`}
-                                          onClick={() => {
-                                            setSelectedCourses(prev => 
-                                              prev.includes(pdf.id)
-                                                ? prev.filter(id => id !== pdf.id)
-                                                : [...prev, pdf.id]
-                                            );
-                                          }}
-                                        >
-                                          <input
-                                            type="checkbox"
-                                            checked={isSelected}
-                                            onChange={() => {}}
-                                            className="h-3 w-3 text-purple-600 mr-2"
-                                          />
-                                          <FileText className="h-3 w-3 text-purple-500 mr-1" />
-                                          <span className="text-xs text-white">{pdf.title}</span>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {course.totalContent === 0 && (
-                                <p className="text-center text-[#a0a0a0] py-2 text-xs">No content available</p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 text-[#a0a0a0] text-sm">
-                      No content available. Upload content first.
-                    </div>
-                  )}
-                </div>
-                {selectedCourses.length > 0 && (
-                  <p className="mt-2 text-sm text-[#8b5cf6]">
-                    {selectedCourses.length} item(s) selected
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex space-x-3 pt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setAssignmentTitle('');
-                  setAssignmentDescription('');
-                  setSelectedCompanyId('');
-                  setSelectedAdminId('');
-                  setSelectedCourses([]);
-                }}
-                className="flex-1 px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
-              >
-                Clear
-              </button>
-              <button
-                type="button"
-                onClick={handleCreateAssignment}
-                disabled={!assignmentTitle || !selectedCompanyId || selectedCourses.length === 0}
-                className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Create Assignment
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
 }
+
+// Add user course management functions outside the component
+// These would be implemented with proper state management in a real implementation
