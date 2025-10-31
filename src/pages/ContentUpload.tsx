@@ -772,12 +772,12 @@ export default function ContentUpload() {
   // Function to manually upload course image
   const handleCourseImageUpload = async (courseId: string, file: File) => {
     try {
-      // Upload to Supabase storage
+      // Upload to Supabase storage - using the correct 'images' bucket
       const fileExt = file.name.split('.').pop();
-      const fileName = `course-images/${courseId}-${Date.now()}.${fileExt}`;
+      const fileName = `course-${courseId}-${Date.now()}.${fileExt}`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('course-images')
+        .from('images')  // Changed from 'course-images' to 'images'
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: true
@@ -791,7 +791,7 @@ export default function ContentUpload() {
       
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('course-images')
+        .from('images')  // Changed from 'course-images' to 'images'
         .getPublicUrl(fileName);
       
       // Update course with the new image URL
