@@ -903,6 +903,23 @@ export default function ContentUpload() {
                               <BookOpen className="h-8 w-8 text-gray-400" />
                             </div>
                           )}
+                          {/* Image Upload Button */}
+                          <label className="absolute top-2 right-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 shadow-md cursor-pointer">
+                            <Image className="h-4 w-4" />
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onClick={(e) => e.stopPropagation()} // Prevent card expansion when clicking upload button
+                              onChange={(e) => {
+                                e.stopPropagation(); // Prevent card expansion when clicking upload button
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleCourseImageUpload(course.id, file);
+                                }
+                              }}
+                            />
+                          </label>
                         </div>
                         <div>
                           <div className="flex items-center mb-2">
