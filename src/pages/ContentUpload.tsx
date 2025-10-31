@@ -549,6 +549,7 @@ export default function ContentUpload() {
           .getPublicUrl(fileName);
 
         console.log('File uploaded, creating PDF record...');
+        console.log('Content type being set:', contentType);
         
         // Create PDF record with content_type
         const { data: pdfData, error: pdfError } = await supabaseHelpers.createPDF({
@@ -565,6 +566,7 @@ export default function ContentUpload() {
         }
         
         console.log('PDF created successfully:', pdfData);
+        console.log('PDF content_type in response:', pdfData.content_type);
         alert('File uploaded successfully!');
       }
       
