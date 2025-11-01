@@ -94,7 +94,6 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
 import ContentUpload from './pages/ContentUpload';
-import CourseAssignmentCreation from './pages/CourseAssignmentCreation';
 import Companies from './pages/Companies';
 import Admins from './pages/Admins';
 import Users from './pages/Users';
