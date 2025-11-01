@@ -5,6 +5,9 @@ import { useRealtimeSync } from '../hooks/useSupabase';
 import { supabase } from '../lib/supabase';
 import { stabilityAI } from '../services/stabilityai';
 
+// Content Upload Page - Reverted to commit 102f9ff for Vercel deployment
+// This comment was added to trigger a new deployment
+
 interface Course {
   id: string;
   title: string;
