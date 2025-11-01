@@ -84,6 +84,39 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
       setLoading(true);
       setError(null);
       
+      // First check if admin still exists
+      const { data: adminExists, error: adminCheckError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', adminId)
+        .eq('role', 'admin')
+        .single();
+      
+      if (adminCheckError || !adminExists) {
+        // Admin no longer exists, reset all KPIs to zero
+        console.log('Admin not found, resetting KPIs to zero');
+        setRealTimeMetrics({
+          totalUsers: 0,
+          totalCourses: 0,
+          totalHours: 0,
+          activeUsers: 0
+        });
+        setSupabaseData({
+          companies: [],
+          users: [],
+          courses: [],
+          pdfs: [],
+          podcasts: [],
+          userCourses: []
+        });
+        setUserProfiles([]);
+        setPodcastProgress([]);
+        setAssignedCourses([]);
+        setAvailableCourses([]);
+        setLoading(false);
+        return;
+      }
+      
       const [companiesData, usersData, coursesData, pdfsData, podcastsData, userCoursesData, userProfilesData] = await Promise.all([
         supabaseHelpers.getCompanies(),
         companyId ? supabaseHelpers.getUsersByCompany(companyId) : supabaseHelpers.getUsers(),
@@ -272,16 +305,38 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
             .select('company_id')
             .eq('id', user.id)
             .single();
-            
-          if (!userError && userData) {
-            setCompanyId(userData.company_id);
-            loadDashboardData(user.id, userData.company_id);
-          }
+          
+        if (!userError && userData) {
+          setCompanyId(userData.company_id);
+          loadDashboardData(user.id, userData.company_id);
+        } else if (userError) {
+          // Admin no longer exists in the database
+          console.log('Admin not found in database, resetting KPIs to zero');
+          setRealTimeMetrics({
+            totalUsers: 0,
+            totalCourses: 0,
+            totalHours: 0,
+            activeUsers: 0
+          });
+          setSupabaseData({
+            companies: [],
+            users: [],
+            courses: [],
+            pdfs: [],
+            podcasts: [],
+            userCourses: []
+          });
+          setUserProfiles([]);
+          setPodcastProgress([]);
+          setAssignedCourses([]);
+          setAvailableCourses([]);
+          setLoading(false);
         }
-      } catch (error) {
-        console.error('Error getting admin info:', error);
       }
-    };
+    } catch (error) {
+      console.error('Error getting admin info:', error);
+    }
+  };
     
     getAdminInfo();
   }, []);

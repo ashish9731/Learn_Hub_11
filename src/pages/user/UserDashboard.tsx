@@ -75,6 +75,27 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       
       setError(null);
       
+      // First check if user still exists
+      const { data: userExists, error: userCheckError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .eq('role', 'user')
+        .single();
+      
+      if (userCheckError || !userExists) {
+        // User no longer exists, reset all data
+        console.log('User not found, resetting dashboard data');
+        setSupabaseData({
+          courses: [],
+          userCourses: [],
+          podcasts: []
+        });
+        setUserProfile(null);
+        setPodcastProgress([]);
+        return;
+      }
+      
       // Load user courses
       const userCoursesData = await supabaseHelpers.getUserCourses(userId);
       
@@ -171,6 +192,21 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
           return;
         }
         
+        // Check if user still exists in the database
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', session.user.id)
+          .eq('role', 'user')
+          .single();
+        
+        if (userError || !userData) {
+          // User no longer exists, redirect to login
+          console.log('User not found in database, redirecting to login');
+          window.location.href = '/login'; // Or however you handle redirects in your app
+          return;
+        }
+        
         setUserId(session.user.id);
       } catch (error) {
         console.error('Error checking authentication:', error);
@@ -192,6 +228,28 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         
         if (sessionError || !session) {
           setError('Authentication failed. Please log in again.');
+          setLoading(false);
+          return;
+        }
+        
+        // Check if user still exists in the database
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', session.user.id)
+          .eq('role', 'user')
+          .single();
+        
+        if (userError || !userData) {
+          // User no longer exists
+          console.log('User not found in database, resetting dashboard');
+          setSupabaseData({
+            courses: [],
+            userCourses: [],
+            podcasts: []
+          });
+          setPodcastProgress([]);
+          setUserProfile(null);
           setLoading(false);
           return;
         }
