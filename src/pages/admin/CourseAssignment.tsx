@@ -776,53 +776,6 @@ export default function CourseAssignment() {
           </div>
         </div>
 
-        {/* Assignment Summary */}
-        {(selectedUsers.length > 0 || getTotalSelectedContent() > 0) && (
-          <div className="mt-8 bg-[#1e1e1e] shadow rounded-lg border border-[#333333] p-6">
-            <h3 className="text-lg font-medium text-white mb-4">Assignment Summary</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="text-sm font-medium text-[#a0a0a0] mb-2">Selected Users ({selectedUsers.length})</h4>
-                <div className="space-y-1">
-                  {selectedUsers.slice(0, 5).map(userId => {
-                    const user = supabaseData.users.find((u: User) => u.id === userId);
-                    const profile = supabaseData.userProfiles.find((p: UserProfile) => p.user_id === userId);
-                    const userName = profile?.full_name || user?.email;
-                    return (
-                      <p key={userId} className="text-sm text-white">• {userName}</p>
-                    );
-                  })}
-                  {selectedUsers.length > 5 && (
-                    <p className="text-sm text-[#a0a0a0]">... and {selectedUsers.length - 5} more</p>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="text-sm font-medium text-[#a0a0a0] mb-2">Selected Content ({getTotalSelectedContent()})</h4>
-                <div className="space-y-1">
-                  {selectedContent.podcasts.slice(0, 3).map(podcastId => {
-                    const podcast = supabaseData.podcasts.find((p: Podcast) => p.id === podcastId);
-                    return <p key={podcastId} className="text-sm text-white">🎧 {podcast?.title}</p>;
-                  })}
-                  {selectedContent.pdfs.slice(0, 3).map(pdfId => {
-                    const pdf = supabaseData.pdfs.find((p: PDF) => p.id === pdfId);
-                    return <p key={pdfId} className="text-sm text-white">📄 {pdf?.title}</p>;
-                  })}
-                  {getTotalSelectedContent() > 6 && (
-                    <p className="text-sm text-[#a0a0a0]">... and {getTotalSelectedContent() - 6} more</p>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-4 p-4 bg-blue-900/20 border border-blue-600 rounded-lg">
-              <p className="text-sm text-blue-200">
-                📧 <strong>Email notifications will be sent</strong> to all selected users with course details and login instructions.
-              </p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

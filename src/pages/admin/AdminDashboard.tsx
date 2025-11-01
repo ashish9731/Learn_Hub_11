@@ -168,11 +168,14 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         progress.progress_percent > 0).map((progress: any) => progress.user_id));
       const activeUsers = new Set([...usersWithCourses, ...usersWithProgress]).size;
       
+      // Fix KPI calculation - count total course assignments, not unique courses
+      const totalCourseAssignments = adminUserCourses.length;
+      
       setAssignedCourses(assignedCourses);
       setAvailableCourses(availableCourses);
       setRealTimeMetrics({
         totalUsers: adminUsers.length,
-        totalCourses: assignedCourseIds.size,
+        totalCourses: totalCourseAssignments, // Changed from assignedCourseIds.size
         totalHours: totalHours,
         activeUsers: activeUsers
       });
