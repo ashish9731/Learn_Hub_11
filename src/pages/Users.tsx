@@ -263,7 +263,6 @@ export default function Users() {
   const activeUsers = users.length;
   const totalCourses = supabaseData.courses.length;
   const uniqueCompanies = new Set(users.map((user: any) => user.company_id).filter(Boolean)).size;
-  const avgCompletionHours = '24';
 
   if (loading) {
     return (
@@ -335,8 +334,7 @@ export default function Users() {
           {[
             { title: 'Total Users', value: users.length, icon: UsersIcon, color: 'bg-[#8b5cf6]' },
             { title: 'Active Users', value: activeUsers, icon: CheckCircle, color: 'bg-[#8b5cf6]' },
-            { title: 'Total Companies', value: uniqueCompanies, icon: Building2, color: 'bg-[#8b5cf6]' },
-            { title: 'Avg Completion Hours', value: avgCompletionHours, icon: Clock, color: 'bg-[#8b5cf6]' }
+            { title: 'Total Companies', value: uniqueCompanies, icon: Building2, color: 'bg-[#8b5cf6]' }
           ].map((card, index) => (
             <div key={index} className="bg-[#1e1e1e] overflow-hidden shadow rounded-lg border border-[#333333]">
               <div className="p-5">
