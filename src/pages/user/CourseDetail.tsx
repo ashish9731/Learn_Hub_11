@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import DebugUserCourses from '../../components/Debug/DebugUserCourses';
 import QuizComponent from '../../components/Quiz/QuizComponent';
+import QuizResults from '../../components/Quiz/QuizResults';
 import PodcastPlayer from '../../components/Media/PodcastPlayer';
 
 interface Course {
@@ -91,6 +92,8 @@ export default function CourseDetail() {
   const [allModulesCompleted, setAllModulesCompleted] = useState(false);
   const [videoViewMode, setVideoViewMode] = useState<'list' | 'tile'>('list');
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
+  const [quizResults, setQuizResults] = useState<{ passed: boolean; score: number } | null>(null);
+  const [userName, setUserName] = useState<string>('');
 
   // Refs
   const youtubePlayerRef = useRef<HTMLIFrameElement>(null);
@@ -202,6 +205,19 @@ export default function CourseDetail() {
         if (session?.user) {
           setUserId(session.user.id);
           setIsAuthenticated(true);
+          
+          // Load user profile to get name
+          const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('first_name, last_name')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          if (!error && profile) {
+            setUserName(`${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'User');
+          } else {
+            setUserName('User');
+          }
         } else {
           setIsAuthenticated(false);
         }
@@ -286,30 +302,71 @@ export default function CourseDetail() {
     return progress ? progress.progress_percent : 0;
   };
 
+  // Check if all modules are completed
+  const checkAllModulesCompleted = () => {
+    // Check if all podcasts and PDFs have been completed (100% progress)
+    const allContent = [...podcasts, ...pdfs];
+    
+    // If there's no content, consider it completed
+    if (allContent.length === 0) return true;
+    
+    // Check if all content has 100% progress
+    return allContent.every(content => {
+      const progress = podcastProgress[content.id];
+      return progress && progress.progress_percent >= 100;
+    });
+  };
+
   // Start module quiz
   const startModuleQuiz = (categoryId: string, categoryName: string) => {
+    // Check if all modules are completed before allowing quiz access
+    if (!checkAllModulesCompleted()) {
+      alert('You must complete all modules before taking the quiz.');
+      return;
+    }
+    
     setQuizCategoryId(categoryId);
     setQuizCategoryName(categoryName);
     setShowQuiz(true);
-    setActiveTab('quiz');
+    setActiveTab('quizzes');
   };
 
   // Start final quiz
   const startFinalQuiz = () => {
+    // Check if all modules are completed before allowing quiz access
+    if (!checkAllModulesCompleted()) {
+      alert('You must complete all modules before taking the quiz.');
+      return;
+    }
+    
     setShowFinalQuiz(true);
-    setActiveTab('quiz');
+    setActiveTab('quizzes');
   };
 
   // Handle quiz completion
   const handleQuizComplete = (passed: boolean, score: number) => {
+    setQuizResults({ passed, score });
     setShowQuiz(false);
     setShowFinalQuiz(false);
-    setActiveTab('podcasts');
     
     // Reload data to reflect quiz completion
     if (userId) {
       loadPodcastProgress();
     }
+  };
+
+  const handleRetakeQuiz = () => {
+    setQuizResults(null);
+    if (quizCategoryId && quizCategoryName) {
+      startModuleQuiz(quizCategoryId, quizCategoryName);
+    } else {
+      startFinalQuiz();
+    }
+  };
+
+  const handleExitQuiz = () => {
+    setQuizResults(null);
+    setActiveTab('quizzes');
   };
 
   const loadPodcastProgress = async () => {
@@ -532,7 +589,7 @@ export default function CourseDetail() {
               {/* Content Type Navigation Buttons - Below Course Image */}
               <div className="px-8 pb-8">
                 <div className="flex flex-wrap gap-4 justify-center">
-                  {['audio', 'video', 'docs', 'images', 'templates'].map((tab) => (
+                  {['audio', 'video', 'docs', 'images', 'templates', 'quizzes'].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -934,33 +991,65 @@ export default function CourseDetail() {
             )}
 
             {/* Quiz Tab */}
-            {activeTab === 'quiz' && (
+            {activeTab === 'quizzes' && (
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Quiz</h2>
-                <div className="space-y-4">
-                  {/* Quiz Content */}
-                  <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
-                    <h3 className="text-lg font-medium text-white mb-2">Module Quiz</h3>
-                    <p className="text-gray-300 mb-4">Test your knowledge on the course modules.</p>
-                    <button
-                      onClick={() => startModuleQuiz('module1', 'Module 1')}
-                      className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Start Module 1 Quiz
-                    </button>
+                <h2 className="text-xl font-semibold text-white mb-4">Quizzes</h2>
+                {!checkAllModulesCompleted() ? (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                    <div className="text-yellow-500 mb-4">
+                      <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-yellow-800 mb-2">Modules Not Completed</h3>
+                    <p className="text-yellow-700 mb-4">You must complete all audio, video, docs, images, and templates modules before accessing quizzes.</p>
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <p className="text-sm text-gray-600">Complete all content in the other tabs to unlock quizzes.</p>
+                    </div>
                   </div>
+                ) : quizResults ? (
+                  <QuizResults
+                    passed={quizResults.passed}
+                    score={quizResults.score}
+                    userName={userName}
+                    courseName={course?.title || 'Course'}
+                    onRetake={handleRetakeQuiz}
+                    onExit={handleExitQuiz}
+                  />
+                ) : showQuiz || showFinalQuiz ? (
+                  <QuizComponent
+                    courseId={courseId || ''}
+                    categoryId={quizCategoryId || undefined}
+                    categoryName={quizCategoryName || undefined}
+                    isFinalQuiz={showFinalQuiz}
+                    onComplete={handleQuizComplete}
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    {/* Quiz Content */}
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
+                      <h3 className="text-lg font-medium text-white mb-2">Module Quiz</h3>
+                      <p className="text-gray-300 mb-4">Test your knowledge on the course modules.</p>
+                      <button
+                        onClick={() => startModuleQuiz('module1', 'Module 1')}
+                        className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Start Module 1 Quiz
+                      </button>
+                    </div>
 
-                  <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
-                    <h3 className="text-lg font-medium text-white mb-2">Final Quiz</h3>
-                    <p className="text-gray-300 mb-4">Complete the final quiz to finish the course.</p>
-                    <button
-                      onClick={startFinalQuiz}
-                      className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Start Final Quiz
-                    </button>
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
+                      <h3 className="text-lg font-medium text-white mb-2">Final Quiz</h3>
+                      <p className="text-gray-300 mb-4">Complete the final quiz to finish the course.</p>
+                      <button
+                        onClick={startFinalQuiz}
+                        className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Start Final Quiz
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 

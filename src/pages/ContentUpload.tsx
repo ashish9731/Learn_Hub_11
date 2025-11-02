@@ -68,7 +68,7 @@ export default function ContentUpload() {
   const [contentDescription, setContentDescription] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState('');
-  const [contentType, setContentType] = useState<'audio' | 'video' | 'docs' | 'images' | 'templates'>('audio');
+  const [contentType, setContentType] = useState<'audio' | 'video' | 'docs' | 'images' | 'templates' | 'quizzes'>('audio');
   const [selectedCourse, setSelectedCourse] = useState('');
   const [newCourseTitle, setNewCourseTitle] = useState('');
   const [newCourseLevel, setNewCourseLevel] = useState<'Basics' | 'Intermediate' | 'Advanced'>('Basics');
@@ -260,6 +260,13 @@ export default function ContentUpload() {
           alert(`Invalid file type for images. Please upload one of: ${validImageTypes.join(', ')}`);
           return;
         }
+      } else if (contentType === 'quizzes') {
+        const validQuizTypes = ['.pdf', '.docx', '.pptx', '.xlsx', '.txt'];
+        const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+        if (!validQuizTypes.includes(fileExtension)) {
+          alert(`Invalid file type for quizzes. Please upload one of: ${validQuizTypes.join(', ')}`);
+          return;
+        }
       }
       // For templates, we allow all file types
       setSelectedFile(file);
@@ -319,7 +326,7 @@ export default function ContentUpload() {
         </div>
       );
     } else {
-      // For docs, images, and templates
+      // For docs, images, templates, and quizzes
       return (
         <div>
           <label htmlFor="file" className="block text-sm font-medium text-white mb-2">
@@ -354,7 +361,9 @@ export default function ContentUpload() {
                   ? 'PDF, DOCX, PPTX, XLSX, TXT files supported' 
                   : contentType === 'images' 
                     ? 'JPG, JPEG, PNG, SVG, GIF files supported' 
-                    : 'Any file type supported'}
+                    : contentType === 'quizzes'
+                      ? 'Quiz files (PDF, DOCX, PPTX, XLSX, TXT) supported'
+                      : 'Any file type supported'}
               </p>
               {selectedFile && (
                 <p className="text-sm text-[#8b5cf6] font-medium">{selectedFile.name}</p>
@@ -479,7 +488,7 @@ export default function ContentUpload() {
       return;
     }
 
-    if ((contentType === 'docs' || contentType === 'images' || contentType === 'templates') && !selectedFile) {
+    if ((contentType === 'docs' || contentType === 'images' || contentType === 'templates' || contentType === 'quizzes') && !selectedFile) {
       alert('Please upload a file');
       return;
     }
@@ -555,8 +564,8 @@ export default function ContentUpload() {
         
         console.log('YouTube podcast created successfully:', podcastData);
         alert('YouTube video added successfully!');
-      } else if ((contentType === 'docs' || contentType === 'images' || contentType === 'templates') && selectedFile) {
-        // Upload document/image/template file
+      } else if ((contentType === 'docs' || contentType === 'images' || contentType === 'templates' || contentType === 'quizzes') && selectedFile) {
+        // Upload document/image/template/quiz file
         console.log('Uploading to pdf-files bucket...');
         const sanitizedFileName = selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
         const fileName = `${Date.now()}_${sanitizedFileName}`;
@@ -581,7 +590,7 @@ export default function ContentUpload() {
         console.log('Setting content_type to:', contentType);
         
         // Validate content_type is one of the allowed values
-        const validContentTypes = ['docs', 'images', 'templates'];
+        const validContentTypes = ['docs', 'images', 'templates', 'quizzes'];
         if (!validContentTypes.includes(contentType)) {
           throw new Error(`Invalid content type: ${contentType}`);
         }
@@ -1294,7 +1303,7 @@ export default function ContentUpload() {
                   <select
                     id="content-type"
                     value={contentType}
-                    onChange={(e) => setContentType(e.target.value as 'audio' | 'video' | 'docs' | 'images' | 'templates')}
+                    onChange={(e) => setContentType(e.target.value as 'audio' | 'video' | 'docs' | 'images' | 'templates' | 'quizzes')}
                     className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
                   >
                     <option value="audio">Audio</option>
@@ -1302,6 +1311,7 @@ export default function ContentUpload() {
                     <option value="docs">Docs</option>
                     <option value="images">Images</option>
                     <option value="templates">Templates</option>
+                    <option value="quizzes">Quizzes</option>
                   </select>
                   <p className="mt-1 text-xs text-[#a0a0a0]">
                     {contentType === 'audio' 
@@ -1312,6 +1322,8 @@ export default function ContentUpload() {
                       ? 'Documents (.pdf, .docx, .pptx, .xlsx, .txt)'
                       : contentType === 'images'
                       ? 'Images (.jpg, .jpeg, .png, .svg, .gif)'
+                      : contentType === 'quizzes'
+                      ? 'Quiz content for courses'
                       : 'Templates (any file type)'}
                   </p>
                 </div>
@@ -1369,7 +1381,7 @@ export default function ContentUpload() {
                       !selectedCourse || 
                       (contentType === 'audio' && !selectedFile) || 
                       (contentType === 'video' && !youtubeUrl) || 
-                      ((contentType === 'docs' || contentType === 'images' || contentType === 'templates') && !selectedFile)
+                      ((contentType === 'docs' || contentType === 'images' || contentType === 'templates' || contentType === 'quizzes') && !selectedFile)
                     }
                     className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
