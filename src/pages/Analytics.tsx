@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart as BarChartIcon, PieChart, TrendingUp, Users, BookOpen, Headphones, FileText, Clock, ArrowLeft, Building2, ChevronRight, X } from 'lucide-react';
+import { BarChart as BarChartIcon, PieChart, TrendingUp, Users, BookOpen, Headphones, FileText, Clock, ArrowLeft, Building2, ChevronRight, X, UserCog } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart as ReBarChart, Bar, PieChart as RePieChart, Pie, Cell, Legend, Sector } from 'recharts';
 import { supabase } from '../lib/supabase';
 import { supabaseHelpers } from '../hooks/useSupabase';
@@ -112,9 +112,12 @@ export default function Analytics() {
       const totalOrganizations = companiesData.length || 0;
       const totalCourses = coursesData.length || 0;
       const totalPodcasts = podcastsData.length || 0;
-      // Only count regular users and admins, not super_admin
+      // Separate count for regular users and admins
       const totalUsers = usersData.filter((user: any) => 
-        user.role === 'user' || user.role === 'admin'
+        user.role === 'user'
+      ).length || 0;
+      const totalAdmins = usersData.filter((user: any) => 
+        user.role === 'admin'
       ).length || 0;
       const totalDocuments = pdfsData.length || 0;
       
@@ -681,12 +684,13 @@ export default function Analytics() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
           {[
             { id: 'organizations', title: 'Total Organizations', value: realTimeAnalytics.totalOrganizations, icon: Building2, color: 'bg-blue-500' },
             { id: 'courses', title: 'Courses', value: realTimeAnalytics.totalCourses, icon: BookOpen, color: 'bg-green-500' },
             { id: 'podcasts', title: 'Podcasts', value: realTimeAnalytics.totalPodcasts, icon: Headphones, color: 'bg-purple-500' },
             { id: 'users', title: 'Total Users', value: realTimeAnalytics.totalUsers, icon: Users, color: 'bg-orange-500' },
+            { id: 'admins', title: 'Total Admins', value: supabaseData.users.filter((user: any) => user.role === 'admin').length, icon: UserCog, color: 'bg-indigo-500' },
             { id: 'hours', title: 'Total Learning Hours', value: realTimeAnalytics.totalLearningHours, icon: Clock, color: 'bg-red-500' }
           ].map((card, index) => (
             <div key={index} className="bg-white overflow-hidden shadow rounded-lg">

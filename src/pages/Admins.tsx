@@ -430,10 +430,7 @@ export default function Admins() {
                       <div className="text-center p-2 bg-[#1e1e1e] rounded">
                         <p className="text-xs text-[#a0a0a0]">Courses</p>
                         <p className="text-sm font-medium text-white">
-                          {supabaseData.userCourses.filter((uc: any) => {
-                            const user = supabaseData.users.find((u: any) => u.id === uc.user_id);
-                            return user && user.company_id === admin.company_id;
-                          }).length}
+                          {supabaseData.userCourses.filter((uc: any) => uc.assigned_by === admin.id).length}
                         </p>
                       </div>
                       <div className="text-center p-2 bg-[#1e1e1e] rounded">
