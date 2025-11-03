@@ -985,8 +985,14 @@ export default function ContentUpload() {
                             <span className="mr-4">
                               {coursePodcasts.length} podcast{coursePodcasts.length !== 1 ? 's' : ''}
                             </span>
+                            <span className="mr-4">
+                              {coursePDFs.filter(pdf => pdf.content_type === 'docs').length} document{coursePDFs.filter(pdf => pdf.content_type === 'docs').length !== 1 ? 's' : ''}
+                            </span>
+                            <span className="mr-4">
+                              {coursePDFs.filter(pdf => pdf.content_type === 'images').length} image{coursePDFs.filter(pdf => pdf.content_type === 'images').length !== 1 ? 's' : ''}
+                            </span>
                             <span>
-                              {coursePDFs.length} document{coursePDFs.length !== 1 ? 's' : ''}
+                              {coursePDFs.filter(pdf => pdf.content_type === 'templates').length} template{coursePDFs.filter(pdf => pdf.content_type === 'templates').length !== 1 ? 's' : ''}
                             </span>
                           </div>
                         </div>
@@ -1055,26 +1061,22 @@ export default function ContentUpload() {
                           </div>
                         )}
                         
-                        {/* Documents Section */}
-                        {coursePDFs.length > 0 && (
+                        {/* Documents Section - Separated by content type */}
+                        {/* Docs (Documents) */}
+                        {coursePDFs.filter(pdf => pdf.content_type === 'docs').length > 0 && (
                           <div className="mb-4">
-                            <h4 className="text-sm font-medium text-purple-400 mb-2 flex items-center">
+                            <h4 className="text-sm font-medium text-blue-400 mb-2 flex items-center">
                               <FileText className="h-4 w-4 mr-2" />
-                              Documents ({coursePDFs.length})
+                              Documents ({coursePDFs.filter(pdf => pdf.content_type === 'docs').length})
                             </h4>
                             <div className="space-y-2">
-                              {coursePDFs.map((pdf) => (
+                              {coursePDFs.filter(pdf => pdf.content_type === 'docs').map((pdf) => (
                                 <div key={pdf.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
-                                  <FileText className="h-4 w-4 text-purple-500 mr-3" />
+                                  <FileText className="h-4 w-4 text-blue-500 mr-3" />
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm text-white truncate">
                                       {pdf?.title || 'Untitled Document'}
                                     </p>
-                                    {pdf && pdf.content_type && (
-                                      <p className="text-xs text-[#a0a0a0]">
-                                        Type: {pdf.content_type}
-                                      </p>
-                                    )}
                                   </div>
                                   <div className="flex space-x-2">
                                     <a 
@@ -1098,7 +1100,125 @@ export default function ContentUpload() {
                           </div>
                         )}
                         
-                        {coursePodcasts.length === 0 && coursePDFs.length === 0 && (
+                        {/* Images */}
+                        {coursePDFs.filter(pdf => pdf.content_type === 'images').length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium text-green-400 mb-2 flex items-center">
+                              <Image className="h-4 w-4 mr-2" />
+                              Images ({coursePDFs.filter(pdf => pdf.content_type === 'images').length})
+                            </h4>
+                            <div className="space-y-2">
+                              {coursePDFs.filter(pdf => pdf.content_type === 'images').map((pdf) => (
+                                <div key={pdf.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
+                                  <Image className="h-4 w-4 text-green-500 mr-3" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-white truncate">
+                                      {pdf?.title || 'Untitled Image'}
+                                    </p>
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <a 
+                                      href={pdf?.pdf_url || '#'} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-blue-400 hover:text-blue-300"
+                                    >
+                                      View
+                                    </a>
+                                    <button
+                                      onClick={() => handleDeletePDF(pdf.id)}
+                                      className="text-xs text-red-400 hover:text-red-300"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Templates */}
+                        {coursePDFs.filter(pdf => pdf.content_type === 'templates').length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium text-yellow-400 mb-2 flex items-center">
+                              <FileText className="h-4 w-4 mr-2" />
+                              Templates ({coursePDFs.filter(pdf => pdf.content_type === 'templates').length})
+                            </h4>
+                            <div className="space-y-2">
+                              {coursePDFs.filter(pdf => pdf.content_type === 'templates').map((pdf) => (
+                                <div key={pdf.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
+                                  <FileText className="h-4 w-4 text-yellow-500 mr-3" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-white truncate">
+                                      {pdf?.title || 'Untitled Template'}
+                                    </p>
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <a 
+                                      href={pdf?.pdf_url || '#'} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-blue-400 hover:text-blue-300"
+                                    >
+                                      View
+                                    </a>
+                                    <button
+                                      onClick={() => handleDeletePDF(pdf.id)}
+                                      className="text-xs text-red-400 hover:text-red-300"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Quizzes */}
+                        {coursePDFs.filter(pdf => pdf.content_type === 'quizzes').length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium text-purple-400 mb-2 flex items-center">
+                              <FileText className="h-4 w-4 mr-2" />
+                              Quizzes ({coursePDFs.filter(pdf => pdf.content_type === 'quizzes').length})
+                            </h4>
+                            <div className="space-y-2">
+                              {coursePDFs.filter(pdf => pdf.content_type === 'quizzes').map((pdf) => (
+                                <div key={pdf.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
+                                  <FileText className="h-4 w-4 text-purple-500 mr-3" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-white truncate">
+                                      {pdf?.title || 'Untitled Quiz'}
+                                    </p>
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <a 
+                                      href={pdf?.pdf_url || '#'} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-blue-400 hover:text-blue-300"
+                                    >
+                                      View
+                                    </a>
+                                    <button
+                                      onClick={() => handleDeletePDF(pdf.id)}
+                                      className="text-xs text-red-400 hover:text-red-300"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {coursePodcasts.length === 0 && 
+                         coursePDFs.filter(pdf => pdf.content_type === 'docs').length === 0 && 
+                         coursePDFs.filter(pdf => pdf.content_type === 'images').length === 0 && 
+                         coursePDFs.filter(pdf => pdf.content_type === 'templates').length === 0 && 
+                         coursePDFs.filter(pdf => pdf.content_type === 'quizzes').length === 0 && (
                           <div className="text-center py-4 text-[#a0a0a0]">
                             <p className="text-sm">No content uploaded yet</p>
                             <button
