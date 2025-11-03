@@ -55,6 +55,13 @@ interface PodcastProgress {
   last_played_at: string;
 }
 
+interface PodcastAssignment {
+  id: string;
+  user_id: string;
+  podcast_id: string;
+  assigned_at: string;
+}
+
 interface CategoryWithProgress {
   id: string;
   name: string;
@@ -73,6 +80,7 @@ export default function CourseDetail() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [pdfs, setPdfs] = useState<any[]>([]);
+  const [podcastAssignments, setPodcastAssignments] = useState<PodcastAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('podcasts');
@@ -237,6 +245,33 @@ export default function CourseDetail() {
     }
   }, [userId]);
 
+  // Load podcast assignments when user ID changes
+  useEffect(() => {
+    if (userId && courseId) {
+      loadPodcastAssignments();
+    }
+  }, [userId, courseId]);
+
+  const loadPodcastAssignments = async () => {
+    if (!userId || !courseId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('podcast_assignments')
+        .select('*')
+        .eq('user_id', userId);
+        
+      if (error) {
+        console.error('Error loading podcast assignments:', error);
+        return;
+      }
+      
+      setPodcastAssignments(data || []);
+    } catch (error) {
+      console.error('Error loading podcast assignments:', error);
+    }
+  };
+
   // Get default placeholder image based on course title
   const getDefaultImage = (courseTitle: string) => {
     const title = courseTitle?.toLowerCase() || '';
@@ -260,9 +295,21 @@ export default function CourseDetail() {
     e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
   };
 
+  // Filter podcasts to only show assigned ones
+  const getAssignedPodcasts = () => {
+    // If no podcast assignments exist, show all podcasts (backward compatibility)
+    if (podcastAssignments.length === 0) {
+      return podcasts;
+    }
+    
+    // Filter podcasts to only show assigned ones
+    const assignedPodcastIds = new Set(podcastAssignments.map(pa => pa.podcast_id));
+    return podcasts.filter(podcast => assignedPodcastIds.has(podcast.id));
+  };
+
   const getFilteredPodcasts = () => {
-    if (!activeCategory) return podcasts;
-    return podcasts.filter(podcast => podcast.category_id === activeCategory);
+    if (!activeCategory) return getAssignedPodcasts();
+    return getAssignedPodcasts().filter(podcast => podcast.category_id === activeCategory);
   };
 
   // Check if a podcast is unlocked (previous podcasts in the same category must be completed)
