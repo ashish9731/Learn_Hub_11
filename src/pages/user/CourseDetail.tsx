@@ -278,7 +278,7 @@ export default function CourseDetail() {
         // First check if user is assigned to this course
         const { data: userCourse, error: userCourseError } = await supabase
           .from('user_courses')
-          .select('id')
+          .select('user_id, course_id')
           .eq('user_id', userId)
           .eq('course_id', courseId)
           .maybeSingle();
