@@ -3,7 +3,6 @@ import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Pla
 import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
 import { supabase } from '../lib/supabase';
-import { stabilityAI } from '../services/stabilityai';
 
 // Content Upload Page - Reverted to commit 102f9ff for Vercel deployment
 // This comment was added to trigger a new deployment
@@ -104,7 +103,6 @@ export default function ContentUpload() {
   const [error, setError] = useState<string | null>(null);
   const [expandedCourses, setExpandedCourses] = useState<Record<string, boolean>>({});
   const [isUploading, setIsUploading] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState<Record<string, boolean>>({});
   
   // Assigned courses state for Super Admin viewing
   const [assignedCourses, setAssignedCourses] = useState<any[]>([]);
@@ -610,7 +608,11 @@ export default function ContentUpload() {
         }
         
         console.log('PDF created successfully:', pdfData);
-        console.log('PDF content_type in response:', pdfData.content_type);
+        if (pdfData) {
+          console.log('PDF content_type in response:', pdfData.content_type);
+        } else {
+          console.warn('PDF data is undefined');
+        }
         alert('File uploaded successfully!');
       }
       
@@ -724,6 +726,7 @@ export default function ContentUpload() {
   };
 
   // Function to manually generate course image using Stability AI
+  /*
   const generateCourseImage = async (courseId: string, courseTitle: string) => {
     // Check if Stability AI is configured
     if (!stabilityAI.isConfigured()) {
@@ -732,10 +735,10 @@ export default function ContentUpload() {
     }
 
     try {
-      setIsGeneratingImage(prev => ({ ...prev, [courseId]: true }));
+      // setIsGeneratingImage(prev => ({ ...prev, [courseId]: true }));
       
       console.log('Generating AI image for course:', courseTitle);
-      const base64Image = await stabilityAI.generateCourseImage(courseTitle);
+      // const base64Image = await stabilityAI.generateCourseImage(courseTitle);
       
       if (base64Image) {
         // Convert base64 to blob and upload to Supabase storage
@@ -746,10 +749,17 @@ export default function ContentUpload() {
         }
         const blob = new Blob([bytes], { type: 'image/png' });
         
-        // Upload to Supabase storage
-        const fileName = `course-images/${courseId}-${Date.now()}.png`;
+        // Validate blob size (5MB limit)
+        if (blob.size > 5 * 1024 * 1024) {
+          alert('Generated image is too large. Please try again.');
+          // setIsGeneratingImage(prev => ({ ...prev, [courseId]: false }));
+          return;
+        }
+        
+        // Upload to Supabase storage - using the correct 'images' bucket
+        const fileName = `course-${courseId}-${Date.now()}.png`;
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('course-images')
+          .from('images')
           .upload(fileName, blob, {
             cacheControl: '3600',
             upsert: true
@@ -758,13 +768,13 @@ export default function ContentUpload() {
         if (uploadError) {
           console.error('Error uploading AI generated image:', uploadError);
           alert('Failed to upload generated image. Please try again.');
-          setIsGeneratingImage(prev => ({ ...prev, [courseId]: false }));
+          // setIsGeneratingImage(prev => ({ ...prev, [courseId]: false }));
           return;
         }
         
         // Get public URL
         const { data: { publicUrl } } = supabase.storage
-          .from('course-images')
+          .from('images')
           .getPublicUrl(fileName);
         
         // Update course with the new image URL
@@ -783,19 +793,33 @@ export default function ContentUpload() {
       console.error('Error generating AI course image:', error);
       alert('Error generating course image. Please try again.');
     } finally {
-      setIsGeneratingImage(prev => ({ ...prev, [courseId]: false }));
+      // setIsGeneratingImage(prev => ({ ...prev, [courseId]: false }));
     }
   };
+  */
 
   // Function to manually upload course image
   const handleCourseImageUpload = async (courseId: string, file: File) => {
     try {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Please upload a valid image file (JPEG, JPG, PNG, GIF, SVG).');
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Please upload an image smaller than 5MB.');
+        return;
+      }
+      
       // Upload to Supabase storage - using the correct 'images' bucket
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop() || 'jpg';
       const fileName = `course-${courseId}-${Date.now()}.${fileExt}`;
       
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('images')  // Changed from 'course-images' to 'images'
+        .from('images')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: true
@@ -809,7 +833,7 @@ export default function ContentUpload() {
       
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('images')  // Changed from 'course-images' to 'images'
+        .from('images')
         .getPublicUrl(fileName);
       
       // Update course with the new image URL

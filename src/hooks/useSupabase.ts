@@ -559,7 +559,7 @@ export const supabaseHelpers = {
       .single();
     
     if (error) throw error;
-    return data;
+    return data || pdfData; // Return pdfData if select() doesn't return data
   },
 
   deletePDF: async (pdfId: string) => {
