@@ -118,37 +118,136 @@ export default function CourseDetail() {
   // Refs
   const youtubePlayerRef = useRef<HTMLIFrameElement>(null);
 
+  // Check user authentication and get user ID
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error || !session) {
+          setError('Authentication failed. Please log in again.');
+          setIsAuthenticated(false);
+          return;
+        }
+        
+        if (session.user) {
+          setUserId(session.user.id);
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (err) {
+        console.error('Error checking authentication:', err);
+        setError('Failed to verify authentication status');
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const loadPodcastAssignments = async () => {
+    if (!userId || !courseId) return;
+    
+    try {
+      console.log('Loading podcast assignments for user:', userId, 'course:', courseId);
+      // Get podcast assignments for this user that are for podcasts in this course
+      const { data, error } = await supabase
+        .from('podcast_assignments')
+        .select(`
+          *,
+          podcasts!inner (
+            id,
+            course_id
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('podcasts.course_id', courseId);
+        
+      if (error) {
+        console.error('Error loading podcast assignments:', error);
+        return;
+      }
+      
+      console.log('Podcast assignments loaded:', data);
+      setPodcastAssignments(data || []);
+    } catch (error) {
+      console.error('Error loading podcast assignments:', error);
+    }
+  };
+
   // Load PDF assignments
   const loadPdfAssignments = async () => {
     if (!userId || !courseId) return;
     
     try {
+      console.log('Loading PDF assignments for user:', userId, 'course:', courseId);
+      // Get PDF assignments for this user that are for PDFs in this course
       const { data, error } = await supabase
         .from('pdf_assignments')
-        .select('*')
-        .eq('user_id', userId);
+        .select(`
+          *,
+          pdfs!inner (
+            id,
+            course_id
+          )
+        `)
+        .eq('user_id', userId)
+        .eq('pdfs.course_id', courseId);
         
       if (error) {
         console.error('Error loading PDF assignments:', error);
         return;
       }
       
+      console.log('PDF assignments loaded:', data);
       setPdfAssignments(data || []);
     } catch (error) {
       console.error('Error loading PDF assignments:', error);
     }
   };
 
+  // Filter podcasts to only show assigned ones
+  const getAssignedPodcasts = () => {
+    console.log('Filtering podcasts, assignments count:', podcastAssignments.length);
+    console.log('Total podcasts:', podcasts.length);
+    
+    // If no podcast assignments exist, show no podcasts (proper assignment filtering)
+    if (podcastAssignments.length === 0) {
+      console.log('No podcast assignments found, returning empty array');
+      return [];
+    }
+    
+    // Filter podcasts to only show assigned ones
+    const assignedPodcastIds = new Set(podcastAssignments.map(pa => pa.podcast_id));
+    console.log('Assigned podcast IDs:', Array.from(assignedPodcastIds));
+    
+    const filteredPodcasts = podcasts.filter(podcast => assignedPodcastIds.has(podcast.id));
+    console.log('Filtered podcasts count:', filteredPodcasts.length);
+    
+    return filteredPodcasts;
+  };
+
   // Filter PDFs to only show assigned ones
   const getAssignedPDFs = (contentType: string): PDF[] => {
-    // If no PDF assignments exist, show all PDFs (backward compatibility)
+    console.log('Filtering PDFs, assignments count:', pdfAssignments.length);
+    console.log('Total PDFs:', pdfs.length);
+    console.log('Requested content type:', contentType);
+    
+    // If no PDF assignments exist, show no PDFs (proper assignment filtering)
     if (pdfAssignments.length === 0) {
-      return pdfs.filter(pdf => pdf.content_type === contentType);
+      console.log('No PDF assignments found, returning empty array');
+      return [];
     }
     
     // Filter PDFs to only show assigned ones
     const assignedPdfIds = new Set(pdfAssignments.map(pa => pa.pdf_id));
-    return pdfs.filter(pdf => pdf.content_type === contentType && assignedPdfIds.has(pdf.id));
+    console.log('Assigned PDF IDs:', Array.from(assignedPdfIds));
+    
+    const filteredPDFs = pdfs.filter(pdf => pdf.content_type === contentType && assignedPdfIds.has(pdf.id));
+    console.log('Filtered PDFs count:', filteredPDFs.length);
+    
+    return filteredPDFs;
   };
 
   // Load course data when component mounts or courseId changes
@@ -160,9 +259,41 @@ export default function CourseDetail() {
         return;
       }
 
+      // Wait for authentication to be verified before loading course data
+      if (!isAuthenticated) {
+        // Still checking auth, don't load course data yet
+        return;
+      }
+
+      if (!userId) {
+        setError('User not authenticated');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
+        
+        // First check if user is assigned to this course
+        const { data: userCourse, error: userCourseError } = await supabase
+          .from('user_courses')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('course_id', courseId)
+          .maybeSingle();
+
+        if (userCourseError) {
+          console.error('Error checking course assignment:', userCourseError);
+          setError('Error checking course assignment');
+          setLoading(false);
+          return;
+        } else if (!userCourse) {
+          // User is not assigned to this course
+          setError('You are not assigned to this course.');
+          setLoading(false);
+          return;
+        }
         
         // Load course details
         const { data: courseData, error: courseError } = await supabase
@@ -203,14 +334,6 @@ export default function CourseDetail() {
           console.error('Error loading podcasts:', podcastsError);
         } else {
           setPodcasts(podcastsData || []);
-          
-          // Calculate total learning hours based on podcast durations
-          let totalHours = 0;
-          if (podcastsData) {
-            // For now, we'll estimate 30 minutes per podcast as a placeholder
-            // In a real implementation, you would sum the actual durations
-            totalHours = podcastsData.length * 0.5;
-          }
         }
 
         // Load PDFs for this course
@@ -230,7 +353,7 @@ export default function CourseDetail() {
           // Ensure all PDFs have a content_type, set to 'docs' as default if missing
           const processedPdfs = pdfsData?.map(pdf => ({
             ...pdf,
-            content_type: pdf?.content_type || 'docs'
+            content_type: pdf.content_type || 'docs' // Use database value if available, otherwise default to 'docs'
           })) || [];
           setPdfs(processedPdfs);
         }
@@ -248,7 +371,7 @@ export default function CourseDetail() {
     };
 
     loadCourseData();
-  }, [courseId]);
+  }, [courseId, isAuthenticated, userId]);
 
   // Load assignments when userId or courseId changes
   useEffect(() => {
@@ -257,26 +380,6 @@ export default function CourseDetail() {
       loadPdfAssignments();
     }
   }, [userId, courseId]);
-
-  const loadPodcastAssignments = async () => {
-    if (!userId || !courseId) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('podcast_assignments')
-        .select('*')
-        .eq('user_id', userId);
-        
-      if (error) {
-        console.error('Error loading podcast assignments:', error);
-        return;
-      }
-      
-      setPodcastAssignments(data || []);
-    } catch (error) {
-      console.error('Error loading podcast assignments:', error);
-    }
-  };
 
   // Get default placeholder image based on course title
   const getDefaultImage = (courseTitle: string) => {
@@ -299,18 +402,6 @@ export default function CourseDetail() {
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-  };
-
-  // Filter podcasts to only show assigned ones
-  const getAssignedPodcasts = () => {
-    // If no podcast assignments exist, show all podcasts (backward compatibility)
-    if (podcastAssignments.length === 0) {
-      return podcasts;
-    }
-    
-    // Filter podcasts to only show assigned ones
-    const assignedPodcastIds = new Set(podcastAssignments.map(pa => pa.podcast_id));
-    return podcasts.filter(podcast => assignedPodcastIds.has(podcast.id));
   };
 
   const getFilteredPodcasts = () => {
@@ -496,6 +587,11 @@ export default function CourseDetail() {
               Go to Login
             </button>
           )}
+          {error.includes('not assigned') && (
+            <div className="mt-4 text-gray-300">
+              <p>Please contact your administrator to be assigned to this course.</p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -647,48 +743,52 @@ export default function CourseDetail() {
                   {/* Audio List - Left Side */}
                   <div className="lg:w-1/2">
                     <div className="space-y-3">
-                      {podcasts.filter(p => !p.is_youtube_video).length > 0 ? 
-                        podcasts.filter(p => !p.is_youtube_video).map(podcast => {
-                          const completion = getPodcastCompletion(podcast.id);
-                          
-                          return (
-                            <div 
-                              key={podcast.id} 
-                              className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
-                                currentPodcast?.id === podcast.id 
-                                  ? 'bg-gray-800 border border-blue-500' 
-                                  : 'bg-gray-800'
-                              }`}
-                              onClick={() => handlePlayPodcast(podcast)}
-                            >
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 mr-3">
-                                  <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
-                                    <Headphones className="h-5 w-5 text-blue-400" />
-                                  </div>
-                                </div> 
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
-                                  <p className="text-xs text-gray-400">Audio content</p>
-                                  {completion > 0 && (
-                                    <div className="ml-2 flex items-center">
-                                      <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                        <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
-                                      </div>
-                                      <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                      {(() => {
+                        const assignedPodcasts = getAssignedPodcasts().filter(p => !p.is_youtube_video);
+                        console.log('Rendering audio tab, assigned podcasts count:', assignedPodcasts.length);
+                        return assignedPodcasts.length > 0 ? 
+                          assignedPodcasts.map(podcast => {
+                            const completion = getPodcastCompletion(podcast.id);
+                            
+                            return (
+                              <div 
+                                key={podcast.id} 
+                                className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
+                                  currentPodcast?.id === podcast.id 
+                                    ? 'bg-gray-800 border border-blue-500' 
+                                    : 'bg-gray-800'
+                                }`}
+                                onClick={() => handlePlayPodcast(podcast)}
+                              >
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 mr-3">
+                                    <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
+                                      <Headphones className="h-5 w-5 text-blue-400" />
                                     </div>
-                                  )}
+                                  </div> 
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
+                                    <p className="text-xs text-gray-400">Audio content</p>
+                                    {completion > 0 && (
+                                      <div className="ml-2 flex items-center">
+                                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                          <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                                        </div>
+                                        <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
+                            );
+                          }) : (
+                            <div className="text-center py-8 text-gray-400">
+                              <Headphones className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                              <h3 className="text-lg font-medium text-white mb-2">No Audio Content</h3>
+                              <p className="text-gray-400">No audio content has been assigned to you for this course.</p>
                             </div>
                           );
-                        }) : (
-                          <div className="text-center py-8 text-gray-400">
-                            <Headphones className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                            <h3 className="text-lg font-medium text-white mb-2">No Audio Content</h3>
-                            <p className="text-gray-400">This course doesn't have any audio content yet.</p>
-                          </div>
-                        )}
+                      })()}
                     </div>
                   </div>
                   
@@ -763,88 +863,92 @@ export default function CourseDetail() {
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Video List - Left Side */}
                   <div className={currentPodcast && currentPodcast.is_youtube_video ? "lg:w-1/2" : "w-full"}>
-                    {podcasts.filter(p => p.is_youtube_video).length > 0 ? (
-                      <div className={videoViewMode === 'list' ? "space-y-3" : "grid grid-cols-1 md:grid-cols-2 gap-4"}>
-                        {podcasts.filter(p => p.is_youtube_video).map(podcast => {
-                          const completion = getPodcastCompletion(podcast.id);
-                          const videoId = extractYouTubeVideoId(podcast.video_url || '');
-                          
-                          return videoViewMode === 'list' ? (
-                            <div 
-                              key={podcast.id} 
-                              className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
-                                currentPodcast?.id === podcast.id 
-                                  ? 'bg-gray-800 border border-red-500' 
-                                  : 'bg-gray-800'
-                              }`}
-                              onClick={() => handlePlayPodcast(podcast)}
-                            >
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 mr-3">
-                                  <div className="w-10 h-10 bg-red-900 rounded-full flex items-center justify-center">
-                                    <Youtube className="h-5 w-5 text-red-400" />
-                                  </div>
-                                </div> 
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
-                                  <p className="text-xs text-gray-400">YouTube Video</p>
-                                  {completion > 0 && (
-                                    <div className="ml-2 flex items-center">
-                                      <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                        <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                    {(() => {
+                      const assignedVideos = getAssignedPodcasts().filter(p => p.is_youtube_video);
+                      console.log('Rendering video tab, assigned videos count:', assignedVideos.length);
+                      return assignedVideos.length > 0 ? (
+                        <div className={videoViewMode === 'list' ? "space-y-3" : "grid grid-cols-1 md:grid-cols-2 gap-4"}>
+                          {assignedVideos.map(podcast => {
+                            const completion = getPodcastCompletion(podcast.id);
+                            const videoId = extractYouTubeVideoId(podcast.video_url || '');
+                            
+                            return videoViewMode === 'list' ? (
+                              <div 
+                                key={podcast.id} 
+                                className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
+                                  currentPodcast?.id === podcast.id 
+                                    ? 'bg-gray-800 border border-red-500' 
+                                    : 'bg-gray-800'
+                                }`}
+                                onClick={() => handlePlayPodcast(podcast)}
+                              >
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 mr-3">
+                                    <div className="w-10 h-10 bg-red-900 rounded-full flex items-center justify-center">
+                                      <Youtube className="h-5 w-5 text-red-400" />
+                                    </div>
+                                  </div> 
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
+                                    <p className="text-xs text-gray-400">YouTube Video</p>
+                                    {completion > 0 && (
+                                      <div className="ml-2 flex items-center">
+                                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                          <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                                        </div>
+                                        <span className="text-xs text-gray-500 ml-1">{completion}%</span>
                                       </div>
-                                      <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div 
+                                key={podcast.id} 
+                                className={`border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
+                                  currentPodcast?.id === podcast.id 
+                                    ? 'border-red-500 ring-2 ring-red-900 bg-gray-800' 
+                                    : 'bg-gray-800'
+                                }`}
+                                onClick={() => handlePlayPodcast(podcast)}
+                              >
+                                <div className="aspect-video bg-gray-700 rounded-lg mb-3 relative overflow-hidden">
+                                  {videoId ? (
+                                    <img 
+                                      src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`} 
+                                      alt={podcast.title}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <Youtube className="h-8 w-8 text-gray-400" />
                                     </div>
                                   )}
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="bg-black bg-opacity-50 rounded-full p-2">
+                                      <Play className="h-6 w-6 text-white" />
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <div 
-                              key={podcast.id} 
-                              className={`border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer ${
-                                currentPodcast?.id === podcast.id 
-                                  ? 'border-red-500 ring-2 ring-red-900 bg-gray-800' 
-                                  : 'bg-gray-800'
-                              }`}
-                              onClick={() => handlePlayPodcast(podcast)}
-                            >
-                              <div className="aspect-video bg-gray-700 rounded-lg mb-3 relative overflow-hidden">
-                                {videoId ? (
-                                  <img 
-                                    src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`} 
-                                    alt={podcast.title}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <Youtube className="h-8 w-8 text-gray-400" />
+                                <h3 className="text-sm font-medium text-white mb-1 truncate">{podcast.title}</h3>
+                                <p className="text-xs text-gray-400 mb-2">YouTube Video</p>
+                                {completion > 0 && (
+                                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
                                   </div>
                                 )}
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="bg-black bg-opacity-50 rounded-full p-2">
-                                    <Play className="h-6 w-6 text-white" />
-                                  </div>
-                                </div>
                               </div>
-                              <h3 className="text-sm font-medium text-white mb-1 truncate">{podcast.title}</h3>
-                              <p className="text-xs text-gray-400 mb-2">YouTube Video</p>
-                              {completion > 0 && (
-                                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                  <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-400">
-                        <Youtube className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                        <h3 className="text-lg font-medium text-white mb-2">No Video Content</h3>
-                        <p className="text-gray-400">This course doesn't have any video content yet.</p>
-                      </div>
-                    )}
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-400">
+                          <Youtube className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                          <h3 className="text-lg font-medium text-white mb-2">No Video Content</h3>
+                          <p className="text-gray-400">No video content has been assigned to you for this course.</p>
+                        </div>
+                      );
+                    })()}
                   </div>
                   
                   {/* YouTube Player - Right Side */}
@@ -891,6 +995,7 @@ export default function CourseDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
                     const assignedDocs = getAssignedPDFs('docs');
+                    console.log('Rendering docs tab, assigned docs count:', assignedDocs.length);
                     return assignedDocs.length > 0 ? (
                       <>
                         {assignedDocs.map((pdf: PDF) => (
@@ -927,7 +1032,7 @@ export default function CourseDetail() {
                       <div className="text-center py-8 text-gray-400 col-span-full">
                         <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
                         <h3 className="text-lg font-medium text-white mb-2">No Documents</h3>
-                        <p className="text-gray-400">This course doesn't have any documents yet.</p>
+                        <p className="text-gray-400">No documents have been assigned to you for this course.</p>
                       </div>
                     );
                   })()}
@@ -942,6 +1047,7 @@ export default function CourseDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
                     const assignedImages = getAssignedPDFs('images');
+                    console.log('Rendering images tab, assigned images count:', assignedImages.length);
                     return assignedImages.length > 0 ? (
                       <>
                         {assignedImages.map((pdf: PDF) => (
@@ -971,7 +1077,7 @@ export default function CourseDetail() {
                       <div className="text-center py-8 text-gray-400 col-span-full">
                         <Image className="h-12 w-12 mx-auto text-gray-500 mb-4" />
                         <h3 className="text-lg font-medium text-white mb-2">No Images</h3>
-                        <p className="text-gray-400">This course doesn't have any images or infographics yet.</p>
+                        <p className="text-gray-400">No images or infographics have been assigned to you for this course.</p>
                       </div>
                     );
                   })()}
@@ -986,6 +1092,7 @@ export default function CourseDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
                     const assignedTemplates = getAssignedPDFs('templates');
+                    console.log('Rendering templates tab, assigned templates count:', assignedTemplates.length);
                     return assignedTemplates.length > 0 ? (
                       <>
                         {assignedTemplates.map((pdf: PDF) => (
@@ -1017,7 +1124,7 @@ export default function CourseDetail() {
                       <div className="text-center py-8 text-gray-400 col-span-full">
                         <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
                         <h3 className="text-lg font-medium text-white mb-2">No Templates</h3>
-                        <p className="text-gray-400">This course doesn't have any templates or other content yet.</p>
+                        <p className="text-gray-400">No templates or other content have been assigned to you for this course.</p>
                       </div>
                     );
                   })()}

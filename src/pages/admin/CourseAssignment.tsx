@@ -333,6 +333,35 @@ export default function CourseAssignment() {
         }
       }
 
+      // Create PDF assignments using admin client to bypass RLS
+      if (selectedContent.pdfs.length > 0) {
+        const pdfAssignments = [];
+        
+        for (const userId of selectedUsers) {
+          for (const pdfId of selectedContent.pdfs) {
+            pdfAssignments.push({
+              user_id: userId,
+              pdf_id: pdfId,
+              assigned_by: currentUser.id,
+              assigned_at: new Date().toISOString(),
+              due_date: null
+            });
+          }
+        }
+        
+        // Insert PDF assignments using admin client
+        const { error: pdfAssignmentError } = await supabaseAdmin
+          .from('pdf_assignments')
+          .upsert(pdfAssignments, {
+            onConflict: 'user_id,pdf_id'
+          });
+
+        if (pdfAssignmentError) {
+          console.error('PDF assignment error:', pdfAssignmentError);
+          throw new Error(`Failed to assign PDFs: ${pdfAssignmentError.message}`);
+        }
+      }
+
       // Create course assignments for PDFs and courses using admin client
       const courseAssignments = [];
       const allSelectedPdfs = selectedContent.pdfs;
@@ -358,7 +387,8 @@ export default function CourseAssignment() {
             courseAssignments.push({
               user_id: userId,
               course_id: courseId,
-              assigned_at: new Date().toISOString()
+              assigned_at: new Date().toISOString(),
+              assigned_by: currentUser.id
             });
           }
         }

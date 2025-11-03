@@ -419,6 +419,7 @@ export interface Database {
           pdf_url: string
           created_at: string
           created_by: string | null
+          content_type: string | null
         }
         Insert: {
           id?: string
@@ -427,6 +428,7 @@ export interface Database {
           pdf_url: string
           created_at?: string
           created_by?: string | null
+          content_type?: string | null
         }
         Update: {
           id?: string
@@ -435,6 +437,7 @@ export interface Database {
           pdf_url?: string
           created_at?: string
           created_by?: string | null
+          content_type?: string | null
         }
       }
       chat_history: {

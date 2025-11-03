@@ -721,6 +721,36 @@ export const supabaseHelpers = {
     return data;
   },
 
+  // PDF assignment operations
+  getAllPDFAssignments: async () => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
+      .from('pdf_assignments')
+      .select('*')
+      .order('assigned_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  },
+
+  createPDFAssignment: async (assignmentData: any) => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
+      .from('pdf_assignments')
+      .insert(assignmentData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
   getUserCourses: async (userId: string) => {
     if (!supabaseAdmin) {
       throw new Error('Admin client not available');
