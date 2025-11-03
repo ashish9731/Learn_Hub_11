@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, ChevronLeft, Music, Folder, User, Image, RefreshCw, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { supabaseHelpers } from '../../hooks/useSupabase';
-import DebugUserCourses from '../../components/Debug/DebugUserCourses';
 import QuizComponent from '../../components/Quiz/QuizComponent';
 import QuizResults from '../../components/Quiz/QuizResults';
 import PodcastPlayer from '../../components/Media/PodcastPlayer';
@@ -43,6 +42,7 @@ interface PDF {
   course_id: string;
   pdf_url: string;
   created_at: string;
+  content_type: string;
 }
 
 interface PodcastProgress {
@@ -59,7 +59,18 @@ interface PodcastAssignment {
   id: string;
   user_id: string;
   podcast_id: string;
+  assigned_by: string | null;
   assigned_at: string;
+  due_date: string | null;
+}
+
+interface PDFAssignment {
+  id: string;
+  user_id: string;
+  pdf_id: string;
+  assigned_by: string | null;
+  assigned_at: string;
+  due_date: string | null;
 }
 
 interface CategoryWithProgress {
@@ -79,8 +90,9 @@ export default function CourseDetail() {
   const [course, setCourse] = useState<any>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
-  const [pdfs, setPdfs] = useState<any[]>([]);
+  const [pdfs, setPdfs] = useState<PDF[]>([]);
   const [podcastAssignments, setPodcastAssignments] = useState<PodcastAssignment[]>([]);
+  const [pdfAssignments, setPdfAssignments] = useState<PDFAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('podcasts');
@@ -105,6 +117,39 @@ export default function CourseDetail() {
 
   // Refs
   const youtubePlayerRef = useRef<HTMLIFrameElement>(null);
+
+  // Load PDF assignments
+  const loadPdfAssignments = async () => {
+    if (!userId || !courseId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('pdf_assignments')
+        .select('*')
+        .eq('user_id', userId);
+        
+      if (error) {
+        console.error('Error loading PDF assignments:', error);
+        return;
+      }
+      
+      setPdfAssignments(data || []);
+    } catch (error) {
+      console.error('Error loading PDF assignments:', error);
+    }
+  };
+
+  // Filter PDFs to only show assigned ones
+  const getAssignedPDFs = (contentType: string): PDF[] => {
+    // If no PDF assignments exist, show all PDFs (backward compatibility)
+    if (pdfAssignments.length === 0) {
+      return pdfs.filter(pdf => pdf.content_type === contentType);
+    }
+    
+    // Filter PDFs to only show assigned ones
+    const assignedPdfIds = new Set(pdfAssignments.map(pa => pa.pdf_id));
+    return pdfs.filter(pdf => pdf.content_type === contentType && assignedPdfIds.has(pdf.id));
+  };
 
   // Load course data when component mounts or courseId changes
   useEffect(() => {
@@ -205,50 +250,11 @@ export default function CourseDetail() {
     loadCourseData();
   }, [courseId]);
 
-  // Load user authentication status
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setUserId(session.user.id);
-          setIsAuthenticated(true);
-          
-          // Load user profile to get name
-          const { data: profile, error } = await supabase
-            .from('user_profiles')
-            .select('first_name, last_name')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          if (!error && profile) {
-            setUserName(`${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'User');
-          } else {
-            setUserName('User');
-          }
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch (err) {
-        console.error('Error checking authentication:', err);
-        setIsAuthenticated(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  // Load podcast progress when user ID changes
-  useEffect(() => {
-    if (userId) {
-      loadPodcastProgress();
-    }
-  }, [userId]);
-
-  // Load podcast assignments when user ID changes
+  // Load assignments when userId or courseId changes
   useEffect(() => {
     if (userId && courseId) {
       loadPodcastAssignments();
+      loadPdfAssignments();
     }
   }, [userId, courseId]);
 
@@ -491,12 +497,6 @@ export default function CourseDetail() {
             </button>
           )}
         </div>
-        
-        {/* Debug component for troubleshooting */}
-        <div className="mt-8">
-          <h3 className="text-lg font-bold mb-4">Debug Information</h3>
-          <DebugUserCourses />
-        </div>
       </div>
     );
   }
@@ -507,12 +507,6 @@ export default function CourseDetail() {
       <div className="p-6">
         <div className="text-center py-12">
           <div className="text-gray-400">Course not found</div>
-        </div>
-        
-        {/* Debug component for troubleshooting */}
-        <div className="mt-8">
-          <h3 className="text-lg font-bold mb-4">Debug Information</h3>
-          <DebugUserCourses />
         </div>
       </div>
     );
@@ -532,14 +526,6 @@ export default function CourseDetail() {
           </button>
         </div>
       </div>
-
-      {/* Debug component for troubleshooting - only shown in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mb-6">
-          <h3 className="text-lg font-bold mb-4">Debug Information</h3>
-          <DebugUserCourses />
-        </div>
-      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
@@ -904,48 +890,46 @@ export default function CourseDetail() {
                 <h2 className="text-xl font-semibold text-white mb-4">Documents</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
-                    const docs = pdfs?.filter(pdf => {
-                      const isDoc = pdf && pdf.content_type === 'docs';
-                      console.log(`Filtering ${pdf?.title}: content_type=${pdf?.content_type}, isDoc=${isDoc}`);
-                      return isDoc;
-                    }) || [];
-                    console.log('Docs filtered:', docs);
-                    return docs.length > 0 ? 
-                      docs.map(pdf => (
-                        <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
-                          <div className="flex items-start">
-                            <div className="flex-shrink-0 p-2 bg-blue-900 rounded-lg">
-                              <FileText className="h-8 w-8 text-blue-400" />
-                            </div>
-                            <div className="ml-3 flex-1">
-                              <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
-                              <p className="text-xs text-gray-400 mb-3">
-                                {(pdf && pdf.content_type === 'docs') ? 'PDF Document' : 'Template/Document'}
-                              </p>
-                              <a 
-                                href={pdf.pdf_url} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  // Open in new window/tab
-                                  window.open(pdf.pdf_url, '_blank');
-                                }}
-                              >
-                                <FileText className="h-3 w-3 mr-1" />
-                                {(pdf && pdf.content_type === 'docs') ? 'View Document' : 'View Template'}
-                              </a>
+                    const assignedDocs = getAssignedPDFs('docs');
+                    return assignedDocs.length > 0 ? (
+                      <>
+                        {assignedDocs.map((pdf: PDF) => (
+                          <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
+                            <div className="flex items-start">
+                              <div className="flex-shrink-0 p-2 bg-blue-900 rounded-lg">
+                                <FileText className="h-8 w-8 text-blue-400" />
+                              </div>
+                              <div className="ml-3 flex-1">
+                                <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
+                                <p className="text-xs text-gray-400 mb-3">
+                                  {(pdf && pdf.content_type === 'docs') ? 'PDF Document' : 'Template/Document'}
+                                </p>
+                                <a 
+                                  href={pdf.pdf_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    // Open in new window/tab
+                                    window.open(pdf.pdf_url, '_blank');
+                                  }}
+                                >
+                                  <FileText className="h-3 w-3 mr-1" />
+                                  {(pdf && pdf.content_type === 'docs') ? 'View Document' : 'View Template'}
+                                </a>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )) : (
-                        <div className="text-center py-8 text-gray-400 col-span-full">
-                          <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                          <h3 className="text-lg font-medium text-white mb-2">No Documents</h3>
-                          <p className="text-gray-400">This course doesn't have any documents yet.</p>
-                        </div>
-                      );
+                        ))}
+                      </>
+                    ) : (
+                      <div className="text-center py-8 text-gray-400 col-span-full">
+                        <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                        <h3 className="text-lg font-medium text-white mb-2">No Documents</h3>
+                        <p className="text-gray-400">This course doesn't have any documents yet.</p>
+                      </div>
+                    );
                   })()}
                 </div>
               </div>
@@ -956,35 +940,41 @@ export default function CourseDetail() {
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-white mb-4">Images & Infographics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {pdfs?.filter(pdf => pdf && pdf.content_type === 'images').length > 0 ? 
-                    (pdfs?.filter(pdf => pdf && pdf.content_type === 'images') || []).map(pdf => (
-                      <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
-                        <div className="aspect-video bg-gray-700 rounded-lg mb-3 overflow-hidden">
-                          <img 
-                            src={pdf.pdf_url} 
-                            alt={pdf.title}
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                        <h3 className="text-sm font-medium text-white mb-1 truncate">{pdf.title}</h3>
-                        <p className="text-xs text-gray-400 mb-2">Image</p>
-                        <a 
-                          href={pdf.pdf_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
-                        >
-                          <Image className="h-3 w-3 mr-1" />
-                          View Image
-                        </a>
-                      </div>
-                    )) : (
+                  {(() => {
+                    const assignedImages = getAssignedPDFs('images');
+                    return assignedImages.length > 0 ? (
+                      <>
+                        {assignedImages.map((pdf: PDF) => (
+                          <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
+                            <div className="aspect-video bg-gray-700 rounded-lg mb-3 overflow-hidden">
+                              <img 
+                                src={pdf.pdf_url} 
+                                alt={pdf.title}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            <h3 className="text-sm font-medium text-white mb-1 truncate">{pdf.title}</h3>
+                            <p className="text-xs text-gray-400 mb-2">Image</p>
+                            <a 
+                              href={pdf.pdf_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
+                            >
+                              <Image className="h-3 w-3 mr-1" />
+                              View Image
+                            </a>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
                       <div className="text-center py-8 text-gray-400 col-span-full">
                         <Image className="h-12 w-12 mx-auto text-gray-500 mb-4" />
                         <h3 className="text-lg font-medium text-white mb-2">No Images</h3>
                         <p className="text-gray-400">This course doesn't have any images or infographics yet.</p>
                       </div>
-                    )}
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -995,43 +985,41 @@ export default function CourseDetail() {
                 <h2 className="text-xl font-semibold text-white mb-4">Templates & Other Content</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
-                    const templates = pdfs?.filter(pdf => {
-                      const isTemplate = pdf && pdf.content_type === 'templates';
-                      console.log(`Filtering ${pdf?.title}: content_type=${pdf?.content_type}, isTemplate=${isTemplate}`);
-                      return isTemplate;
-                    }) || [];
-                    console.log('Templates filtered:', templates);
-                    return templates.length > 0 ? 
-                      templates.map(pdf => (
-                        <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
-                          <div className="flex items-start">
-                            <div className="flex-shrink-0 p-2 bg-blue-900 rounded-lg">
-                              <FileText className="h-8 w-8 text-blue-400" />
-                            </div>
-                            <div className="ml-3 flex-1">
-                              <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
-                              <p className="text-xs text-gray-400 mb-3">
-                                {(pdf && pdf.content_type === 'templates') ? 'Template/Document' : 'PDF Document'}
-                              </p>
-                              <a 
-                                href={pdf.pdf_url} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
-                              >
-                                <FileText className="h-3 w-3 mr-1" />
-                                {(pdf && pdf.content_type === 'templates') ? 'View Template' : 'View Document'}
-                              </a>
+                    const assignedTemplates = getAssignedPDFs('templates');
+                    return assignedTemplates.length > 0 ? (
+                      <>
+                        {assignedTemplates.map((pdf: PDF) => (
+                          <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
+                            <div className="flex items-start">
+                              <div className="flex-shrink-0 p-2 bg-blue-900 rounded-lg">
+                                <FileText className="h-8 w-8 text-blue-400" />
+                              </div>
+                              <div className="ml-3 flex-1">
+                                <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
+                                <p className="text-xs text-gray-400 mb-3">
+                                  {(pdf && pdf.content_type === 'templates') ? 'Template/Document' : 'PDF Document'}
+                                </p>
+                                <a 
+                                  href={pdf.pdf_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
+                                >
+                                  <FileText className="h-3 w-3 mr-1" />
+                                  {(pdf && pdf.content_type === 'templates') ? 'View Template' : 'View Document'}
+                                </a>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )) : (
-                        <div className="text-center py-8 text-gray-400 col-span-full">
-                          <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                          <h3 className="text-lg font-medium text-white mb-2">No Templates</h3>
-                          <p className="text-gray-400">This course doesn't have any templates or other content yet.</p>
-                        </div>
-                      );
+                        ))}
+                      </>
+                    ) : (
+                      <div className="text-center py-8 text-gray-400 col-span-full">
+                        <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                        <h3 className="text-lg font-medium text-white mb-2">No Templates</h3>
+                        <p className="text-gray-400">This course doesn't have any templates or other content yet.</p>
+                      </div>
+                    );
                   })()}
                 </div>
               </div>

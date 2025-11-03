@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, BookOpen, Users, CheckCircle, XCircle, Mail, User, Building2, ChevronDown, ChevronRight, Headphones, FileText, Music } from 'lucide-react';
+import { Search, Plus, BookOpen, Users, CheckCircle, XCircle, Mail, User, Building2, ChevronDown, ChevronRight, Headphones, FileText, Music, Image } from 'lucide-react';
 import { supabaseHelpers } from '../../hooks/useSupabase';
 import { useRealtimeSync } from '../../hooks/useSupabase';
 import { supabase, supabaseAdmin } from '../../lib/supabase';
@@ -35,6 +35,7 @@ interface PDF {
   title: string;
   course_id: string;
   created_at: string;
+  content_type: string;
 }
 
 interface Category {
@@ -250,8 +251,11 @@ export default function CourseAssignment() {
       };
     }).filter(cat => cat.podcasts.length > 0);
     
-    // Get all PDFs for this course
+    // Get all PDFs for this course and separate by content type
     const coursePdfs = supabaseData.pdfs.filter((pdf: PDF) => pdf.course_id === course.id);
+    const docs = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'docs');
+    const images = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'images');
+    const templates = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'templates');
     
     // Calculate total content
     const totalPodcasts = supabaseData.podcasts.filter(
@@ -264,6 +268,9 @@ export default function CourseAssignment() {
       podcastCategories: podcastsByCategory,
       uncategorizedPodcasts,
       coursePdfs,
+      docs,
+      images,
+      templates,
       totalPodcasts,
       totalContent: totalPodcasts + coursePdfs.length
     };
@@ -725,15 +732,62 @@ export default function CourseAssignment() {
                               </div>
                             )}
                             
-                            {/* Documents Section */}
-                            {course.coursePdfs.length > 0 && (
+                            {/* Documents Section - Separated by content type */}
+                            {(course.docs.length > 0 || course.images.length > 0 || course.templates.length > 0) && (
                               <div className="mb-4">
                                 <h5 className="text-sm font-medium text-purple-400 mb-2 flex items-center">
                                   <FileText className="h-4 w-4 mr-1" />
-                                  Documents ({course.coursePdfs.length})
+                                  Documents ({course.docs.length + course.images.length + course.templates.length})
                                 </h5>
                                 <div className="space-y-1 ml-4">
-                                  {course.coursePdfs.map((pdf) => {
+                                  {/* Docs */}
+                                  {course.docs.map((pdf) => {
+                                    const isSelected = selectedContent.pdfs.includes(pdf.id);
+                                    return (
+                                      <div
+                                        key={pdf.id}
+                                        className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
+                                          isSelected ? 'bg-blue-900/30 border border-blue-600' : 'bg-[#252525] hover:bg-[#333333]'
+                                        }`}
+                                        onClick={() => handleContentSelection('pdfs', pdf.id)}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={isSelected}
+                                          onChange={() => handleContentSelection('pdfs', pdf.id)}
+                                          className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-[#333333] rounded mr-2"
+                                        />
+                                        <FileText className="h-3 w-3 text-blue-500 mr-1" />
+                                        <span className="text-xs text-white">{pdf.title}</span>
+                                      </div>
+                                    );
+                                  })}
+                                  
+                                  {/* Images */}
+                                  {course.images.map((pdf) => {
+                                    const isSelected = selectedContent.pdfs.includes(pdf.id);
+                                    return (
+                                      <div
+                                        key={pdf.id}
+                                        className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
+                                          isSelected ? 'bg-green-900/30 border border-green-600' : 'bg-[#252525] hover:bg-[#333333]'
+                                        }`}
+                                        onClick={() => handleContentSelection('pdfs', pdf.id)}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={isSelected}
+                                          onChange={() => handleContentSelection('pdfs', pdf.id)}
+                                          className="h-3 w-3 text-green-600 focus:ring-green-500 border-[#333333] rounded mr-2"
+                                        />
+                                        <Image className="h-3 w-3 text-green-500 mr-1" />
+                                        <span className="text-xs text-white">{pdf.title}</span>
+                                      </div>
+                                    );
+                                  })}
+                                  
+                                  {/* Templates */}
+                                  {course.templates.map((pdf) => {
                                     const isSelected = selectedContent.pdfs.includes(pdf.id);
                                     return (
                                       <div
@@ -757,7 +811,7 @@ export default function CourseAssignment() {
                                 </div>
                               </div>
                             )}
-                            
+
                             {course.totalContent === 0 && (
                               <p className="text-center text-[#a0a0a0] py-4 text-xs">No content available</p>
                             )}
