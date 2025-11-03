@@ -222,7 +222,11 @@ export default function CourseDetail() {
     const assignedPodcastIds = new Set(podcastAssignments.map(pa => pa.podcast_id));
     console.log('Assigned podcast IDs:', Array.from(assignedPodcastIds));
     
-    const filteredPodcasts = podcasts.filter(podcast => assignedPodcastIds.has(podcast.id));
+    const filteredPodcasts = podcasts.filter(podcast => {
+      const isAssigned = assignedPodcastIds.has(podcast.id);
+      console.log(`Podcast ${podcast.id} - Title: ${podcast.title}, Assigned: ${isAssigned}`);
+      return isAssigned;
+    });
     console.log('Filtered podcasts count:', filteredPodcasts.length);
     
     return filteredPodcasts;
@@ -244,7 +248,14 @@ export default function CourseDetail() {
     const assignedPdfIds = new Set(pdfAssignments.map(pa => pa.pdf_id));
     console.log('Assigned PDF IDs:', Array.from(assignedPdfIds));
     
-    const filteredPDFs = pdfs.filter(pdf => pdf.content_type === contentType && assignedPdfIds.has(pdf.id));
+    // Filter by both assignment and content type
+    const filteredPDFs = pdfs.filter(pdf => {
+      const isAssigned = assignedPdfIds.has(pdf.id);
+      const matchesContentType = pdf.content_type === contentType;
+      console.log(`PDF ${pdf.id} - Title: ${pdf.title}, Assigned: ${isAssigned}, ContentType: ${pdf.content_type}, Matches: ${matchesContentType}`);
+      return isAssigned && matchesContentType;
+    });
+    
     console.log('Filtered PDFs count:', filteredPDFs.length);
     
     return filteredPDFs;
