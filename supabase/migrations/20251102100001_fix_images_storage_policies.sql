@@ -4,11 +4,16 @@
   Ensure Super Admin users can upload course images to the 'images' bucket
 */
 
--- Drop existing conflicting policies if they exist
+-- Drop all existing policies for the images bucket if they exist
 DROP POLICY IF EXISTS "super_admin_images_storage" ON storage.objects;
 DROP POLICY IF EXISTS "images_storage_insert" ON storage.objects;
 DROP POLICY IF EXISTS "images_storage_update" ON storage.objects;
 DROP POLICY IF EXISTS "images_storage_delete" ON storage.objects;
+DROP POLICY IF EXISTS "super_admin_images_all" ON storage.objects;
+DROP POLICY IF EXISTS "admin_images_insert" ON storage.objects;
+DROP POLICY IF EXISTS "admin_images_update" ON storage.objects;
+DROP POLICY IF EXISTS "admin_images_delete" ON storage.objects;
+DROP POLICY IF EXISTS "user_images_select" ON storage.objects;
 
 -- Create comprehensive policies for images bucket
 -- Super Admin can do everything with images
