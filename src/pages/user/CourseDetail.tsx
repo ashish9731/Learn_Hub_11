@@ -1019,49 +1019,6 @@ export default function CourseDetail() {
                             }}
                           />
                         </div>
-                        {/* Complete Button for Audio */}
-                        <div className="mt-4">
-                          <button
-                            onClick={async () => {
-                              try {
-                                // Mark as 100% complete
-                                await supabaseHelpers.savePodcastProgressWithRetry(
-                                  userId || '',
-                                  currentPodcast.id,
-                                  100, // playback position
-                                  100, // duration
-                                  100  // progress percent
-                                );
-                                
-                                // Update local state
-                                setPodcastProgress(prev => ({
-                                  ...prev,
-                                  [currentPodcast.id]: {
-                                    id: currentPodcast.id,
-                                    user_id: userId || '',
-                                    podcast_id: currentPodcast.id,
-                                    playback_position: 100,
-                                    duration: 100,
-                                    progress_percent: 100,
-                                    last_played_at: new Date().toISOString()
-                                  }
-                                }));
-                                
-                                alert(`${currentPodcast.title} marked as complete!`);
-                                // Refresh progress to update UI
-                                setTimeout(() => {
-                                  loadPodcastProgress();
-                                }, 500);
-                              } catch (error) {
-                                console.error('Error marking audio as complete:', error);
-                                alert('Error marking content as complete');
-                              }
-                            }}
-                            className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                          >
-                            Mark Audio Module Complete
-                          </button>
-                        </div>
                       </div>
                     ) : (
                       <div className="bg-gray-800 rounded-lg p-8 text-center">
