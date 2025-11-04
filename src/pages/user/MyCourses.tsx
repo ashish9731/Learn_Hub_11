@@ -202,12 +202,6 @@ export default function MyCourses() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm text-gray-300">
                     <div className="flex items-center">
-                      <Folder className="h-4 w-4 mr-1" />
-                      {courseCategories.length > 0 && (
-                        <span>{courseCategories.length} categories</span>
-                      )}
-                    </div>
-                    <div className="flex items-center">
                       <Play className="h-4 w-4 mr-1" />
                       <span>{coursePodcasts.length} podcasts</span>
                     </div>
