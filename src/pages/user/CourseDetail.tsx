@@ -391,6 +391,7 @@ export default function CourseDetail() {
       loadPodcastAssignments();
       loadPdfAssignments();
       loadQuizAttempts(); // Load quiz attempts
+      loadPodcastProgress(); // Load podcast progress
     }
   }, [userId, courseId]);
 
@@ -562,6 +563,8 @@ export default function CourseDetail() {
         
         setPodcastProgress(progressMap);
         console.log('Loaded podcast progress:', progressMap);
+      } else {
+        console.log('No podcast progress found for user:', userId);
       }
     } catch (error) {
       console.error('Error loading podcast progress:', error);
@@ -741,10 +744,12 @@ export default function CourseDetail() {
                     </div>
                   </div>
 
-                  <p className="text-gray-300 text-lg mb-8 leading-relaxed">{course.description || 'No description provided for this course.'}</p>
+                  <p className="text-gray-300 text-lg mb-8 leading-relaxed">
+                    {course.description ? course.description : 'No description provided for this course.'}
+                  </p>
 
                   {/* Course Metadata */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
                       <div className="text-2xl font-bold text-blue-400 mb-1">
                         {categoriesWithProgress.length}
@@ -753,12 +758,18 @@ export default function CourseDetail() {
                     </div>
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
                       <div className="text-2xl font-bold text-green-400 mb-1">
-                        {podcasts.length}
+                        {getAssignedPodcasts().filter(p => !p.is_youtube_video).length}
                       </div>
-                      <div className="text-sm font-medium text-gray-300">Podcasts</div>
+                      <div className="text-sm font-medium text-gray-300">Audio Files</div>
                     </div>
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
                       <div className="text-2xl font-bold text-purple-400 mb-1">
+                        {getAssignedPodcasts().filter(p => p.is_youtube_video).length}
+                      </div>
+                      <div className="text-sm font-medium text-gray-300">Video Files</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
+                      <div className="text-2xl font-bold text-yellow-400 mb-1">
                         {pdfs.length}
                       </div>
                       <div className="text-sm font-medium text-gray-300">Documents</div>
@@ -860,6 +871,8 @@ export default function CourseDetail() {
                               setPodcastProgress(prev => ({
                                 ...prev,
                                 [currentPodcast.id]: {
+                                  // Use existing progress data if available, otherwise create new
+                                  ...(prev[currentPodcast.id] || {}),
                                   id: currentPodcast.id,
                                   user_id: userId || '',
                                   podcast_id: currentPodcast.id,
