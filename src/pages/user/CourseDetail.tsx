@@ -469,14 +469,28 @@ export default function CourseDetail() {
     
     const allRequiredContent = [...audioContent, ...videoContent];
     
+    console.log('Checking module completion:');
+    console.log('Audio content:', audioContent);
+    console.log('Video content:', videoContent);
+    console.log('All required content:', allRequiredContent);
+    console.log('Current podcast progress:', podcastProgress);
+    
     // If there's no required content, consider it completed
-    if (allRequiredContent.length === 0) return true;
+    if (allRequiredContent.length === 0) {
+      console.log('No required content found, considering completed');
+      return true;
+    }
     
     // Check if all required content has 100% progress
-    return allRequiredContent.every(content => {
+    const allCompleted = allRequiredContent.every(content => {
       const progress = podcastProgress[content.id];
-      return progress && progress.progress_percent >= 100;
+      const isCompleted = progress && progress.progress_percent >= 100;
+      console.log(`Content ${content.id} - Title: ${content.title}, Progress: ${progress?.progress_percent || 0}%, Completed: ${isCompleted}`);
+      return isCompleted;
     });
+    
+    console.log('All modules completed:', allCompleted);
+    return allCompleted;
   };
 
   // Check if module quizzes are completed
@@ -1222,6 +1236,18 @@ export default function CourseDetail() {
                     <div className="bg-white rounded-lg p-4 shadow-sm">
                       <p className="text-sm text-gray-600">Complete all audio and video content in the Audio and Video tabs to unlock quizzes.</p>
                     </div>
+                    {/* Temporary override for testing - REMOVE IN PRODUCTION */}
+                    <button
+                      onClick={() => {
+                        console.log('Manually overriding module completion check');
+                        // Force show the quiz selection
+                        setShowQuiz(false);
+                        setShowFinalQuiz(false);
+                      }}
+                      className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                    >
+                      Override Completion Check (Testing Only)
+                    </button>
                   </div>
                 ) : quizResults ? (
                   <QuizResults
