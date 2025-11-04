@@ -864,7 +864,7 @@ export default function CourseDetail() {
                       key={tab}
                       onClick={() => {
                         if (tab === 'quizzes' && !checkAllModulesCompleted()) {
-                          alert('You must complete all audio and video modules before accessing quizzes.');
+                          alert('You must complete all modules before accessing quizzes.');
                           return;
                         }
                         setActiveTab(tab);
@@ -942,6 +942,54 @@ export default function CourseDetail() {
                             </div>
                           );
                       })()}
+                      {/* Complete Module Button for Audio - Only show if there are audio files and not all are completed */}
+                      {getAssignedPodcasts().filter(p => !p.is_youtube_video).length > 0 && !getAssignedPodcasts().filter(p => !p.is_youtube_video).every(p => getPodcastCompletion(p.id) >= 100) && (
+                        <div className="mt-4">
+                          <button
+                            onClick={async () => {
+                              try {
+                                const audioPodcasts = getAssignedPodcasts().filter(p => !p.is_youtube_video);
+                                // Mark all audio podcasts as 100% complete
+                                for (const podcast of audioPodcasts) {
+                                  await supabaseHelpers.savePodcastProgressWithRetry(
+                                    userId || '',
+                                    podcast.id,
+                                    100, // playback position
+                                    100, // duration
+                                    100  // progress percent
+                                  );
+                                  
+                                  // Update local state
+                                  setPodcastProgress(prev => ({
+                                    ...prev,
+                                    [podcast.id]: {
+                                      id: podcast.id,
+                                      user_id: userId || '',
+                                      podcast_id: podcast.id,
+                                      playback_position: 100,
+                                      duration: 100,
+                                      progress_percent: 100,
+                                      last_played_at: new Date().toISOString()
+                                    }
+                                  }));
+                                }
+                                
+                                alert('All audio modules marked as complete!');
+                                // Refresh progress to update UI
+                                setTimeout(() => {
+                                  loadPodcastProgress();
+                                }, 500);
+                              } catch (error) {
+                                console.error('Error marking audio modules as complete:', error);
+                                alert('Error marking audio modules as complete');
+                              }
+                            }}
+                            className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            Mark All Audio Modules Complete
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -1112,6 +1160,54 @@ export default function CourseDetail() {
                           </div>
                         );
                     })()}
+                    {/* Complete Module Button for Video - Only show if there are video files and not all are completed */}
+                    {getAssignedPodcasts().filter(p => p.is_youtube_video).length > 0 && !getAssignedPodcasts().filter(p => p.is_youtube_video).every(p => getPodcastCompletion(p.id) >= 100) && (
+                      <div className="mt-4">
+                        <button
+                          onClick={async () => {
+                            try {
+                              const videoPodcasts = getAssignedPodcasts().filter(p => p.is_youtube_video);
+                              // Mark all video podcasts as 100% complete
+                              for (const podcast of videoPodcasts) {
+                                await supabaseHelpers.savePodcastProgressWithRetry(
+                                  userId || '',
+                                  podcast.id,
+                                  1800, // playback position (30 minutes default)
+                                  1800, // duration (30 minutes default)
+                                  100   // progress percent
+                                );
+                                
+                                // Update local state
+                                setPodcastProgress(prev => ({
+                                  ...prev,
+                                  [podcast.id]: {
+                                    id: podcast.id,
+                                    user_id: userId || '',
+                                    podcast_id: podcast.id,
+                                    playback_position: 1800,
+                                    duration: 1800,
+                                    progress_percent: 100,
+                                    last_played_at: new Date().toISOString()
+                                  }
+                                }));
+                              }
+                              
+                              alert('All video modules marked as complete!');
+                              // Refresh progress to update UI
+                              setTimeout(() => {
+                                loadPodcastProgress();
+                              }, 500);
+                            } catch (error) {
+                              console.error('Error marking video modules as complete:', error);
+                              alert('Error marking video modules as complete');
+                            }
+                          }}
+                          className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                        >
+                          Mark All Video Modules Complete
+                        </button>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Video Player - Right Side */}
@@ -1121,49 +1217,6 @@ export default function CourseDetail() {
                         <h3 className="text-lg font-medium text-white mb-2">{currentPodcast.title}</h3>
                         <div className="mt-4">
                           {renderYouTubePlayer(currentPodcast.video_url)}
-                        </div>
-                        {/* Complete Button for Video */}
-                        <div className="mt-4">
-                          <button
-                            onClick={async () => {
-                              try {
-                                // Mark as 100% complete
-                                await supabaseHelpers.savePodcastProgressWithRetry(
-                                  userId || '',
-                                  currentPodcast.id,
-                                  1800, // playback position (30 minutes default)
-                                  1800, // duration (30 minutes default)
-                                  100   // progress percent
-                                );
-                                
-                                // Update local state
-                                setPodcastProgress(prev => ({
-                                  ...prev,
-                                  [currentPodcast.id]: {
-                                    id: currentPodcast.id,
-                                    user_id: userId || '',
-                                    podcast_id: currentPodcast.id,
-                                    playback_position: 1800,
-                                    duration: 1800,
-                                    progress_percent: 100,
-                                    last_played_at: new Date().toISOString()
-                                  }
-                                }));
-                                
-                                alert(`${currentPodcast.title} marked as complete!`);
-                                // Refresh progress to update UI
-                                setTimeout(() => {
-                                  loadPodcastProgress();
-                                }, 500);
-                              } catch (error) {
-                                console.error('Error marking video as complete:', error);
-                                alert('Error marking content as complete');
-                              }
-                            }}
-                            className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                          >
-                            Mark Video Module Complete
-                          </button>
                         </div>
                       </div>
                     ) : (
