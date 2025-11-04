@@ -385,6 +385,15 @@ export default function CourseDetail() {
     loadCourseData();
   }, [courseId, isAuthenticated, userId]);
 
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log('=== STATE UPDATE ===');
+    console.log('Podcast progress updated:', podcastProgress);
+    console.log('Podcast assignments:', podcastAssignments);
+    console.log('All podcasts:', podcasts);
+    console.log('Assigned podcasts:', getAssignedPodcasts());
+  }, [podcastProgress, podcastAssignments, podcasts]);
+
   // Load assignments when userId or courseId changes
   useEffect(() => {
     if (userId && courseId) {
@@ -464,16 +473,20 @@ export default function CourseDetail() {
   const checkAllModulesCompleted = () => {
     // Check if all audio and video content has been completed (100% progress)
     // Only audio and video are required for quiz access, not docs, images, or templates
-    const audioContent = getAssignedPodcasts().filter(p => !p.is_youtube_video);
-    const videoContent = getAssignedPodcasts().filter(p => p.is_youtube_video);
+    const assignedPodcasts = getAssignedPodcasts();
+    const audioContent = assignedPodcasts.filter(p => !p.is_youtube_video);
+    const videoContent = assignedPodcasts.filter(p => p.is_youtube_video);
     
     const allRequiredContent = [...audioContent, ...videoContent];
     
-    console.log('Checking module completion:');
+    console.log('=== MODULE COMPLETION CHECK ===');
+    console.log('Assigned podcasts:', assignedPodcasts);
     console.log('Audio content:', audioContent);
     console.log('Video content:', videoContent);
     console.log('All required content:', allRequiredContent);
     console.log('Current podcast progress:', podcastProgress);
+    console.log('Podcast assignments:', podcastAssignments);
+    console.log('All podcasts:', podcasts);
     
     // If there's no required content, consider it completed
     if (allRequiredContent.length === 0) {
@@ -482,14 +495,23 @@ export default function CourseDetail() {
     }
     
     // Check if all required content has 100% progress
-    const allCompleted = allRequiredContent.every(content => {
+    const completionResults = allRequiredContent.map(content => {
       const progress = podcastProgress[content.id];
       const isCompleted = progress && progress.progress_percent >= 100;
       console.log(`Content ${content.id} - Title: ${content.title}, Progress: ${progress?.progress_percent || 0}%, Completed: ${isCompleted}`);
-      return isCompleted;
+      return {
+        content,
+        progress,
+        isCompleted
+      };
     });
     
+    const allCompleted = completionResults.every(item => item.isCompleted);
+    
+    console.log('Completion results:', completionResults);
     console.log('All modules completed:', allCompleted);
+    console.log('=== END MODULE COMPLETION CHECK ===');
+    
     return allCompleted;
   };
 
@@ -557,6 +579,7 @@ export default function CourseDetail() {
     if (!userId) return;
     
     try {
+      console.log('Loading podcast progress for user:', userId);
       const { data, error } = await supabase
         .from('podcast_progress')
         .select('*')
@@ -567,6 +590,8 @@ export default function CourseDetail() {
         return;
       }
       
+      console.log('Raw podcast progress data:', data);
+      
       if (data && data.length > 0) {
         // Create a map of podcast_id to progress
         const progressMap: Record<string, PodcastProgress> = {};
@@ -576,9 +601,10 @@ export default function CourseDetail() {
         });
         
         setPodcastProgress(progressMap);
-        console.log('Loaded podcast progress:', progressMap);
+        console.log('Loaded podcast progress map:', progressMap);
       } else {
         console.log('No podcast progress found for user:', userId);
+        setPodcastProgress({});
       }
     } catch (error) {
       console.error('Error loading podcast progress:', error);
@@ -1236,18 +1262,29 @@ export default function CourseDetail() {
                     <div className="bg-white rounded-lg p-4 shadow-sm">
                       <p className="text-sm text-gray-600">Complete all audio and video content in the Audio and Video tabs to unlock quizzes.</p>
                     </div>
-                    {/* Temporary override for testing - REMOVE IN PRODUCTION */}
-                    <button
-                      onClick={() => {
-                        console.log('Manually overriding module completion check');
-                        // Force show the quiz selection
-                        setShowQuiz(false);
-                        setShowFinalQuiz(false);
-                      }}
-                      className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                    >
-                      Override Completion Check (Testing Only)
-                    </button>
+                    {/* Debug buttons - REMOVE IN PRODUCTION */}
+                    <div className="mt-4 flex flex-col gap-2">
+                      <button
+                        onClick={() => {
+                          console.log('Refreshing progress data...');
+                          loadPodcastProgress();
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      >
+                        Refresh Progress Data
+                      </button>
+                      <button
+                        onClick={() => {
+                          console.log('Manually overriding module completion check');
+                          // Force show the quiz selection
+                          setShowQuiz(false);
+                          setShowFinalQuiz(false);
+                        }}
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                      >
+                        Override Completion Check (Testing Only)
+                      </button>
+                    </div>
                   </div>
                 ) : quizResults ? (
                   <QuizResults
