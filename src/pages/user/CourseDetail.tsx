@@ -894,45 +894,50 @@ export default function CourseDetail() {
                       })()}
                     </div>
                   </div>
-                  
-                  {/* Audio Player - Right Side */}
-                  <div className="lg:w-1/2">
-                    {currentPodcast && !currentPodcast.is_youtube_video ? (
-                      <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-4 h-full">
-                        <div className="mb-4">
-                          <h2 className="text-lg font-bold text-white">{currentPodcast.title}</h2>
-                        </div>
-                        <div className="mt-4">
-                          <PodcastPlayer 
-                            podcast={currentPodcast} 
-                            userId={userId || undefined}
-                            onProgressUpdate={(progress: number, duration: number, currentTime: number) => {
-                              // Update local progress state
+                  {/* Complete All Audio Button */}
+                  {getAssignedPodcasts().filter(p => !p.is_youtube_video).length > 0 && (
+                    <div className="mt-6">
+                      <button
+                        onClick={async () => {
+                          const audioContent = getAssignedPodcasts().filter(p => !p.is_youtube_video);
+                          for (const content of audioContent) {
+                            try {
+                              // Mark as 100% complete
+                              await supabaseHelpers.savePodcastProgressWithRetry(
+                                userId || '',
+                                content.id,
+                                100, // playback position
+                                100, // duration
+                                100  // progress percent
+                              );
+                              
+                              // Update local state
                               setPodcastProgress(prev => ({
                                 ...prev,
-                                [currentPodcast.id]: {
-                                  // Use existing progress data if available, otherwise create new
-                                  ...(prev[currentPodcast.id] || {}),
-                                  id: currentPodcast.id,
+                                [content.id]: {
+                                  id: content.id,
                                   user_id: userId || '',
-                                  podcast_id: currentPodcast.id,
-                                  playback_position: currentTime,
-                                  duration: duration,
-                                  progress_percent: progress,
+                                  podcast_id: content.id,
+                                  playback_position: 100,
+                                  duration: 100,
+                                  progress_percent: 100,
                                   last_played_at: new Date().toISOString()
                                 }
                               }));
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-8 h-full flex flex-col items-center justify-center text-gray-300">
-                        <Headphones className="h-12 w-12 mb-4" />
-                        <p className="text-center">Select an audio file from the playlist to start listening</p>
-                      </div>
-                    )}
-                  </div>
+                            } catch (error) {
+                              console.error('Error marking audio as complete:', error);
+                            }
+                          }
+                          alert('All audio content marked as complete!');
+                          // Refresh the page to update the quiz access
+                          window.location.reload();
+                        }}
+                        className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                      >
+                        Complete All Audio Content
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1055,38 +1060,48 @@ export default function CourseDetail() {
                       );
                     })()}
                   </div>
-                  
-                  {/* YouTube Player - Right Side */}
-                  {currentPodcast && currentPodcast.is_youtube_video && (
-                    <div className="lg:w-1/2">
-                      <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-4 h-full">
-                        <div className="flex justify-between items-center mb-4">
-                          <h2 className="text-lg font-bold text-white">{currentPodcast.title}</h2>
-                          <button
-                            onClick={() => setCurrentPodcast(null)}
-                            className="text-gray-300 hover:text-white p-1 rounded-full hover:bg-white/10"
-                          >
-                            <X className="h-6 w-6" />
-                          </button>
-                        </div>
-                        <div className="aspect-video">
-                          {currentPodcast.video_url ? (
-                            <iframe
-                              ref={youtubePlayerRef}
-                              src={`https://www.youtube.com/embed/${extractYouTubeVideoId(currentPodcast.video_url)}?autoplay=1&enablejsapi=1`}
-                              title={currentPodcast.title}
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                              className="w-full h-full rounded-lg"
-                            ></iframe>
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-lg">
-                              <Youtube className="h-12 w-12 text-gray-400" />
-                              <span className="ml-2 text-gray-500">No video URL available</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                  {/* Complete All Video Button */}
+                  {getAssignedPodcasts().filter(p => p.is_youtube_video).length > 0 && (
+                    <div className="mt-6">
+                      <button
+                        onClick={async () => {
+                          const videoContent = getAssignedPodcasts().filter(p => p.is_youtube_video);
+                          for (const content of videoContent) {
+                            try {
+                              // Mark as 100% complete
+                              await supabaseHelpers.savePodcastProgressWithRetry(
+                                userId || '',
+                                content.id,
+                                1800, // playback position (30 minutes default)
+                                1800, // duration (30 minutes default)
+                                100   // progress percent
+                              );
+                              
+                              // Update local state
+                              setPodcastProgress(prev => ({
+                                ...prev,
+                                [content.id]: {
+                                  id: content.id,
+                                  user_id: userId || '',
+                                  podcast_id: content.id,
+                                  playback_position: 1800,
+                                  duration: 1800,
+                                  progress_percent: 100,
+                                  last_played_at: new Date().toISOString()
+                                }
+                              }));
+                            } catch (error) {
+                              console.error('Error marking video as complete:', error);
+                            }
+                          }
+                          alert('All video content marked as complete!');
+                          // Refresh the page to update the quiz access
+                          window.location.reload();
+                        }}
+                        className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                      >
+                        Complete All Video Content
+                      </button>
                     </div>
                   )}
                 </div>
