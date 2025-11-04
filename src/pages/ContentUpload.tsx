@@ -2045,3 +2045,4 @@ export default function ContentUpload() {
       </div>
     </div>
   );
+}
