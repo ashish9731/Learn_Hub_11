@@ -1065,22 +1065,53 @@ export default function ContentUpload() {
                         </div>
                         <div>
                           <div className="flex items-center mb-2">
-                            <h3 className="text-lg font-semibold text-white">{course.title}</h3>
-                            {course.level && (
-                              <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                                course.level === 'Basics' 
-                                  ? 'bg-green-900/30 text-green-400' 
-                                  : course.level === 'Intermediate' 
-                                    ? 'bg-yellow-900/30 text-yellow-400' 
-                                    : 'bg-red-900/30 text-red-400'
-                              }`}>
-                                {course.level}
-                              </span>
+                            {editingCourseId === course.id ? (
+                              <input
+                                type="text"
+                                value={editingCourseData.title || course.title}
+                                onChange={(e) => setEditingCourseData({...editingCourseData, title: e.target.value})}
+                                className="text-lg font-semibold text-white bg-[#1e1e1e] border border-[#333333] rounded px-2 py-1 w-full"
+                              />
+                            ) : (
+                              <h3 className="text-lg font-semibold text-white">{course.title}</h3>
+                            )}
+                            {editingCourseId === course.id ? (
+                              <select
+                                value={editingCourseData.level || course.level || 'Basics'}
+                                onChange={(e) => setEditingCourseData({...editingCourseData, level: e.target.value as 'Basics' | 'Intermediate' | 'Advanced'})}
+                                className="ml-2 px-2 py-1 text-xs rounded bg-[#1e1e1e] border border-[#333333] text-white"
+                              >
+                                <option value="Basics">Basic</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                              </select>
+                            ) : (
+                              course.level && (
+                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                  course.level === 'Basics' 
+                                    ? 'bg-green-900/30 text-green-400' 
+                                    : course.level === 'Intermediate' 
+                                      ? 'bg-yellow-900/30 text-yellow-400' 
+                                      : 'bg-red-900/30 text-red-400'
+                                }`}>
+                                  {course.level}
+                                </span>
+                              )
                             )}
                           </div>
-                          <p className="text-sm text-[#a0a0a0] mb-3 line-clamp-2">
-                            {course.description || 'No description provided'}
-                          </p>
+                          {editingCourseId === course.id ? (
+                            <textarea
+                              value={editingCourseData.description || course.description || ''}
+                              onChange={(e) => setEditingCourseData({...editingCourseData, description: e.target.value})}
+                              className="text-sm text-[#a0a0a0] mb-3 w-full bg-[#1e1e1e] border border-[#333333] rounded px-2 py-1"
+                              rows={3}
+                              placeholder="Course description"
+                            />
+                          ) : (
+                            <p className="text-sm text-[#a0a0a0] mb-3 line-clamp-2">
+                              {course.description || 'No description provided'}
+                            </p>
+                          )}
                           <div className="flex items-center text-xs text-[#8b5cf6]">
                             <span className="mr-4">
                               {coursePodcasts.length} podcast{coursePodcasts.length !== 1 ? 's' : ''}
@@ -1405,6 +1436,41 @@ export default function ContentUpload() {
                         
                         {/* Action Buttons */}
                         <div className="flex justify-end space-x-3 pt-4">
+                          {editingCourseId === course.id ? (
+                            <>
+                              <button
+                                onClick={saveEditingCourse}
+                                className="custom-button text-green-600 hover:text-green-800 text-sm font-medium"
+                              >
+                                <span className="shadow"></span>
+                                <span className="edge"></span>
+                                <span className="front">
+                                  <span>Save</span>
+                                </span>
+                              </button>
+                              <button
+                                onClick={cancelEditingCourse}
+                                className="custom-button text-gray-600 hover:text-gray-800 text-sm font-medium"
+                              >
+                                <span className="shadow"></span>
+                                <span className="edge"></span>
+                                <span className="front">
+                                  <span>Cancel</span>
+                                </span>
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => startEditingCourse(course)}
+                              className="custom-button text-yellow-600 hover:text-yellow-800 text-sm font-medium"
+                            >
+                              <span className="shadow"></span>
+                              <span className="edge"></span>
+                              <span className="front">
+                                <span>Edit Course</span>
+                              </span>
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               setSelectedCourse(course.id);
@@ -1600,79 +1666,6 @@ export default function ContentUpload() {
                     className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add Course
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Upload Content Form */}
-            <div className="bg-[#1e1e1e] shadow rounded-lg p-6 border border-[#333333]">
-              <h3 className="text-lg font-medium text-white mb-4">Upload Content</h3>
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="content-title" className="block text-sm font-medium text-white mb-2">
-                    Content Title <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="content-title"
-                    value={newContentTitle}
-                    onChange={(e) => setNewContentTitle(e.target.value)}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
-                    placeholder="Enter content title"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="content-type" className="block text-sm font-medium text-white mb-2">
-                    Content Type
-                  </label>
-                  <select
-                    id="content-type"
-                    value={newContentType}
-                    onChange={(e) => setNewContentType(e.target.value as 'video' | 'audio' | 'document')}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
-                  >
-                    <option value="video">Video</option>
-                    <option value="audio">Audio</option>
-                    <option value="document">Document</option>
-                  </select>
-                  <p className="mt-1 text-xs text-[#a0a0a0]">
-                    Select the type of content you are uploading
-                  </p>
-                </div>
-
-                <div>
-                  <label htmlFor="content-file" className="block text-sm font-medium text-white mb-2">
-                    Content File <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="file"
-                    id="content-file"
-                    onChange={handleContentFileChange}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
-                  />
-                </div>
-
-                <div className="flex space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewContentTitle('');
-                      setNewContentType('video');
-                      setNewContentFile(null);
-                    }}
-                    className="flex-1 py-2 px-4 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
-                  >
-                    Clear
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleUploadContent}
-                    disabled={!newContentTitle.trim() || !newContentFile}
-                    className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Upload Content
                   </button>
                 </div>
               </div>
