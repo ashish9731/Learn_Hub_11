@@ -951,13 +951,18 @@ export default function CourseDetail() {
                                 const audioPodcasts = getAssignedPodcasts().filter(p => !p.is_youtube_video);
                                 // Mark all audio podcasts as 100% complete
                                 for (const podcast of audioPodcasts) {
-                                  await supabaseHelpers.savePodcastProgressWithRetry(
-                                    userId || '',
-                                    podcast.id,
-                                    100, // playback position
-                                    100, // duration
-                                    100  // progress percent
-                                  );
+                                  try {
+                                    await supabaseHelpers.savePodcastProgressWithRetry(
+                                      userId || '',
+                                      podcast.id,
+                                      100, // playback position
+                                      100, // duration
+                                      100  // progress percent
+                                    );
+                                  } catch (error) {
+                                    console.error(`Error saving progress for podcast ${podcast.id}:`, error);
+                                    // Continue with other podcasts even if one fails
+                                  }
                                   
                                   // Update local state
                                   setPodcastProgress(prev => ({
@@ -1126,13 +1131,18 @@ export default function CourseDetail() {
                               const videoPodcasts = getAssignedPodcasts().filter(p => p.is_youtube_video);
                               // Mark all video podcasts as 100% complete
                               for (const podcast of videoPodcasts) {
-                                await supabaseHelpers.savePodcastProgressWithRetry(
-                                  userId || '',
-                                  podcast.id,
-                                  1800, // playback position (30 minutes default)
-                                  1800, // duration (30 minutes default)
-                                  100   // progress percent
-                                );
+                                try {
+                                  await supabaseHelpers.savePodcastProgressWithRetry(
+                                    userId || '',
+                                    podcast.id,
+                                    1800, // playback position (30 minutes default)
+                                    1800, // duration (30 minutes default)
+                                    100   // progress percent
+                                  );
+                                } catch (error) {
+                                  console.error(`Error saving progress for video ${podcast.id}:`, error);
+                                  // Continue with other videos even if one fails
+                                }
                                 
                                 // Update local state
                                 setPodcastProgress(prev => ({
