@@ -56,7 +56,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
         if (isFinalQuiz) {
           // For final quiz, we need to get all category content
           const { data: categories, error: categoriesError } = await supabase
-            .from('content_categories')
+            .from('content-categories')
             .select(`
               id,
               name,
@@ -125,7 +125,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
         }
       } catch (err) {
         console.error('Error initializing quiz:', err);
-        setError('Failed to initialize quiz');
+        setError('Failed to initialize quiz: ' + (err as Error).message);
         setLoading(false);
       }
     };

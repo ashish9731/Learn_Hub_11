@@ -208,6 +208,33 @@ export default function CourseDetail() {
     }
   };
 
+  // Load quiz attempts
+  const loadQuizAttempts = async () => {
+    if (!userId || !courseId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_quiz_attempts')
+        .select(`
+          *,
+          module_quizzes (id, title),
+          course_quizzes (id, title)
+        `)
+        .eq('user_id', userId)
+        .or(`module_quizzes.course_id.eq.${courseId},course_quizzes.course_id.eq.${courseId}`);
+        
+      if (error) {
+        console.error('Error loading quiz attempts:', error);
+        return;
+      }
+      
+      setQuizAttempts(data || []);
+      console.log('Loaded quiz attempts:', data);
+    } catch (error) {
+      console.error('Error loading quiz attempts:', error);
+    }
+  };
+
   // Filter podcasts to only show assigned ones
   const getAssignedPodcasts = () => {
     console.log('Filtering podcasts, assignments count:', podcastAssignments.length);
@@ -610,35 +637,7 @@ export default function CourseDetail() {
     } catch (error) {
       console.error('Error loading podcast progress:', error);
     }
-  };
-
-  // Load quiz attempts
-  const loadQuizAttempts = async () => {
-    if (!userId || !courseId) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('user_quiz_attempts')
-        .select(`
-          *,
-          module_quizzes (id, title),
-          course_quizzes (id, title)
-        `)
-        .eq('user_id', userId)
-        .or(`module_quizzes.course_id.eq.${courseId},course_quizzes.course_id.eq.${courseId}`);
-        
-      if (error) {
-        console.error('Error loading quiz attempts:', error);
-        return;
-      }
-      
-      setQuizAttempts(data || []);
-      console.log('Loaded quiz attempts:', data);
-    } catch (error) {
-      console.error('Error loading quiz attempts:', error);
-    }
-  };
-
+  };  // Handle play podcast - updated to work with both audio and YouTube videos
   const handlePlayPodcast = (podcast: any) => {
     console.log("Playing podcast:", podcast);
     setCurrentPodcast(podcast);
@@ -649,6 +648,25 @@ export default function CourseDetail() {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  // Render YouTube video player
+  const renderYouTubePlayer = (videoUrl: string) => {
+    const videoId = extractYouTubeVideoId(videoUrl);
+    if (!videoId) return null;
+
+    return (
+      <div className="aspect-video">
+        <iframe
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+          className="w-full h-full rounded-lg"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          title="YouTube Video Player"
+        ></iframe>
+      </div>
+    );
   };
 
   if (loading) {
@@ -903,6 +921,95 @@ export default function CourseDetail() {
                       {getAssignedPodcasts().filter(p => !p.is_youtube_video).map((podcast) => {
                         const completion = getPodcastCompletion(podcast.id);
                         return (
+                          <div key={podcast.id} className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
+                                <Headphones className="h-5 w-5 text-blue-400" />
+                              </div>
+                              <div className="ml-3">
+                                <h3 className="text-sm font-medium text-white">{podcast.title}</h3>
+                                <p className="text-xs text-gray-400">Audio content</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                              </div>
+                              <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Video Tab */}
+            {activeTab === 'video' && (
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Video Content</h2>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Video List - Left Side */}
+                  <div className="lg:w-1/2">
+                    <div className="space-y-3">
+                      {(() => {
+                        const assignedPodcasts = getAssignedPodcasts().filter(p => p.is_youtube_video);
+                        console.log('Rendering video tab, assigned podcasts count:', assignedPodcasts.length);
+                        return assignedPodcasts.length > 0 ? 
+                          assignedPodcasts.map(podcast => {
+                            const completion = getPodcastCompletion(podcast.id);
+                            
+                            return (
+                              <div 
+                                key={podcast.id} 
+                                className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
+                                  currentPodcast?.id === podcast.id 
+                                    ? 'bg-gray-800 border border-blue-500' 
+                                    : 'bg-gray-800'
+                                }`}
+                                onClick={() => handlePlayPodcast(podcast)}
+                              >
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 mr-3">
+                                    <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
+                                      <Youtube className="h-5 w-5 text-blue-400" />
+                                    </div>
+                                  </div> 
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
+                                    <p className="text-xs text-gray-400">Video content</p>
+                                    {completion > 0 && (
+                                      <div className="ml-2 flex items-center">
+                                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                          <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                                        </div>
+                                        <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }) : (
+                            <div className="text-center py-8 text-gray-400">
+                              <Youtube className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                              <h3 className="text-lg font-medium text-white mb-2">No Video Content</h3>
+                              <p className="text-gray-400">No video content has been assigned to you for this course.</p>
+                            </div>
+                          );
+                      })()}
+                    </div>
+                  </div>
+                  {/* Video Completion Panel */}
+                  <div className="mt-6 bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-medium text-white mb-2">Video Module Completion</h3>
+                    <p className="text-gray-300 text-sm mb-3">After watching video content, mark modules as complete:</p>
+                    <div className="space-y-2">
+                      {getAssignedPodcasts().filter(p => p.is_youtube_video).map((podcast) => {
+                        const completion = getPodcastCompletion(podcast.id);
+                        return (
                           <div key={podcast.id} className="flex items-center justify-between bg-gray-700 p-2 rounded">
                             <div className="flex-1 min-w-0">
                               <p className="text-white text-sm truncate">{podcast.title}</p>
@@ -916,9 +1023,9 @@ export default function CourseDetail() {
                                     await supabaseHelpers.savePodcastProgressWithRetry(
                                       userId || '',
                                       podcast.id,
-                                      100, // playback position
-                                      100, // duration
-                                      100  // progress percent
+                                      1800, // playback position (30 minutes default)
+                                      1800, // duration (30 minutes default)
+                                      100   // progress percent
                                     );
                                     
                                     // Update local state
@@ -928,16 +1035,20 @@ export default function CourseDetail() {
                                         id: podcast.id,
                                         user_id: userId || '',
                                         podcast_id: podcast.id,
-                                        playback_position: 100,
-                                        duration: 100,
+                                        playback_position: 1800,
+                                        duration: 1800,
                                         progress_percent: 100,
                                         last_played_at: new Date().toISOString()
                                       }
                                     }));
                                     
                                     alert(`${podcast.title} marked as complete!`);
+                                    // Refresh progress to update UI
+                                    setTimeout(() => {
+                                      loadPodcastProgress();
+                                    }, 500);
                                   } catch (error) {
-                                    console.error('Error marking audio as complete:', error);
+                                    console.error('Error marking video as complete:', error);
                                     alert('Error marking content as complete');
                                   }
                                 }}
@@ -952,6 +1063,145 @@ export default function CourseDetail() {
                         );
                       })}
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Audio Tab */}
+            {activeTab === 'audio' && (
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Audio Content</h2>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Audio List - Left Side */}
+                  <div className="lg:w-1/2">
+                    <div className="space-y-3">
+                      {(() => {
+                        const assignedPodcasts = getAssignedPodcasts().filter(p => !p.is_youtube_video);
+                        console.log('Rendering audio tab, assigned podcasts count:', assignedPodcasts.length);
+                        return assignedPodcasts.length > 0 ? 
+                          assignedPodcasts.map(podcast => {
+                            const completion = getPodcastCompletion(podcast.id);
+                            
+                            return (
+                              <div 
+                                key={podcast.id} 
+                                className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
+                                  currentPodcast?.id === podcast.id 
+                                    ? 'bg-gray-800 border border-blue-500' 
+                                    : 'bg-gray-800'
+                                }`}
+                                onClick={() => handlePlayPodcast(podcast)}
+                              >
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 mr-3">
+                                    <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
+                                      <Headphones className="h-5 w-5 text-blue-400" />
+                                    </div>
+                                  </div> 
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
+                                    <p className="text-xs text-gray-400">Audio content</p>
+                                    {completion > 0 && (
+                                      <div className="ml-2 flex items-center">
+                                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                          <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                                        </div>
+                                        <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }) : (
+                            <div className="text-center py-8 text-gray-400">
+                              <Headphones className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                              <h3 className="text-lg font-medium text-white mb-2">No Audio Content</h3>
+                              <p className="text-gray-400">No audio content has been assigned to you for this course.</p>
+                            </div>
+                          );
+                      })()}
+                    </div>
+                  </div>
+                  
+                  {/* Audio Player - Right Side */}
+                  <div className="lg:w-1/2">
+                    {currentPodcast && !currentPodcast.is_youtube_video ? (
+                      <div className="bg-gray-800 rounded-lg p-4">
+                        <h3 className="text-lg font-medium text-white mb-2">{currentPodcast.title}</h3>
+                        <div className="mt-4">
+                          <PodcastPlayer 
+                            podcast={currentPodcast} 
+                            userId={userId || undefined}
+                            onProgressUpdate={(progress: number, duration: number, currentTime: number) => {
+                              // Update local progress state
+                              setPodcastProgress(prev => ({
+                                ...prev,
+                                [currentPodcast.id]: {
+                                  id: currentPodcast.id,
+                                  user_id: userId || '',
+                                  podcast_id: currentPodcast.id,
+                                  playback_position: currentTime,
+                                  duration: duration,
+                                  progress_percent: progress,
+                                  last_played_at: new Date().toISOString()
+                                }
+                              }));
+                            }}
+                          />
+                        </div>
+                        {/* Complete Button for Audio */}
+                        <div className="mt-4">
+                          <button
+                            onClick={async () => {
+                              try {
+                                // Mark as 100% complete
+                                await supabaseHelpers.savePodcastProgressWithRetry(
+                                  userId || '',
+                                  currentPodcast.id,
+                                  100, // playback position
+                                  100, // duration
+                                  100  // progress percent
+                                );
+                                
+                                // Update local state
+                                setPodcastProgress(prev => ({
+                                  ...prev,
+                                  [currentPodcast.id]: {
+                                    id: currentPodcast.id,
+                                    user_id: userId || '',
+                                    podcast_id: currentPodcast.id,
+                                    playback_position: 100,
+                                    duration: 100,
+                                    progress_percent: 100,
+                                    last_played_at: new Date().toISOString()
+                                  }
+                                }));
+                                
+                                alert(`${currentPodcast.title} marked as complete!`);
+                                // Refresh progress to update UI
+                                setTimeout(() => {
+                                  loadPodcastProgress();
+                                }, 500);
+                              } catch (error) {
+                                console.error('Error marking audio as complete:', error);
+                                alert('Error marking content as complete');
+                              }
+                            }}
+                            className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            Mark Audio Module Complete
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-800 rounded-lg p-8 text-center">
+                        <Headphones className="h-16 w-16 mx-auto text-gray-500 mb-4" />
+                        <h3 className="text-lg font-medium text-white mb-2">Select an Audio File</h3>
+                        <p className="text-gray-400">Choose an audio file from the list to play it here.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1075,63 +1325,66 @@ export default function CourseDetail() {
                       );
                     })()}
                   </div>
-                  {/* Video Completion Panel */}
-                  <div className="mt-6 bg-gray-800 rounded-lg p-4">
-                    <h3 className="text-lg font-medium text-white mb-2">Video Module Completion</h3>
-                    <p className="text-gray-300 text-sm mb-3">After watching video content, mark modules as complete:</p>
-                    <div className="space-y-2">
-                      {getAssignedPodcasts().filter(p => p.is_youtube_video).map((podcast) => {
-                        const completion = getPodcastCompletion(podcast.id);
-                        return (
-                          <div key={podcast.id} className="flex items-center justify-between bg-gray-700 p-2 rounded">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-white text-sm truncate">{podcast.title}</p>
-                              <p className="text-gray-400 text-xs">{completion}% completed</p>
-                            </div>
-                            {completion < 100 ? (
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    // Mark as 100% complete
-                                    await supabaseHelpers.savePodcastProgressWithRetry(
-                                      userId || '',
-                                      podcast.id,
-                                      1800, // playback position (30 minutes default)
-                                      1800, // duration (30 minutes default)
-                                      100   // progress percent
-                                    );
-                                    
-                                    // Update local state
-                                    setPodcastProgress(prev => ({
-                                      ...prev,
-                                      [podcast.id]: {
-                                        id: podcast.id,
-                                        user_id: userId || '',
-                                        podcast_id: podcast.id,
-                                        playback_position: 1800,
-                                        duration: 1800,
-                                        progress_percent: 100,
-                                        last_played_at: new Date().toISOString()
-                                      }
-                                    }));
-                                    
-                                    alert(`${podcast.title} marked as complete!`);
-                                  } catch (error) {
-                                    console.error('Error marking video as complete:', error);
-                                    alert('Error marking content as complete');
+                  
+                  {/* Video Player - Right Side */}
+                  <div className="lg:w-1/2">
+                    {currentPodcast && currentPodcast.is_youtube_video ? (
+                      <div className="bg-gray-800 rounded-lg p-4">
+                        <h3 className="text-lg font-medium text-white mb-2">{currentPodcast.title}</h3>
+                        <div className="mt-4">
+                          {renderYouTubePlayer(currentPodcast.video_url)}
+                        </div>
+                        {/* Complete Button for Video */}
+                        <div className="mt-4">
+                          <button
+                            onClick={async () => {
+                              try {
+                                // Mark as 100% complete
+                                await supabaseHelpers.savePodcastProgressWithRetry(
+                                  userId || '',
+                                  currentPodcast.id,
+                                  1800, // playback position (30 minutes default)
+                                  1800, // duration (30 minutes default)
+                                  100   // progress percent
+                                );
+                                
+                                // Update local state
+                                setPodcastProgress(prev => ({
+                                  ...prev,
+                                  [currentPodcast.id]: {
+                                    id: currentPodcast.id,
+                                    user_id: userId || '',
+                                    podcast_id: currentPodcast.id,
+                                    playback_position: 1800,
+                                    duration: 1800,
+                                    progress_percent: 100,
+                                    last_played_at: new Date().toISOString()
                                   }
-                                }}
-                                className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
-                              >
-                                Complete
-                              </button>
-                            ) : (
-                              <span className="px-3 py-1 bg-green-900 text-green-300 text-xs rounded">Completed</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                                }));
+                                
+                                alert(`${currentPodcast.title} marked as complete!`);
+                                // Refresh progress to update UI
+                                setTimeout(() => {
+                                  loadPodcastProgress();
+                                }, 500);
+                              } catch (error) {
+                                console.error('Error marking video as complete:', error);
+                                alert('Error marking content as complete');
+                              }
+                            }}
+                            className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            Mark Video Module Complete
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-800 rounded-lg p-8 text-center">
+                        <Youtube className="h-16 w-16 mx-auto text-gray-500 mb-4" />
+                        <h3 className="text-lg font-medium text-white mb-2">Select a Video</h3>
+                        <p className="text-gray-400">Choose a video from the list to play it here.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1363,8 +1616,8 @@ export default function CourseDetail() {
               </div>
             )}
 
-            {/* Media Player */}
-            {currentPodcast && activeTab === 'podcasts' && (
+            {/* Media Player - Updated to work with both audio and video */}
+            {(currentPodcast && (activeTab === 'audio' || activeTab === 'video')) && (
               <div className="fixed inset-0 bg-black/80 backdrop-blur-lg flex items-center justify-center z-50 p-4">
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6 max-w-2xl w-full">
                   <div className="flex justify-between items-center mb-4">
@@ -1377,25 +1630,32 @@ export default function CourseDetail() {
                     </button>
                   </div>
                   <div className="mt-4">
-                    <PodcastPlayer 
-                      podcast={currentPodcast} 
-                      userId={userId || undefined}
-                      onProgressUpdate={(progress: number, duration: number, currentTime: number) => {
-                        // Update local progress state
-                        setPodcastProgress(prev => ({
-                          ...prev,
-                          [currentPodcast.id]: {
-                            id: currentPodcast.id,
-                            user_id: userId || '',
-                            podcast_id: currentPodcast.id,
-                            playback_position: currentTime,
-                            duration: duration,
-                            progress_percent: progress,
-                            last_played_at: new Date().toISOString()
-                          }
-                        }));
-                      }}
-                    />
+                    {/* Audio Player */}
+                    {!currentPodcast.is_youtube_video && (
+                      <PodcastPlayer 
+                        podcast={currentPodcast} 
+                        userId={userId || undefined}
+                        onProgressUpdate={(progress: number, duration: number, currentTime: number) => {
+                          // Update local progress state
+                          setPodcastProgress(prev => ({
+                            ...prev,
+                            [currentPodcast.id]: {
+                              id: currentPodcast.id,
+                              user_id: userId || '',
+                              podcast_id: currentPodcast.id,
+                              playback_position: currentTime,
+                              duration: duration,
+                              progress_percent: progress,
+                              last_played_at: new Date().toISOString()
+                            }
+                          }));
+                        }}
+                      />
+                    )}
+                    
+                    {/* YouTube Video Player */}
+                    {currentPodcast.is_youtube_video && renderYouTubePlayer(currentPodcast.video_url)}
+                    
                     {/* Complete Button for Audio */}
                     {!currentPodcast.is_youtube_video && (
                       <div className="mt-4">

@@ -114,7 +114,20 @@ Return ONLY a JSON array of 5 question objects. No other text.`;
       max_tokens: 2000,
     });
 
-    const quizData = JSON.parse(response.choices[0].message.content || '[]');
+    // Add better error handling for OpenAI response
+    if (!response.choices || response.choices.length === 0) {
+      console.error('No choices returned from OpenAI:', response);
+      return null;
+    }
+
+    let quizData;
+    try {
+      quizData = JSON.parse(response.choices[0].message.content || '[]');
+    } catch (parseError) {
+      console.error('Error parsing OpenAI response:', parseError);
+      console.error('Raw response:', response.choices[0].message.content);
+      return null;
+    }
     
     if (!Array.isArray(quizData) || quizData.length !== 5) {
       console.error('Invalid quiz data received from OpenAI:', quizData);
@@ -266,7 +279,20 @@ Return ONLY a JSON array of 25 question objects. No other text.`;
       max_tokens: 3000,
     });
 
-    const quizData = JSON.parse(response.choices[0].message.content || '[]');
+    // Add better error handling for OpenAI response
+    if (!response.choices || response.choices.length === 0) {
+      console.error('No choices returned from OpenAI:', response);
+      return null;
+    }
+
+    let quizData;
+    try {
+      quizData = JSON.parse(response.choices[0].message.content || '[]');
+    } catch (parseError) {
+      console.error('Error parsing OpenAI response:', parseError);
+      console.error('Raw response:', response.choices[0].message.content);
+      return null;
+    }
     
     if (!Array.isArray(quizData) || quizData.length !== 25) {
       console.error('Invalid quiz data received from OpenAI:', quizData);
