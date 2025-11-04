@@ -108,7 +108,7 @@ export default function YouTubeVideoPlayer({
               'onReady': (event: any) => {
                 console.log('YouTube player ready');
                 setPlayerReady(true);
-                // Disable all controls to prevent seeking
+                // Enable normal controls
                 event.target.setPlaybackQuality('hd720');
               },
               'onStateChange': (event: any) => {
@@ -128,27 +128,6 @@ export default function YouTubeVideoPlayer({
   // Handle player state changes
   const handlePlayerStateChange = (event: any) => {
     const player = event.target;
-    const currentTime = player.getCurrentTime();
-    
-    // Prevent seeking forward beyond allowed time
-    if (currentTime > maxAllowedTime + 1) {
-      player.seekTo(lastValidTime, true);
-      return;
-    }
-    
-    // Prevent seeking backward
-    if (currentTime < lastValidTime - 1) {
-      player.seekTo(lastValidTime, true);
-      return;
-    }
-    
-    // Update valid time tracking
-    if (currentTime >= lastValidTime) {
-      setLastValidTime(currentTime);
-      if (currentTime > maxAllowedTime) {
-        setMaxAllowedTime(currentTime);
-      }
-    }
     
     // Handle video end
     if (event.data === (window as any).YT.PlayerState.ENDED) {
@@ -257,19 +236,9 @@ export default function YouTubeVideoPlayer({
   };
 
   const handleSkipForward = () => {
-    // Only allow skipping forward if previous video is completed
+    // Allow skipping to any video
     if (currentVideoIndex < videos.length - 1) {
-      const previousVideoCompleted = currentVideoIndex === 0 || completedVideos[videos[currentVideoIndex].id];
-      
-      if (previousVideoCompleted) {
-        setCurrentVideoIndex(currentVideoIndex + 1);
-        // Reset time tracking for new video
-        setLastValidTime(0);
-        setMaxAllowedTime(0);
-      } else {
-        // Show message that previous video must be completed first
-        alert('You must complete the previous video before moving to the next one.');
-      }
+      setCurrentVideoIndex(currentVideoIndex + 1);
     } else {
       // Last video, show quiz
       generateQuiz();
@@ -571,11 +540,11 @@ export default function YouTubeVideoPlayer({
       <div className="relative pb-[56.25%] h-0"> {/* 16:9 Aspect Ratio */}
         <iframe
           ref={iframeRef}
-          src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}&controls=0&disablekb=1&fs=0&rel=0&modestbranding=1`}
+          src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}&controls=1&disablekb=0&fs=1&rel=0&modestbranding=1`}
           className="absolute top-0 left-0 w-full h-full rounded-t-2xl"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen={false}
+          allowFullScreen={true}
           title={currentVideo.title}
         />
       </div>
@@ -649,15 +618,8 @@ export default function YouTubeVideoPlayer({
                     'border-l-4 border-gray-600'
                   }`}
                   onClick={() => {
-                    // Only allow navigating to previous videos or next if previous is completed
-                    if (index <= currentVideoIndex || (index === currentVideoIndex + 1 && completedVideos[videos[currentVideoIndex].id])) {
-                      setCurrentVideoIndex(index);
-                      // Reset time tracking for new video
-                      setLastValidTime(0);
-                      setMaxAllowedTime(0);
-                    } else {
-                      alert('You must complete the previous video before accessing this one.');
-                    }
+                    // Allow navigating to any video
+                    setCurrentVideoIndex(index);
                   }}
                 >
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-3">
