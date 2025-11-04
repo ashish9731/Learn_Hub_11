@@ -1377,38 +1377,58 @@ export default function CourseDetail() {
                   />
                 ) : (
                   <div className="space-y-4">
-                    {/* Quiz Content */}
-                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
-                      <h3 className="text-lg font-medium text-white mb-2">Module Quiz</h3>
-                      <p className="text-gray-300 mb-4">Test your knowledge on the course modules.</p>
-                      <button
-                        onClick={() => startModuleQuiz('module1', 'Module 1')}
-                        className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                      >
-                        Start Module 1 Quiz
-                      </button>
-                    </div>
+                    {/* Check if quizzes exist for this course */}
+                    {quizAttempts.length > 0 ? (
+                      <>
+                        {/* Module Quiz Section */}
+                        <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
+                          <h3 className="text-lg font-medium text-white mb-2">Module Quiz</h3>
+                          <p className="text-gray-300 mb-4">Test your knowledge on the course modules.</p>
+                          <button
+                            onClick={() => startModuleQuiz('module1', 'Module 1')}
+                            className="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+                          >
+                            Start Module Quiz
+                          </button>
+                        </div>
 
-                    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
-                      <h3 className="text-lg font-medium text-white mb-2">Final Quiz</h3>
-                      <p className="text-gray-300 mb-4">Complete the final quiz to finish the course.</p>
-                      <button
-                        onClick={startFinalQuiz}
-                        className={`px-3 py-1 rounded text-sm ${
-                          checkModuleQuizzesCompleted() 
-                            ? 'bg-blue-700 hover:bg-blue-600 text-white' 
-                            : 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                        }`}
-                        disabled={!checkModuleQuizzesCompleted()}
-                      >
-                        Start Final Quiz
-                      </button>
-                      {!checkModuleQuizzesCompleted() && (
-                        <p className="text-xs text-gray-400 mt-2">
-                          Complete all module quizzes to unlock the final quiz
-                        </p>
-                      )}
-                    </div>
+                        {/* Final Quiz Section */}
+                        <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
+                          <h3 className="text-lg font-medium text-white mb-2">Final Quiz</h3>
+                          <p className="text-gray-300 mb-4">Complete the final quiz to finish the course.</p>
+                          <button
+                            onClick={startFinalQuiz}
+                            className={`px-4 py-2 rounded-md ${
+                              checkModuleQuizzesCompleted() 
+                                ? 'bg-blue-700 hover:bg-blue-600 text-white' 
+                                : 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                            }`}
+                            disabled={!checkModuleQuizzesCompleted()}
+                          >
+                            Start Final Quiz
+                          </button>
+                          {!checkModuleQuizzesCompleted() && (
+                            <p className="text-xs text-gray-400 mt-2">
+                              Complete all module quizzes to unlock the final quiz
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      // No quizzes uploaded message
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                        <div className="text-blue-500 mb-4">
+                          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                          </svg>
+                        </div>
+                        <h3 className="text-xl font-semibold text-blue-800 mb-2">Quiz Not Available</h3>
+                        <p className="text-blue-700 mb-4">The quiz content for this course has not been uploaded yet.</p>
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                          <p className="text-sm text-gray-600">Please contact your administrator for more information.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
