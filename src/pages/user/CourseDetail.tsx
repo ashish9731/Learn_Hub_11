@@ -829,12 +829,6 @@ export default function CourseDetail() {
                   {/* Course Metadata */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
-                      <div className="text-2xl font-bold text-blue-400 mb-1">
-                        {categoriesWithProgress.length}
-                      </div>
-                      <div className="text-sm font-medium text-gray-300">Categories</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
                       <div className="text-2xl font-bold text-green-400 mb-1">
                         {getAssignedPodcasts().filter(p => !p.is_youtube_video).length}
                       </div>
