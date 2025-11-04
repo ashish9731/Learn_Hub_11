@@ -76,6 +76,12 @@ const CertificateGenerator: React.FC<{
               color: #666;
               margin: 20px 0;
             }
+            .training-info {
+              font-size: 18px;
+              color: #555;
+              margin: 30px 0;
+              font-style: italic;
+            }
             .signature {
               margin-top: 60px;
               display: flex;
@@ -103,6 +109,7 @@ const CertificateGenerator: React.FC<{
             <p class="subtitle">has successfully completed the course</p>
             <p class="course">${certificateData.courseName}</p>
             <p class="date">Completed on: ${certificateData.completionDate}</p>
+            <p class="training-info">Training done by ColdWell Bankers<br>Training Partner: KeenEdge Technologies</p>
             <div class="signature">
               <div class="signature-line">Authorized Signature</div>
               <div class="signature-line">Date</div>

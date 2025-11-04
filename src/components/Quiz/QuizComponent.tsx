@@ -38,6 +38,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quizGenerated, setQuizGenerated] = useState(false);
+  const [showNextButton, setShowNextButton] = useState(false); // Show next button after submission
+  const [quizCompleted, setQuizCompleted] = useState(false); // Track if quiz is completed
 
   useEffect(() => {
     const initializeQuiz = async () => {
@@ -204,7 +206,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
     }));
   };
 
-  const handleNextQuestion = async () => {
+  const handleSubmitAnswer = async () => {
     // Submit current answer if not already submitted
     const currentQuestion = questions[currentQuestionIndex];
     const selectedAnswerId = selectedAnswers[currentQuestion.id];
@@ -227,8 +229,16 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
             explanation: result.explanation || ''
           }
         }));
+        
+        // Show next button after submission
+        setShowNextButton(true);
       }
     }
+  };
+
+  const handleNextQuestion = async () => {
+    // Hide next button and reset for next question
+    setShowNextButton(false);
     
     // Move to next question or complete quiz
     if (currentQuestionIndex < questions.length - 1) {
@@ -259,6 +269,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
   const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1);
+      // Hide next button when going back
+      setShowNextButton(false);
     }
   };
 
@@ -293,6 +305,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
 
   const currentQuestion = questions[currentQuestionIndex];
   const selectedAnswer = selectedAnswers[currentQuestion.id];
+  const isSubmitted = submittedAnswers[currentQuestion.id];
+  const feedback = answerFeedback[currentQuestion.id];
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
@@ -337,8 +351,6 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
         <div className="space-y-3">
           {currentQuestion.answers.map((answer) => {
             const isSelected = selectedAnswer === answer.id;
-            const isSubmitted = submittedAnswers[currentQuestion.id];
-            const feedback = answerFeedback[currentQuestion.id];
             const isCorrectAnswer = feedback?.correctAnswerId === answer.id;
             
             return (
@@ -353,46 +365,31 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                       : isCorrectAnswer
                         ? 'border-green-500 bg-green-50'
                         : 'border-gray-200 bg-gray-50'
-                    : isSelected
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                 }`}
-                onClick={() => !isSubmitted && handleAnswerSelect(currentQuestion.id, answer.id)}
               >
                 <div className="flex items-center">
-                  <div className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${
-                    isSubmitted
-                      ? isSelected
-                        ? feedback.isCorrect
-                          ? 'border-green-500 bg-green-500 text-white'
-                          : 'border-red-500 bg-red-500 text-white'
-                        : isCorrectAnswer
-                          ? 'border-green-500 bg-green-500 text-white'
-                          : 'border-gray-300'
-                      : isSelected
-                        ? 'border-blue-500 bg-blue-500 text-white'
-                        : 'border-gray-300'
-                  }`}>
-                    {isSubmitted
-                      ? isSelected
-                        ? feedback.isCorrect
-                          ? '✓'
-                          : '✗'
-                        : isCorrectAnswer
-                          ? '✓'
-                          : ''
-                      : isSelected && (
-                        <div className="w-2 h-2 rounded-full bg-white"></div>
-                      )}
-                  </div>
-                  <span className="text-gray-800">{answer.answer_text}</span>
+                  <input
+                    type="checkbox"
+                    id={`answer-${answer.id}`}
+                    checked={isSelected}
+                    onChange={() => !isSubmitted && handleAnswerSelect(currentQuestion.id, answer.id)}
+                    className="h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
+                    disabled={isSubmitted}
+                  />
+                  <label 
+                    htmlFor={`answer-${answer.id}`} 
+                    className="ml-3 text-gray-800 cursor-pointer"
+                  >
+                    {answer.answer_text}
+                  </label>
                 </div>
                 {isSubmitted && isSelected && !feedback.isCorrect && (
                   <div className="mt-2 text-sm text-red-600">
                     Incorrect. {feedback.explanation}
                   </div>
                 )}
-                {isSubmitted && isCorrectAnswer && (
+                {isSubmitted && isCorrectAnswer && feedback.isCorrect && (
                   <div className="mt-2 text-sm text-green-600">
                     Correct! {feedback.explanation}
                   </div>
@@ -403,7 +400,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Feedback and Navigation */}
       <div className="flex justify-between">
         <button
           onClick={handlePreviousQuestion}
@@ -417,17 +414,26 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
           Previous
         </button>
         
-        <button
-          onClick={handleNextQuestion}
-          disabled={!selectedAnswer}
-          className={`px-4 py-2 rounded-md ${
-            !selectedAnswer
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
-          }`}
-        >
-          {currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next'}
-        </button>
+        {!showNextButton ? (
+          <button
+            onClick={handleSubmitAnswer}
+            disabled={!selectedAnswer || isSubmitted}
+            className={`px-4 py-2 rounded-md ${
+              !selectedAnswer || isSubmitted
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
+          >
+            Submit
+          </button>
+        ) : (
+          <button
+            onClick={handleNextQuestion}
+            className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+          >
+            {currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next'}
+          </button>
+        )}
       </div>
     </div>
   );
