@@ -1667,58 +1667,259 @@ export default function CourseDetail() {
                       </div>
                     </div>
                   </div>
-                              <p className="text-gray-400 text-xs">{completion}% completed</p>
+                  {/* Video Completion Panel */}
+                  <div className="mt-6 bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-medium text-white mb-2">Video Module Completion</h3>
+                    <p className="text-gray-300 text-sm mb-3">After watching all videos, mark the entire module as complete:</p>
+                    <div className="space-y-2">
+                      {getAssignedPodcasts().map((podcast) => {
+                        return (
+                          <div key={podcast.id} className="flex items-center justify-between bg-gray-700 p-2 rounded">
+                            <div className="flex items-center">
+                              <div className="w-10 h-10 bg-red-900 rounded-full flex items-center justify-center">
+                                <Film className="h-5 w-5 text-red-400" />
+                              </div>
+                              <div className="ml-3">
+                                <h3 className="text-sm font-medium text-white">{podcast.title}</h3>
+                                <p className="text-xs text-gray-400">Video</p>
+                              </div>
                             </div>
-                            {completion < 100 ? (
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    // Mark as 100% complete
-                                    await supabaseHelpers.savePodcastProgressWithRetry(
-                                      userId || '',
-                                      podcast.id,
-                                      1800, // playback position (30 minutes default)
-                                      1800, // duration (30 minutes default)
-                                      100   // progress percent
-                                    );
-                                    
-                                    // Update local state
-                                    setPodcastProgress(prev => ({
-                                      ...prev,
-                                      [podcast.id]: {
-                                        id: podcast.id,
-                                        user_id: userId || '',
-                                        podcast_id: podcast.id,
-                                        playback_position: 1800,
-                                        duration: 1800,
-                                        progress_percent: 100,
-                                        last_played_at: new Date().toISOString()
-                                      }
-                                    }));
-                                    
-                                    alert(`${podcast.title} marked as complete!`);
-                                    // Refresh progress to update UI
-                                    setTimeout(() => {
-                                      loadPodcastProgress();
-                                    }, 500);
-                                  } catch (error) {
-                                    console.error('Error marking video as complete:', error);
-                                    alert('Error marking content as complete');
-                                  }
-                                }}
-                                className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
-                              >
-                                Complete
-                              </button>
-                            ) : (
-                              <span className="px-3 py-1 bg-green-900 text-green-300 text-xs rounded">Completed</span>
-                            )}
+                            <div className="flex items-center">
+                              <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                <div className="bg-red-600 h-1.5 rounded-full" style={{ width: '100%' }}></div>
+                              </div>
+                              <span className="text-xs text-gray-500 ml-1">100%</span>
+                              {/* Show checkmark when completed */}
+                              <div className="flex-shrink-0 ml-2">
+                                <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            </div>
                           </div>
                         );
                       })}
+                      {/* Complete Module Button */}
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <button
+                          onClick={async () => {
+                            try {
+                              // Mark all video podcasts as 100% complete
+                              const videoPodcasts = getAssignedPodcasts().filter(p => p.is_youtube_video);
+                              for (const podcast of videoPodcasts) {
+                                await supabaseHelpers.savePodcastProgressWithRetry(
+                                  userId || '',
+                                  podcast.id,
+                                  1800, // playback position (30 minutes default)
+                                  1800, // duration (30 minutes default)
+                                  100   // progress percent
+                                );
+                                
+                                // Update local state
+                                setPodcastProgress(prev => ({
+                                  ...prev,
+                                  [podcast.id]: {
+                                    id: podcast.id,
+                                    user_id: userId || '',
+                                    podcast_id: podcast.id,
+                                    playback_position: 1800,
+                                    duration: 1800,
+                                    progress_percent: 100,
+                                    last_played_at: new Date().toISOString()
+                                  }
+                                }));
+                              }
+                              
+                              alert('All video modules marked as complete!');
+                              // Refresh progress to update UI
+                              setTimeout(() => {
+                                loadPodcastProgress();
+                              }, 500);
+                            } catch (error) {
+                              console.error('Error marking video modules as complete:', error);
+                              alert('Error marking modules as complete');
+                            }
+                          }}
+                          className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                        >
+                          Mark Entire Video Module Complete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+            {podcast.is_youtube_video ? (
+              <div className="w-full">
+                <div className="relative">
+                  <iframe
+                    width="100%"
+                    height="400"
+                    src={`https://www.youtube.com/embed/${podcast.youtube_video_id}`}
+                    title={podcast.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-red-900 rounded-full flex items-center justify-center">
+                          <Film className="h-5 w-5 text-red-400" />
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="text-sm font-medium text-white">{podcast.title}</h3>
+                          <p className="text-xs text-gray-400">Video</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                          <div className="bg-red-600 h-1.5 rounded-full" style={{ width: '100%' }}></div>
+                        </div>
+                        <span className="text-xs text-gray-500 ml-1">100%</span>
+                        {/* Show checkmark when completed */}
+                        <div className="flex-shrink-0 ml-2">
+                          <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-gray-400 text-xs">{completion}% completed</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full">
+                <div className="relative">
+                  <audio
+                    controls
+                    className="w-full"
+                    src={podcast.audio_url}
+                    onTimeUpdate={(e) => {
+                      const audio = e.target as HTMLAudioElement;
+                      const progress = (audio.currentTime / audio.duration) * 100;
+                      setCompletion(progress);
+                    }}
+                    onEnded={() => {
+                      setCompletion(100);
+                    }}
+                  ></audio>
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-red-900 rounded-full flex items-center justify-center">
+                          <MusicNote className="h-5 w-5 text-red-400" />
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="text-sm font-medium text-white">{podcast.title}</h3>
+                          <p className="text-xs text-gray-400">Audio</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                          <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                        </div>
+                        <span className="text-xs text-gray-500 ml-1">{completion.toFixed(0)}%</span>
+                        {/* Show checkmark when completed */}
+                        <div className="flex-shrink-0 ml-2">
+                          <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-gray-400 text-xs">{completion}% completed</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {podcast.is_youtube_video ? (
+              <div className="mt-4">
+                <button
+                  onClick={async () => {
+                    try {
+                      // Mark as 100% complete
+                      await supabaseHelpers.savePodcastProgressWithRetry(
+                        userId || '',
+                        podcast.id,
+                        1800, // playback position (30 minutes default)
+                        1800, // duration (30 minutes default)
+                        100   // progress percent
+                      );
+                      
+                      // Update local state
+                      setPodcastProgress(prev => ({
+                        ...prev,
+                        [podcast.id]: {
+                          id: podcast.id,
+                          user_id: userId || '',
+                          podcast_id: podcast.id,
+                          playback_position: 1800,
+                          duration: 1800,
+                          progress_percent: 100,
+                          last_played_at: new Date().toISOString()
+                        }
+                      }));
+                      
+                      alert(`${podcast.title} marked as complete!`);
+                      // Refresh progress to update UI
+                      setTimeout(() => {
+                        loadPodcastProgress();
+                      }, 500);
+                    } catch (error) {
+                      console.error('Error marking video as complete:', error);
+                      alert('Error marking content as complete');
+                    }
+                  }}
+                  className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                >
+                  Complete
+                </button>
+              </div>
+            ) : (
+              <div className="mt-4">
+                <button
+                  onClick={async () => {
+                    try {
+                      // Mark as 100% complete
+                      await supabaseHelpers.savePodcastProgressWithRetry(
+                        userId || '',
+                        podcast.id,
+                        1800, // playback position (30 minutes default)
+                        1800, // duration (30 minutes default)
+                        100   // progress percent
+                      );
+                      
+                      // Update local state
+                      setPodcastProgress(prev => ({
+                        ...prev,
+                        [podcast.id]: {
+                          id: podcast.id,
+                          user_id: userId || '',
+                          podcast_id: podcast.id,
+                          playback_position: 1800,
+                          duration: 1800,
+                          progress_percent: 100,
+                          last_played_at: new Date().toISOString()
+                        }
+                      }));
+                      
+                      alert(`${podcast.title} marked as complete!`);
+                      // Refresh progress to update UI
+                      setTimeout(() => {
+                        loadPodcastProgress();
+                      }, 500);
+                    } catch (error) {
+                      console.error('Error marking video as complete:', error);
+                      alert('Error marking content as complete');
+                    }
+                  }}
+                  className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                >
+                  Complete
+                </button>
               </div>
             )}
 
