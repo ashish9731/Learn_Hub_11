@@ -196,7 +196,7 @@ export default function MyCourses() {
                 </div>
                 
                 <p className="text-sm text-gray-300 mb-4 line-clamp-2">
-                  {course.description || `This course contains ${courseCategories.length} categories with ${coursePodcasts.length} podcasts and ${coursePdfs.length} documents to help you master the subject.`}
+                  {course.description || `This course contains ${coursePodcasts.length} podcasts and ${coursePdfs.length} documents to help you master the subject.`}
                 </p>
 
                 <div className="space-y-3">
