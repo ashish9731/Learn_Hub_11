@@ -459,14 +459,18 @@ export default function CourseDetail() {
 
   // Check if all modules are completed
   const checkAllModulesCompleted = () => {
-    // Check if all podcasts and PDFs have been completed (100% progress)
-    const allContent = [...podcasts, ...pdfs];
+    // Check if all audio and video content has been completed (100% progress)
+    // Only audio and video are required for quiz access, not docs, images, or templates
+    const audioContent = getAssignedPodcasts().filter(p => !p.is_youtube_video);
+    const videoContent = getAssignedPodcasts().filter(p => p.is_youtube_video);
     
-    // If there's no content, consider it completed
-    if (allContent.length === 0) return true;
+    const allRequiredContent = [...audioContent, ...videoContent];
     
-    // Check if all content has 100% progress
-    return allContent.every(content => {
+    // If there's no required content, consider it completed
+    if (allRequiredContent.length === 0) return true;
+    
+    // Check if all required content has 100% progress
+    return allRequiredContent.every(content => {
       const progress = podcastProgress[content.id];
       return progress && progress.progress_percent >= 100;
     });
@@ -1155,9 +1159,9 @@ export default function CourseDetail() {
                       </svg>
                     </div>
                     <h3 className="text-xl font-semibold text-yellow-800 mb-2">Modules Not Completed</h3>
-                    <p className="text-yellow-700 mb-4">You must complete all audio, video, docs, images, and templates modules before accessing quizzes.</p>
+                    <p className="text-yellow-700 mb-4">You must complete all audio and video modules before accessing quizzes.</p>
                     <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <p className="text-sm text-gray-600">Complete all content in the other tabs to unlock quizzes.</p>
+                      <p className="text-sm text-gray-600">Complete all audio and video content in the Audio and Video tabs to unlock quizzes.</p>
                     </div>
                   </div>
                 ) : quizResults ? (

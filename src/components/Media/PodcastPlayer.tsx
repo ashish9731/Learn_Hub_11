@@ -137,29 +137,10 @@ export default function PodcastPlayer({
       const currentTime = audioRef.current.currentTime;
       const duration = audioRef.current.duration || 0;
       
-      // Prevent ANY seeking forward - user can only progress naturally
-      if (currentTime > maxAllowedTime + 1) { // Allow only 1 second forward jump maximum
-        // If user tried to drag forward, reset to max allowed time
-        audioRef.current.currentTime = maxAllowedTime;
-        return;
-      }
-      
-      // Prevent ANY backward seeking
-      if (currentTime < lastValidTime - 1) { // Allow only 1 second backward jump maximum
-        // If user tried to drag backward, reset to last valid time
-        audioRef.current.currentTime = lastValidTime;
-        return;
-      }
-      
-      // Update last valid time (allow natural progression)
-      if (currentTime >= lastValidTime && currentTime <= maxAllowedTime + 1) {
-        setLastValidTime(currentTime);
-      }
-      
-      // Update max allowed time as user progresses naturally (only forward)
-      if (currentTime > maxAllowedTime) {
-        setMaxAllowedTime(currentTime);
-      }
+      // Allow full skipping - user can jump to any position
+      // Update last valid time and max allowed time to current time
+      setLastValidTime(currentTime);
+      setMaxAllowedTime(currentTime);
       
       // Reset progressSaved flag when time changes significantly
       setProgressSaved(false);
@@ -173,15 +154,13 @@ export default function PodcastPlayer({
   };
 
   const handleSeeking = () => {
-    // This will be called when user tries to seek (drag the progress bar)
+    // Allow seeking - user can jump to any position in the audio
     if (audioRef.current) {
       const currentTime = audioRef.current.currentTime;
       
-      // Prevent ANY seeking - user can only progress naturally
-      if (currentTime > maxAllowedTime + 1 || currentTime < lastValidTime - 1) {
-        // Reset to last valid time if seeking detected
-        audioRef.current.currentTime = lastValidTime;
-      }
+      // Update last valid time and max allowed time to current time
+      setLastValidTime(currentTime);
+      setMaxAllowedTime(currentTime);
     }
   };
 
