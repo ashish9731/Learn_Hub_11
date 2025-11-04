@@ -114,6 +114,12 @@ export default function PodcastPlayer({
           duration,
           progressPercent
         );
+        
+        // Dispatch a custom event to trigger real-time updates
+        const event = new CustomEvent('supabase-podcast-progress-changed', {
+          detail: { userId, podcastId: podcast.id, progressPercent }
+        });
+        window.dispatchEvent(event);
       } catch (rpcError) {
         console.error('Exception in RPC call:', rpcError);
       }
@@ -149,6 +155,13 @@ export default function PodcastPlayer({
       if (onProgressUpdate) {
         const progressPercent = duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
         onProgressUpdate(progressPercent, duration, currentTime);
+      }
+      
+      // Save progress periodically and dispatch real-time event
+      const currentTimeMs = Date.now();
+      if (currentTimeMs - lastSaveTime.current > 30000) { // Save every 30 seconds
+        saveProgress();
+        lastSaveTime.current = currentTimeMs;
       }
     }
   };

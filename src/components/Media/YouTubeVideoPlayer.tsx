@@ -122,16 +122,125 @@ export default function YouTubeVideoPlayer({
       }
     }, 1000);
     
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      // Clean up player and interval
+      if (playerRef.current) {
+        clearProgressTracking(playerRef.current);
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+    };
   }, [currentVideoIndex, currentVideo.video_url]);
 
   // Handle player state changes
   const handlePlayerStateChange = (event: any) => {
     const player = event.target;
     
-    // Handle video end
-    if (event.data === (window as any).YT.PlayerState.ENDED) {
-      handleVideoEnd();
+    // Handle different player states
+    switch (event.data) {
+      case (window as any).YT.PlayerState.ENDED:
+        // Video ended
+        clearProgressTracking(player);
+        handleVideoEnd();
+        break;
+        
+      case (window as any).YT.PlayerState.PLAYING:
+        // Video started playing
+        trackVideoProgress(player);
+        break;
+        
+      case (window as any).YT.PlayerState.PAUSED:
+        // Video paused - save current progress
+        saveCurrentProgress(player);
+        clearProgressTracking(player);
+        break;
+        
+      case (window as any).YT.PlayerState.BUFFERING:
+        // Video buffering - no action needed
+        break;
+        
+      default:
+        // Other states
+        break;
+    }
+  };
+
+  // Save current progress when video is paused
+  const saveCurrentProgress = async (player: any) => {
+    try {
+      const currentTime = player.getCurrentTime();
+      const duration = player.getDuration();
+      
+      if (duration > 0) {
+        const progressPercent = Math.min(100, Math.round((currentTime / duration) * 100));
+        
+        // Save progress to database
+        await supabaseHelpers.savePodcastProgressWithRetry(
+          userId,
+          currentVideo.id,
+          currentTime,
+          duration,
+          progressPercent
+        );
+        
+        // Dispatch a custom event to trigger real-time updates
+        const event = new CustomEvent('supabase-podcast-progress-changed', {
+          detail: { userId, podcastId: currentVideo.id, progressPercent }
+        });
+        window.dispatchEvent(event);
+        
+        console.log(`Saved YouTube video progress on pause: ${progressPercent}%`);
+      }
+    } catch (error) {
+      console.error('Error saving YouTube video progress:', error);
+    }
+  };
+
+  // Track video progress while playing
+  const trackVideoProgress = (player: any) => {
+    // Clear any existing interval
+    clearProgressTracking(player);
+    
+    const interval = setInterval(async () => {
+      try {
+        const currentTime = player.getCurrentTime();
+        const duration = player.getDuration();
+        
+        if (duration > 0) {
+          const progressPercent = Math.min(100, Math.round((currentTime / duration) * 100));
+          
+          // Save progress to database
+          await supabaseHelpers.savePodcastProgressWithRetry(
+            userId,
+            currentVideo.id,
+            currentTime,
+            duration,
+            progressPercent
+          );
+          
+          // Dispatch a custom event to trigger real-time updates
+          const event = new CustomEvent('supabase-podcast-progress-changed', {
+            detail: { userId, podcastId: currentVideo.id, progressPercent }
+          });
+          window.dispatchEvent(event);
+          
+          console.log(`Saved YouTube video progress: ${progressPercent}%`);
+        }
+      } catch (error) {
+        console.error('Error tracking YouTube video progress:', error);
+      }
+    }, 30000); // Save progress every 30 seconds
+    
+    // Store interval ID to clear later
+    player.progressInterval = interval;
+  };
+
+  // Clear progress tracking interval
+  const clearProgressTracking = (player: any) => {
+    if (player.progressInterval) {
+      clearInterval(player.progressInterval);
+      player.progressInterval = null;
     }
   };
 
@@ -178,6 +287,27 @@ export default function YouTubeVideoPlayer({
     loadSavedProgress();
   }, [userId, videos]);
 
+  const handleVideoEnd = () => {
+    // Mark current video as watched
+    markVideoAsWatched(currentVideo.id);
+    
+    // If this is the last video, show quiz
+    if (currentVideoIndex === videos.length - 1) {
+      generateQuiz();
+    } else {
+      // Automatically move to next video only if previous one is completed
+      const nextVideo = videos[currentVideoIndex + 1];
+      const previousVideoCompleted = currentVideoIndex === 0 || completedVideos[videos[currentVideoIndex].id];
+      
+      if (previousVideoCompleted) {
+        setCurrentVideoIndex(currentVideoIndex + 1);
+      } else {
+        // Show message that previous video must be completed first
+        alert('You must complete the previous video before moving to the next one.');
+      }
+    }
+  };
+
   const markVideoAsWatched = async (videoId: string) => {
     try {
       setWatchedVideos(prev => ({
@@ -202,27 +332,6 @@ export default function YouTubeVideoPlayer({
       console.log(`Video ${videoId} marked as watched`);
     } catch (error) {
       console.error('Error marking video as watched:', error);
-    }
-  };
-
-  const handleVideoEnd = () => {
-    // Mark current video as watched
-    markVideoAsWatched(currentVideo.id);
-    
-    // If this is the last video, show quiz
-    if (currentVideoIndex === videos.length - 1) {
-      generateQuiz();
-    } else {
-      // Automatically move to next video only if previous one is completed
-      const nextVideo = videos[currentVideoIndex + 1];
-      const previousVideoCompleted = currentVideoIndex === 0 || completedVideos[videos[currentVideoIndex].id];
-      
-      if (previousVideoCompleted) {
-        setCurrentVideoIndex(currentVideoIndex + 1);
-      } else {
-        // Show message that previous video must be completed first
-        alert('You must complete the previous video before moving to the next one.');
-      }
     }
   };
 
