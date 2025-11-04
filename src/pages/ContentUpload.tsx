@@ -71,6 +71,7 @@ export default function ContentUpload() {
   const [selectedCourse, setSelectedCourse] = useState('');
   const [newCourseTitle, setNewCourseTitle] = useState('');
   const [newCourseLevel, setNewCourseLevel] = useState<'Basics' | 'Intermediate' | 'Advanced'>('Basics');
+  const [newCourseDescription, setNewCourseDescription] = useState(''); // Add this line
   
   // Form visibility state
   const [showAddCourseForm, setShowAddCourseForm] = useState(true);
@@ -392,13 +393,15 @@ export default function ContentUpload() {
     try {
       console.log('Creating course:', {
         title: newCourseTitle,
-        level: newCourseLevel
+        level: newCourseLevel,
+        description: newCourseDescription // Add this line
       });
 
       // Create the course (without created_by since it's not in the schema)
       const courseData = {
         title: newCourseTitle,
-        level: newCourseLevel
+        level: newCourseLevel,
+        description: newCourseDescription // Add this line
         // Note: courses table doesn't have created_by column, so we don't include it
       };
       
@@ -423,6 +426,7 @@ export default function ContentUpload() {
       // Reset form
       setNewCourseTitle('');
       setNewCourseLevel('Basics');
+      setNewCourseDescription(''); // Add this line
 
       // Reload data to show the new course
       await loadSupabaseData();
@@ -1391,6 +1395,24 @@ export default function ContentUpload() {
                   </select>
                   <p className="mt-1 text-xs text-[#a0a0a0]">
                     Select the difficulty level for this course
+                  </p>
+                </div>
+
+                {/* Add Course Description Field */}
+                <div>
+                  <label htmlFor="course-description" className="block text-sm font-medium text-white mb-2">
+                    Course Description
+                  </label>
+                  <textarea
+                    id="course-description"
+                    value={newCourseDescription}
+                    onChange={(e) => setNewCourseDescription(e.target.value)}
+                    rows={3}
+                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                    placeholder="Enter course description"
+                  />
+                  <p className="mt-1 text-xs text-[#a0a0a0]">
+                    Provide a detailed description of this course
                   </p>
                 </div>
 
