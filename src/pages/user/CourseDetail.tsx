@@ -1305,29 +1305,6 @@ export default function CourseDetail() {
                     <div className="bg-white rounded-lg p-4 shadow-sm">
                       <p className="text-sm text-gray-600">Complete all audio and video content in the Audio and Video tabs to unlock quizzes.</p>
                     </div>
-                    {/* Debug buttons - REMOVE IN PRODUCTION */}
-                    <div className="mt-4 flex flex-col gap-2">
-                      <button
-                        onClick={() => {
-                          console.log('Refreshing progress data...');
-                          loadPodcastProgress();
-                        }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                      >
-                        Refresh Progress Data
-                      </button>
-                      <button
-                        onClick={() => {
-                          console.log('Manually overriding module completion check');
-                          // Force show the quiz selection
-                          setShowQuiz(false);
-                          setShowFinalQuiz(false);
-                        }}
-                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                      >
-                        Override Completion Check (Testing Only)
-                      </button>
-                    </div>
                   </div>
                 ) : quizResults ? (
                   <QuizResults
@@ -1418,6 +1395,96 @@ export default function CourseDetail() {
                         }));
                       }}
                     />
+                    {/* Complete Button for Audio */}
+                    {!currentPodcast.is_youtube_video && (
+                      <div className="mt-4">
+                        <button
+                          onClick={async () => {
+                            try {
+                              // Mark as 100% complete
+                              await supabaseHelpers.savePodcastProgressWithRetry(
+                                userId || '',
+                                currentPodcast.id,
+                                100, // playback position
+                                100, // duration
+                                100  // progress percent
+                              );
+                              
+                              // Update local state
+                              setPodcastProgress(prev => ({
+                                ...prev,
+                                [currentPodcast.id]: {
+                                  id: currentPodcast.id,
+                                  user_id: userId || '',
+                                  podcast_id: currentPodcast.id,
+                                  playback_position: 100,
+                                  duration: 100,
+                                  progress_percent: 100,
+                                  last_played_at: new Date().toISOString()
+                                }
+                              }));
+                              
+                              alert(`${currentPodcast.title} marked as complete!`);
+                              // Refresh progress to update UI
+                              setTimeout(() => {
+                                loadPodcastProgress();
+                              }, 500);
+                            } catch (error) {
+                              console.error('Error marking audio as complete:', error);
+                              alert('Error marking content as complete');
+                            }
+                          }}
+                          className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                        >
+                          Mark Audio Module Complete
+                        </button>
+                      </div>
+                    )}
+                    {/* Complete Button for Video */}
+                    {currentPodcast.is_youtube_video && (
+                      <div className="mt-4">
+                        <button
+                          onClick={async () => {
+                            try {
+                              // Mark as 100% complete
+                              await supabaseHelpers.savePodcastProgressWithRetry(
+                                userId || '',
+                                currentPodcast.id,
+                                1800, // playback position (30 minutes default)
+                                1800, // duration (30 minutes default)
+                                100   // progress percent
+                              );
+                              
+                              // Update local state
+                              setPodcastProgress(prev => ({
+                                ...prev,
+                                [currentPodcast.id]: {
+                                  id: currentPodcast.id,
+                                  user_id: userId || '',
+                                  podcast_id: currentPodcast.id,
+                                  playback_position: 1800,
+                                  duration: 1800,
+                                  progress_percent: 100,
+                                  last_played_at: new Date().toISOString()
+                                }
+                              }));
+                              
+                              alert(`${currentPodcast.title} marked as complete!`);
+                              // Refresh progress to update UI
+                              setTimeout(() => {
+                                loadPodcastProgress();
+                              }, 500);
+                            } catch (error) {
+                              console.error('Error marking video as complete:', error);
+                              alert('Error marking content as complete');
+                            }
+                          }}
+                          className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                        >
+                          Mark Video Module Complete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
