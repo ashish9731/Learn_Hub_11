@@ -33,6 +33,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [submittedAnswers, setSubmittedAnswers] = useState<Record<string, boolean>>({}); // Track submitted answers
+  const [answerFeedback, setAnswerFeedback] = useState<Record<string, { isCorrect: boolean; correctAnswerId: string; explanation: string }>>({}); // Track answer feedback
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quizGenerated, setQuizGenerated] = useState(false);
@@ -191,6 +193,11 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
   }, [quizId, quizGenerated, userId, isFinalQuiz]);
 
   const handleAnswerSelect = (questionId: string, answerId: string) => {
+    // Prevent changing answer if it's already submitted
+    if (submittedAnswers[questionId]) {
+      return;
+    }
+    
     setSelectedAnswers(prev => ({
       ...prev,
       [questionId]: answerId
@@ -202,8 +209,25 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
     const currentQuestion = questions[currentQuestionIndex];
     const selectedAnswerId = selectedAnswers[currentQuestion.id];
     
-    if (selectedAnswerId && attemptId) {
-      await submitQuizAnswer(attemptId, currentQuestion.id, selectedAnswerId);
+    if (selectedAnswerId && attemptId && !submittedAnswers[currentQuestion.id]) {
+      const result = await submitQuizAnswer(attemptId, currentQuestion.id, selectedAnswerId);
+      
+      if (result.success) {
+        // Mark this question as submitted and store feedback
+        setSubmittedAnswers(prev => ({
+          ...prev,
+          [currentQuestion.id]: true
+        }));
+        
+        setAnswerFeedback(prev => ({
+          ...prev,
+          [currentQuestion.id]: {
+            isCorrect: result.isCorrect,
+            correctAnswerId: result.correctAnswerId || '',
+            explanation: result.explanation || ''
+          }
+        }));
+      }
     }
     
     // Move to next question or complete quiz
@@ -311,30 +335,71 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
 
         {/* Answer Options */}
         <div className="space-y-3">
-          {currentQuestion.answers.map((answer) => (
-            <div
-              key={answer.id}
-              className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                selectedAnswer === answer.id
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-              }`}
-              onClick={() => handleAnswerSelect(currentQuestion.id, answer.id)}
-            >
-              <div className="flex items-center">
-                <div className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${
-                  selectedAnswer === answer.id
-                    ? 'border-blue-500 bg-blue-500'
-                    : 'border-gray-300'
-                }`}>
-                  {selectedAnswer === answer.id && (
-                    <div className="w-2 h-2 rounded-full bg-white"></div>
-                  )}
+          {currentQuestion.answers.map((answer) => {
+            const isSelected = selectedAnswer === answer.id;
+            const isSubmitted = submittedAnswers[currentQuestion.id];
+            const feedback = answerFeedback[currentQuestion.id];
+            const isCorrectAnswer = feedback?.correctAnswerId === answer.id;
+            
+            return (
+              <div
+                key={answer.id}
+                className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
+                  isSubmitted
+                    ? isSelected
+                      ? feedback.isCorrect
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-red-500 bg-red-50'
+                      : isCorrectAnswer
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 bg-gray-50'
+                    : isSelected
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+                onClick={() => !isSubmitted && handleAnswerSelect(currentQuestion.id, answer.id)}
+              >
+                <div className="flex items-center">
+                  <div className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${
+                    isSubmitted
+                      ? isSelected
+                        ? feedback.isCorrect
+                          ? 'border-green-500 bg-green-500 text-white'
+                          : 'border-red-500 bg-red-500 text-white'
+                        : isCorrectAnswer
+                          ? 'border-green-500 bg-green-500 text-white'
+                          : 'border-gray-300'
+                      : isSelected
+                        ? 'border-blue-500 bg-blue-500 text-white'
+                        : 'border-gray-300'
+                  }`}>
+                    {isSubmitted
+                      ? isSelected
+                        ? feedback.isCorrect
+                          ? '✓'
+                          : '✗'
+                        : isCorrectAnswer
+                          ? '✓'
+                          : ''
+                      : isSelected && (
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      )}
+                  </div>
+                  <span className="text-gray-800">{answer.answer_text}</span>
                 </div>
-                <span className="text-gray-800">{answer.answer_text}</span>
+                {isSubmitted && isSelected && !feedback.isCorrect && (
+                  <div className="mt-2 text-sm text-red-600">
+                    Incorrect. {feedback.explanation}
+                  </div>
+                )}
+                {isSubmitted && isCorrectAnswer && (
+                  <div className="mt-2 text-sm text-green-600">
+                    Correct! {feedback.explanation}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

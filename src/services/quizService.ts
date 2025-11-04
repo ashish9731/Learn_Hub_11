@@ -183,7 +183,7 @@ Return ONLY a JSON array of 5 question objects. No other text.`;
 }
 
 /**
- * Generate a 10-question final quiz for a course
+ * Generate a 25-question final quiz for a course
  * @param courseId The course ID
  * @param courseTitle The course title
  * @param allCategoryContents All category contents for this course
@@ -221,7 +221,7 @@ export async function generateFinalQuiz(
     ).join('\n\n');
 
     // Generate quiz questions using OpenAI
-    const prompt = `Generate a 10-question multiple choice quiz based on the following course content for "${courseTitle}":
+    const prompt = `Generate a 25-question multiple choice quiz based on the following course content for "${courseTitle}":
 
 ${contentSummary}
 
@@ -246,7 +246,7 @@ Requirements:
   ]
 }
 
-Return ONLY a JSON array of 10 question objects. No other text.`;
+Return ONLY a JSON array of 25 question objects. No other text.`;
 
     console.log('Generating final quiz with prompt:', prompt.substring(0, 200) + '...');
 
@@ -268,7 +268,7 @@ Return ONLY a JSON array of 10 question objects. No other text.`;
 
     const quizData = JSON.parse(response.choices[0].message.content || '[]');
     
-    if (!Array.isArray(quizData) || quizData.length !== 10) {
+    if (!Array.isArray(quizData) || quizData.length !== 25) {
       console.error('Invalid quiz data received from OpenAI:', quizData);
       return null;
     }
@@ -378,19 +378,19 @@ export async function submitQuizAnswer(
   attemptId: string,
   questionId: string,
   selectedAnswerId: string
-): Promise<boolean> {
+): Promise<{ success: boolean; isCorrect: boolean; correctAnswerId: string | null; explanation: string | null }> {
   try {
     // Get the correct answer for this question
     const { data: correctAnswer, error: answerError } = await supabase
       .from('quiz_answers')
-      .select('id, is_correct')
+      .select('id, is_correct, explanation')
       .eq('question_id', questionId)
       .eq('is_correct', true)
       .maybeSingle();
 
     if (answerError) {
       console.error('Error fetching correct answer:', answerError);
-      return false;
+      return { success: false, isCorrect: false, correctAnswerId: null, explanation: null };
     }
 
     const isCorrect = correctAnswer?.id === selectedAnswerId;
@@ -407,13 +407,18 @@ export async function submitQuizAnswer(
 
     if (submitError) {
       console.error('Error submitting quiz answer:', submitError);
-      return false;
+      return { success: false, isCorrect: false, correctAnswerId: null, explanation: null };
     }
 
-    return true;
+    return {
+      success: true,
+      isCorrect: isCorrect,
+      correctAnswerId: correctAnswer?.id || null,
+      explanation: correctAnswer?.explanation || null
+    };
   } catch (error) {
     console.error('Error submitting quiz answer:', error);
-    return false;
+    return { success: false, isCorrect: false, correctAnswerId: null, explanation: null };
   }
 }
 
@@ -439,7 +444,7 @@ export async function completeQuizAttempt(attemptId: string): Promise<boolean> {
     const totalQuestions = answers.length;
     const correctAnswers = answers.filter(answer => answer.is_correct).length;
     const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
-    const passed = score >= 70; // 70% to pass
+    const passed = correctAnswers >= 13; // 13 correct answers to pass (52% for 25 questions)
 
     // Update the attempt with completion data
     const { error: updateError } = await supabase

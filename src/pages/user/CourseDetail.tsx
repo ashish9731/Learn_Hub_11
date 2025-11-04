@@ -114,6 +114,7 @@ export default function CourseDetail() {
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [quizResults, setQuizResults] = useState<{ passed: boolean; score: number } | null>(null);
   const [userName, setUserName] = useState<string>('');
+  const [quizAttempts, setQuizAttempts] = useState<any[]>([]); // Track quiz attempts
 
   // Refs
   const youtubePlayerRef = useRef<HTMLIFrameElement>(null);
@@ -389,6 +390,7 @@ export default function CourseDetail() {
     if (userId && courseId) {
       loadPodcastAssignments();
       loadPdfAssignments();
+      loadQuizAttempts(); // Load quiz attempts
     }
   }, [userId, courseId]);
 
@@ -476,6 +478,13 @@ export default function CourseDetail() {
     });
   };
 
+  // Check if module quizzes are completed
+  const checkModuleQuizzesCompleted = () => {
+    // For now, we'll assume module quizzes are completed if any exist
+    // In a more complex implementation, we would check specific module quiz completion
+    return quizAttempts.some(attempt => attempt.module_quiz_id);
+  };
+
   // Start module quiz
   const startModuleQuiz = (categoryId: string, categoryName: string) => {
     // Check if all modules are completed before allowing quiz access
@@ -511,6 +520,7 @@ export default function CourseDetail() {
     // Reload data to reflect quiz completion
     if (userId) {
       loadPodcastProgress();
+      loadQuizAttempts(); // Reload quiz attempts
     }
   };
 
@@ -555,6 +565,33 @@ export default function CourseDetail() {
       }
     } catch (error) {
       console.error('Error loading podcast progress:', error);
+    }
+  };
+
+  // Load quiz attempts
+  const loadQuizAttempts = async () => {
+    if (!userId || !courseId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_quiz_attempts')
+        .select(`
+          *,
+          module_quizzes (id, title),
+          course_quizzes (id, title)
+        `)
+        .eq('user_id', userId)
+        .or(`module_quizzes.course_id.eq.${courseId},course_quizzes.course_id.eq.${courseId}`);
+        
+      if (error) {
+        console.error('Error loading quiz attempts:', error);
+        return;
+      }
+      
+      setQuizAttempts(data || []);
+      console.log('Loaded quiz attempts:', data);
+    } catch (error) {
+      console.error('Error loading quiz attempts:', error);
     }
   };
 
@@ -1031,7 +1068,7 @@ export default function CourseDetail() {
                                   className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                                   onClick={(e) => {
                                     e.preventDefault();
-                                    // Open in new window/tab
+                                    // Open in new window/tab for view-only
                                     window.open(pdf.pdf_url, '_blank');
                                   }}
                                 >
@@ -1081,6 +1118,11 @@ export default function CourseDetail() {
                               target="_blank" 
                               rel="noopener noreferrer" 
                               className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                // Open in new window/tab for view-only
+                                window.open(pdf.pdf_url, '_blank');
+                              }}
                             >
                               <Image className="h-3 w-3 mr-1" />
                               View Image
@@ -1126,9 +1168,13 @@ export default function CourseDetail() {
                                   target="_blank" 
                                   rel="noopener noreferrer" 
                                   className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
+                                  onClick={(e) => {
+                                    // Allow download for templates
+                                    // No need to prevent default, let it download normally
+                                  }}
                                 >
                                   <FileText className="h-3 w-3 mr-1" />
-                                  {(pdf && pdf.content_type === 'templates') ? 'View Template' : 'View Document'}
+                                  {(pdf && pdf.content_type === 'templates') ? 'Download Template' : 'View Document'}
                                 </a>
                               </div>
                             </div>
@@ -1200,10 +1246,20 @@ export default function CourseDetail() {
                       <p className="text-gray-300 mb-4">Complete the final quiz to finish the course.</p>
                       <button
                         onClick={startFinalQuiz}
-                        className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                        className={`px-3 py-1 rounded text-sm ${
+                          checkModuleQuizzesCompleted() 
+                            ? 'bg-blue-700 hover:bg-blue-600 text-white' 
+                            : 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                        }`}
+                        disabled={!checkModuleQuizzesCompleted()}
                       >
                         Start Final Quiz
                       </button>
+                      {!checkModuleQuizzesCompleted() && (
+                        <p className="text-xs text-gray-400 mt-2">
+                          Complete all module quizzes to unlock the final quiz
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
