@@ -454,14 +454,16 @@ export default function Dashboard() {
               <button
                 key={button.name}
                 onClick={() => navigate(button.path)}
-                className={`custom-button ${location.pathname === button.path ? 'bg-[#8b5cf6] text-white' : ''}`}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                  location.pathname === button.path
+                    ? 'bg-[#8b5cf6] text-white shadow-lg'
+                    : 'bg-[#1e1e1e] text-[#f0f0f0] hover:bg-[#252525] border border-[#333333]'
+                }`}
               >
-                <span className="shadow"></span>
-                <span className="edge"></span>
-                <span className="front">
+                <div className="flex items-center">
                   <button.icon className="h-5 w-5 mr-2" />
                   <span>{button.name}</span>
-                </span>
+                </div>
               </button>
             ))}
           </div>
