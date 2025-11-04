@@ -213,10 +213,11 @@ export default function CourseDetail() {
     console.log('Filtering podcasts, assignments count:', podcastAssignments.length);
     console.log('Total podcasts:', podcasts.length);
     
-    // If no podcast assignments exist, show no podcasts (proper assignment filtering)
+    // For testing purposes, if no podcast assignments exist, show all podcasts
+    // In production, this should be removed and proper assignments should be used
     if (podcastAssignments.length === 0) {
-      console.log('No podcast assignments found, returning empty array');
-      return [];
+      console.log('No podcast assignments found, showing all podcasts for testing');
+      return podcasts;
     }
     
     // Filter podcasts to only show assigned ones

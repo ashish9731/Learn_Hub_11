@@ -144,9 +144,9 @@ export default function PodcastPlayer({
       const duration = audioRef.current.duration || 0;
       
       // Allow full skipping - user can jump to any position
-      // Update last valid time and max allowed time to current time
+      // Remove all time restrictions to ensure full playback
       setLastValidTime(currentTime);
-      setMaxAllowedTime(currentTime);
+      setMaxAllowedTime(duration || currentTime); // Allow full duration
       
       // Reset progressSaved flag when time changes significantly
       setProgressSaved(false);
@@ -171,9 +171,9 @@ export default function PodcastPlayer({
     if (audioRef.current) {
       const currentTime = audioRef.current.currentTime;
       
-      // Update last valid time and max allowed time to current time
+      // Remove all time restrictions to ensure full playback
       setLastValidTime(currentTime);
-      setMaxAllowedTime(currentTime);
+      setMaxAllowedTime(audioRef.current.duration || currentTime); // Allow full duration
     }
   };
 

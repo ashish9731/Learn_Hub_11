@@ -345,7 +345,7 @@ export default function YouTubeVideoPlayer({
   };
 
   const handleSkipForward = () => {
-    // Allow skipping to any video
+    // Allow skipping to any video without restrictions
     if (currentVideoIndex < videos.length - 1) {
       setCurrentVideoIndex(currentVideoIndex + 1);
     } else {
