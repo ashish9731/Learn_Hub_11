@@ -527,6 +527,22 @@ export const supabaseHelpers = {
     if (error) throw error;
   },
 
+  updatePodcast: async (podcastId: string, updates: any) => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
+      .from('podcasts')
+      .update(updates)
+      .eq('id', podcastId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
   // PDF operations
   getPDFs: async () => {
     if (!supabaseAdmin) {
@@ -573,6 +589,22 @@ export const supabaseHelpers = {
       .eq('id', pdfId);
     
     if (error) throw error;
+  },
+
+  updatePDF: async (pdfId: string, updates: any) => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
+      .from('pdfs')
+      .update(updates)
+      .eq('id', pdfId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
   },
 
 

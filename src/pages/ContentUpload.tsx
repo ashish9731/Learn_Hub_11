@@ -71,7 +71,13 @@ export default function ContentUpload() {
   const [selectedCourse, setSelectedCourse] = useState('');
   const [newCourseTitle, setNewCourseTitle] = useState('');
   const [newCourseLevel, setNewCourseLevel] = useState<'Basics' | 'Intermediate' | 'Advanced'>('Basics');
-  const [newCourseDescription, setNewCourseDescription] = useState(''); // Add this line
+  const [newCourseDescription, setNewCourseDescription] = useState('');
+  
+  // Editing state variables
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+  const [editingCourseData, setEditingCourseData] = useState<Partial<Course>>({});
+  const [editingContentId, setEditingContentId] = useState<string | null>(null);
+  const [editingContentData, setEditingContentData] = useState<Partial<Podcast | PDF>>({});
   
   // Form visibility state
   const [showAddCourseForm, setShowAddCourseForm] = useState(true);
@@ -729,6 +735,96 @@ export default function ContentUpload() {
     }
   };
 
+  // Edit course functions
+  const startEditingCourse = (course: Course) => {
+    setEditingCourseId(course.id);
+    setEditingCourseData({
+      title: course.title,
+      level: course.level || 'Basics',
+      description: course.description || ''
+    });
+  };
+
+  const cancelEditingCourse = () => {
+    setEditingCourseId(null);
+    setEditingCourseData({});
+  };
+
+  const saveEditingCourse = async () => {
+    if (!editingCourseId) return;
+
+    try {
+      await supabaseHelpers.updateCourse(editingCourseId, editingCourseData);
+      console.log('Course updated successfully');
+
+      // Reset editing state
+      setEditingCourseId(null);
+      setEditingCourseData({});
+
+      // Reload data to show the updated course
+      await loadSupabaseData();
+
+      alert('Course updated successfully!');
+    } catch (error) {
+      console.error('Failed to update course:', error);
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      alert(errorMessage);
+    }
+  };
+
+  // Edit content functions
+  const startEditingContent = (content: Podcast | PDF) => {
+    setEditingContentId(content.id);
+    setEditingContentData({
+      title: content.title,
+    });
+  };
+
+  const cancelEditingContent = () => {
+    setEditingContentId(null);
+    setEditingContentData({});
+  };
+
+  const saveEditingContent = async () => {
+    if (!editingContentId) return;
+
+    try {
+      // Determine if it's a podcast or PDF based on properties
+      const isPodcast = 'mp3_url' in editingContentData || 'video_url' in editingContentData;
+      
+      if (isPodcast) {
+        await supabaseHelpers.updatePodcast(editingContentId, editingContentData);
+      } else {
+        await supabaseHelpers.updatePDF(editingContentId, editingContentData);
+      }
+
+      console.log('Content updated successfully');
+
+      // Reset editing state
+      setEditingContentId(null);
+      setEditingContentData({});
+
+      // Reload data to show the updated content
+      await loadSupabaseData();
+
+      alert('Content updated successfully!');
+    } catch (error) {
+      console.error('Failed to update content:', error);
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      alert(errorMessage);
+    }
+  };
+
   // Function to manually generate course image using Stability AI
   /*
   const generateCourseImage = async (courseId: string, courseTitle: string) => {
@@ -1027,37 +1123,72 @@ export default function ContentUpload() {
                                 <div key={podcast.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
                                   <Music className="h-4 w-4 text-[#8b5cf6] mr-3" />
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-white truncate">{podcast.title}</p>
+                                    {editingContentId === podcast.id ? (
+                                      <input
+                                        type="text"
+                                        value={editingContentData.title || ''}
+                                        onChange={(e) => setEditingContentData({...editingContentData, title: e.target.value})}
+                                        className="w-full px-2 py-1 text-sm border border-[#333333] rounded bg-[#1e1e1e] text-white"
+                                        placeholder="Content title"
+                                      />
+                                    ) : (
+                                      <p className="text-sm text-white truncate">{podcast.title}</p>
+                                    )}
                                     {podcast.is_youtube_video && (
                                       <p className="text-xs text-[#a0a0a0">YouTube Video</p>
                                     )}
                                   </div>
                                   <div className="flex space-x-2">
-                                    {podcast.is_youtube_video ? (
-                                      <a 
-                                        href={podcast.video_url || '#'} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="text-xs text-blue-400 hover:text-blue-300"
-                                      >
-                                        View
-                                      </a>
+                                    {editingContentId === podcast.id ? (
+                                      <>
+                                        <button
+                                          onClick={() => saveEditingContent()}
+                                          className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
+                                        >
+                                          Save
+                                        </button>
+                                        <button
+                                          onClick={cancelEditingContent}
+                                          className="text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </>
                                     ) : (
-                                      <a 
-                                        href={podcast.mp3_url || '#'} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="text-xs text-blue-400 hover:text-blue-300"
-                                      >
-                                        Play
-                                      </a>
+                                      <>
+                                        <button
+                                          onClick={() => startEditingContent(podcast)}
+                                          className="text-xs text-yellow-400 hover:text-yellow-300"
+                                        >
+                                          Edit
+                                        </button>
+                                        {podcast.is_youtube_video ? (
+                                          <a 
+                                            href={podcast.video_url || '#'} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-400 hover:text-blue-300"
+                                          >
+                                            View
+                                          </a>
+                                        ) : (
+                                          <a 
+                                            href={podcast.mp3_url || '#'} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-400 hover:text-blue-300"
+                                          >
+                                            Play
+                                          </a>
+                                        )}
+                                        <button
+                                          onClick={() => handleDeletePodcast(podcast.id)}
+                                          className="text-xs text-red-400 hover:text-red-300"
+                                        >
+                                          Delete
+                                        </button>
+                                      </>
                                     )}
-                                    <button
-                                      onClick={() => handleDeletePodcast(podcast.id)}
-                                      className="text-xs text-red-400 hover:text-red-300"
-                                    >
-                                      Delete
-                                    </button>
                                   </div>
                                 </div>
                               ))}
@@ -1078,25 +1209,60 @@ export default function ContentUpload() {
                                 <div key={pdf.id} className="flex items-center p-3 bg-[#252525] rounded-lg">
                                   <FileText className="h-4 w-4 text-blue-500 mr-3" />
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-white truncate">
-                                      {pdf?.title || 'Untitled Document'}
-                                    </p>
+                                    {editingContentId === pdf.id ? (
+                                      <input
+                                        type="text"
+                                        value={editingContentData.title || ''}
+                                        onChange={(e) => setEditingContentData({...editingContentData, title: e.target.value})}
+                                        className="w-full px-2 py-1 text-sm border border-[#333333] rounded bg-[#1e1e1e] text-white"
+                                        placeholder="Content title"
+                                      />
+                                    ) : (
+                                      <p className="text-sm text-white truncate">
+                                        {pdf?.title || 'Untitled Document'}
+                                      </p>
+                                    )}
                                   </div>
                                   <div className="flex space-x-2">
-                                    <a 
-                                      href={pdf?.pdf_url || '#'} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-xs text-blue-400 hover:text-blue-300"
-                                    >
-                                      View
-                                    </a>
-                                    <button
-                                      onClick={() => handleDeletePDF(pdf.id)}
-                                      className="text-xs text-red-400 hover:text-red-300"
-                                    >
-                                      Delete
-                                    </button>
+                                    {editingContentId === pdf.id ? (
+                                      <>
+                                        <button
+                                          onClick={() => saveEditingContent()}
+                                          className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
+                                        >
+                                          Save
+                                        </button>
+                                        <button
+                                          onClick={cancelEditingContent}
+                                          className="text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <button
+                                          onClick={() => startEditingContent(pdf)}
+                                          className="text-xs text-yellow-400 hover:text-yellow-300"
+                                        >
+                                          Edit
+                                        </button>
+                                        <a 
+                                          href={pdf?.pdf_url || '#'} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-xs text-blue-400 hover:text-blue-300"
+                                        >
+                                          View
+                                        </a>
+                                        <button
+                                          onClick={() => handleDeletePDF(pdf.id)}
+                                          className="text-xs text-red-400 hover:text-red-300"
+                                        >
+                                          Delete
+                                        </button>
+                                      </>
+                                    )}
                                   </div>
                                 </div>
                               ))}
@@ -1440,6 +1606,81 @@ export default function ContentUpload() {
             </div>
 
             {/* Upload Content Form */}
+            <div className="bg-[#1e1e1e] shadow rounded-lg p-6 border border-[#333333]">
+              <h3 className="text-lg font-medium text-white mb-4">Upload Content</h3>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="content-title" className="block text-sm font-medium text-white mb-2">
+                    Content Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="content-title"
+                    value={newContentTitle}
+                    onChange={(e) => setNewContentTitle(e.target.value)}
+                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                    placeholder="Enter content title"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="content-type" className="block text-sm font-medium text-white mb-2">
+                    Content Type
+                  </label>
+                  <select
+                    id="content-type"
+                    value={newContentType}
+                    onChange={(e) => setNewContentType(e.target.value as 'video' | 'audio' | 'document')}
+                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                  >
+                    <option value="video">Video</option>
+                    <option value="audio">Audio</option>
+                    <option value="document">Document</option>
+                  </select>
+                  <p className="mt-1 text-xs text-[#a0a0a0]">
+                    Select the type of content you are uploading
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="content-file" className="block text-sm font-medium text-white mb-2">
+                    Content File <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    id="content-file"
+                    onChange={handleContentFileChange}
+                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                  />
+                </div>
+
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewContentTitle('');
+                      setNewContentType('video');
+                      setNewContentFile(null);
+                    }}
+                    className="flex-1 py-2 px-4 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleUploadContent}
+                    disabled={!newContentTitle.trim() || !newContentFile}
+                    className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Upload Content
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Courses List */}
+          <div className="lg:col-span-2">
             <div className="bg-[#1e1e1e] shadow rounded-lg p-6 border border-[#333333]">
               <h3 className="text-lg font-medium text-white mb-4">Upload Content</h3>
               <form className="space-y-4">
