@@ -858,101 +858,68 @@ export default function CourseDetail() {
               </div>
             </div>
 
-            {/* Audio Tab */}
-            {activeTab === 'audio' && (
+            {/* Documents Tab */}
+            {activeTab === 'docs' && (
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Audio Content</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">Documents</h2>
                 <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Audio List - Left Side */}
+                  {/* Document List - Left Side */}
                   <div className="lg:w-1/2">
                     <div className="space-y-3">
                       {(() => {
-                        const assignedPodcasts = getAssignedPodcasts().filter(p => !p.is_youtube_video);
-                        console.log('Rendering audio tab, assigned podcasts count:', assignedPodcasts.length);
-                        return assignedPodcasts.length > 0 ? 
-                          assignedPodcasts.map(podcast => {
-                            const completion = getPodcastCompletion(podcast.id);
-                            
+                        const assignedPDFs = getAssignedPDFs('docs');
+                        console.log('Rendering documents tab, assigned PDFs count:', assignedPDFs.length);
+                        return assignedPDFs.length > 0 ? 
+                          assignedPDFs.map(pdf => {
                             return (
                               <div 
-                                key={podcast.id} 
+                                key={pdf.id} 
                                 className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
-                                  currentPodcast?.id === podcast.id 
+                                  currentPdf?.id === pdf.id 
                                     ? 'bg-gray-800 border border-blue-500' 
                                     : 'bg-gray-800'
                                 }`}
-                                onClick={() => handlePlayPodcast(podcast)}
+                                onClick={() => setCurrentPdf(pdf)}
                               >
                                 <div className="flex items-center">
                                   <div className="flex-shrink-0 mr-3">
                                     <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
-                                      <Headphones className="h-5 w-5 text-blue-400" />
+                                      <FileText className="h-5 w-5 text-blue-400" />
                                     </div>
                                   </div> 
                                   <div className="flex-1 min-w-0">
-                                    <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
-                                    <p className="text-xs text-gray-400">Audio content</p>
-                                    {completion > 0 && (
-                                      <div className="ml-2 flex items-center">
-                                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                          <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
-                                        </div>
-                                        <span className="text-xs text-gray-500 ml-1">{completion}%</span>
-                                      </div>
-                                    )}
+                                    <h3 className="text-sm font-medium text-white truncate">{pdf.title}</h3>
+                                    <p className="text-xs text-gray-400">Document</p>
                                   </div>
-                                  {/* Show checkmark when completed */}
-                                  {completion >= 100 && (
-                                    <div className="flex-shrink-0 ml-2">
-                                      <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                      </svg>
-                                    </div>
-                                  )}
                                 </div>
                               </div>
                             );
                           }) : (
                             <div className="text-center py-8 text-gray-400">
-                              <Headphones className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                              <h3 className="text-lg font-medium text-white mb-2">No Audio Content</h3>
-                              <p className="text-gray-400">No audio content has been assigned to you for this course.</p>
+                              <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                              <h3 className="text-lg font-medium text-white mb-2">No Documents</h3>
+                              <p className="text-gray-400">No documents have been assigned to you for this course.</p>
                             </div>
                           );
                       })()}
                     </div>
                   </div>
-                  {/* Audio Completion Panel */}
+                  {/* Document Completion Panel */}
                   <div className="mt-6 bg-gray-800 rounded-lg p-4">
-                    <h3 className="text-lg font-medium text-white mb-2">Audio Module Completion</h3>
-                    <p className="text-gray-300 text-sm mb-3">After listening to all audio content, mark the entire module as complete:</p>
+                    <h3 className="text-lg font-medium text-white mb-2">Document Module Completion</h3>
+                    <p className="text-gray-300 text-sm mb-3">After reviewing all documents, mark the entire module as complete:</p>
                     <div className="space-y-2">
-                      {getAssignedPodcasts().filter(p => !p.is_youtube_video).map((podcast) => {
-                        const completion = getPodcastCompletion(podcast.id);
+                      {getAssignedPDFs('docs').map((pdf) => {
                         return (
-                          <div key={podcast.id} className="flex items-center justify-between">
+                          <div key={pdf.id} className="flex items-center justify-between bg-gray-700 p-2 rounded">
                             <div className="flex items-center">
                               <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
-                                <Headphones className="h-5 w-5 text-blue-400" />
+                                <FileText className="h-5 w-5 text-blue-400" />
                               </div>
                               <div className="ml-3">
-                                <h3 className="text-sm font-medium text-white">{podcast.title}</h3>
-                                <p className="text-xs text-gray-400">Audio content</p>
+                                <h3 className="text-sm font-medium text-white">{pdf.title}</h3>
+                                <p className="text-xs text-gray-400">Document</p>
                               </div>
-                            </div>
-                            <div className="flex items-center">
-                              <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
-                              </div>
-                              <span className="text-xs text-gray-500 ml-1">{completion}%</span>
-                              {/* Show checkmark when completed */}
-                              {completion >= 100 && (
-                                <div className="flex-shrink-0 ml-2">
-                                  <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                </div>
-                              )}
                             </div>
                           </div>
                         );
@@ -962,12 +929,12 @@ export default function CourseDetail() {
                         <button
                           onClick={async () => {
                             try {
-                              // Mark all audio podcasts as 100% complete
-                              const audioPodcasts = getAssignedPodcasts().filter(p => !p.is_youtube_video);
-                              for (const podcast of audioPodcasts) {
+                              // Mark all documents as 100% complete
+                              const documents = getAssignedPDFs('docs');
+                              for (const pdf of documents) {
                                 await supabaseHelpers.savePodcastProgressWithRetry(
                                   userId || '',
-                                  podcast.id,
+                                  pdf.id,
                                   100, // playback position
                                   100, // duration
                                   100  // progress percent
@@ -976,10 +943,10 @@ export default function CourseDetail() {
                                 // Update local state
                                 setPodcastProgress(prev => ({
                                   ...prev,
-                                  [podcast.id]: {
-                                    id: podcast.id,
+                                  [pdf.id]: {
+                                    id: pdf.id,
                                     user_id: userId || '',
-                                    podcast_id: podcast.id,
+                                    podcast_id: pdf.id,
                                     playback_position: 100,
                                     duration: 100,
                                     progress_percent: 100,
@@ -988,19 +955,19 @@ export default function CourseDetail() {
                                 }));
                               }
                               
-                              alert('All audio modules marked as complete!');
+                              alert('All documents marked as complete!');
                               // Refresh progress to update UI
                               setTimeout(() => {
                                 loadPodcastProgress();
                               }, 500);
                             } catch (error) {
-                              console.error('Error marking audio modules as complete:', error);
+                              console.error('Error marking documents as complete:', error);
                               alert('Error marking modules as complete');
                             }
                           }}
                           className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
                         >
-                          Mark Entire Audio Module Complete
+                          Mark Entire Document Module Complete
                         </button>
                       </div>
                     </div>
@@ -1009,21 +976,267 @@ export default function CourseDetail() {
               </div>
             )}
 
-            {/* Video Tab */}
-            {activeTab === 'video' && (
+            {/* Images Tab */}
+            {activeTab === 'images' && (
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Video Content</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">Images</h2>
                 <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Video List - Left Side */}
+                  {/* Image List - Left Side */}
                   <div className="lg:w-1/2">
                     <div className="space-y-3">
                       {(() => {
-                        const assignedPodcasts = getAssignedPodcasts().filter(p => p.is_youtube_video);
-                        console.log('Rendering video tab, assigned podcasts count:', assignedPodcasts.length);
+                        const assignedPDFs = getAssignedPDFs('images');
+                        console.log('Rendering images tab, assigned PDFs count:', assignedPDFs.length);
+                        return assignedPDFs.length > 0 ? 
+                          assignedPDFs.map(pdf => {
+                            return (
+                              <div 
+                                key={pdf.id} 
+                                className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
+                                  currentPdf?.id === pdf.id 
+                                    ? 'bg-gray-800 border border-blue-500' 
+                                    : 'bg-gray-800'
+                                }`}
+                                onClick={() => setCurrentPdf(pdf)}
+                              >
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 mr-3">
+                                    <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
+                                      <Image className="h-5 w-5 text-blue-400" />
+                                    </div>
+                                  </div> 
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-medium text-white truncate">{pdf.title}</h3>
+                                    <p className="text-xs text-gray-400">Image</p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }) : (
+                            <div className="text-center py-8 text-gray-400">
+                              <Image className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                              <h3 className="text-lg font-medium text-white mb-2">No Images</h3>
+                              <p className="text-gray-400">No images have been assigned to you for this course.</p>
+                            </div>
+                          );
+                      })()}
+                    </div>
+                  </div>
+                  {/* Image Completion Panel */}
+                  <div className="mt-6 bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-medium text-white mb-2">Image Module Completion</h3>
+                    <p className="text-gray-300 text-sm mb-3">After reviewing all images, mark the entire module as complete:</p>
+                    <div className="space-y-2">
+                      {getAssignedPDFs('images').map((pdf) => {
+                        return (
+                          <div key={pdf.id} className="flex items-center justify-between bg-gray-700 p-2 rounded">
+                            <div className="flex items-center">
+                              <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
+                                <Image className="h-5 w-5 text-blue-400" />
+                              </div>
+                              <div className="ml-3">
+                                <h3 className="text-sm font-medium text-white">{pdf.title}</h3>
+                                <p className="text-xs text-gray-400">Image</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                <div className="bg-red-600 h-1.5 rounded-full" style={{ width: '100%' }}></div>
+                              </div>
+                              <span className="text-xs text-gray-500 ml-1">100%</span>
+                              {/* Show checkmark when completed */}
+                              <div className="flex-shrink-0 ml-2">
+                                <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {/* Complete Module Button */}
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <button
+                          onClick={async () => {
+                            try {
+                              // Mark all images as 100% complete
+                              const images = getAssignedPDFs('images');
+                              for (const pdf of images) {
+                                await supabaseHelpers.savePodcastProgressWithRetry(
+                                  userId || '',
+                                  pdf.id,
+                                  100, // playback position
+                                  100, // duration
+                                  100  // progress percent
+                                );
+                                
+                                // Update local state
+                                setPodcastProgress(prev => ({
+                                  ...prev,
+                                  [pdf.id]: {
+                                    id: pdf.id,
+                                    user_id: userId || '',
+                                    podcast_id: pdf.id,
+                                    playback_position: 100,
+                                    duration: 100,
+                                    progress_percent: 100,
+                                    last_played_at: new Date().toISOString()
+                                  }
+                                }));
+                              }
+                              
+                              alert('All images marked as complete!');
+                              // Refresh progress to update UI
+                              setTimeout(() => {
+                                loadPodcastProgress();
+                              }, 500);
+                            } catch (error) {
+                              console.error('Error marking images as complete:', error);
+                              alert('Error marking modules as complete');
+                            }
+                          }}
+                          className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                        >
+                          Mark Entire Image Module Complete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Templates Tab */}
+            {activeTab === 'templates' && (
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Templates</h2>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Template List - Left Side */}
+                  <div className="lg:w-1/2">
+                    <div className="space-y-3">
+                      {(() => {
+                        const assignedPDFs = getAssignedPDFs('templates');
+                        console.log('Rendering templates tab, assigned PDFs count:', assignedPDFs.length);
+                        return assignedPDFs.length > 0 ? 
+                          assignedPDFs.map(pdf => {
+                            return (
+                              <div 
+                                key={pdf.id} 
+                                className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
+                                  currentPdf?.id === pdf.id 
+                                    ? 'bg-gray-800 border border-blue-500' 
+                                    : 'bg-gray-800'
+                                }`}
+                                onClick={() => setCurrentPdf(pdf)}
+                              >
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 mr-3">
+                                    <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
+                                      <Folder className="h-5 w-5 text-blue-400" />
+                                    </div>
+                                  </div> 
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-medium text-white truncate">{pdf.title}</h3>
+                                    <p className="text-xs text-gray-400">Template</p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }) : (
+                            <div className="text-center py-8 text-gray-400">
+                              <Folder className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                              <h3 className="text-lg font-medium text-white mb-2">No Templates</h3>
+                              <p className="text-gray-400">No templates have been assigned to you for this course.</p>
+                            </div>
+                          );
+                      })()}
+                    </div>
+                  </div>
+                  {/* Template Completion Panel */}
+                  <div className="mt-6 bg-gray-800 rounded-lg p-4">
+                    <h3 className="text-lg font-medium text-white mb-2">Template Module Completion</h3>
+                    <p className="text-gray-300 text-sm mb-3">After reviewing all templates, mark the entire module as complete:</p>
+                    <div className="space-y-2">
+                      {getAssignedPDFs('templates').map((pdf) => {
+                        return (
+                          <div key={pdf.id} className="flex items-center justify-between bg-gray-700 p-2 rounded">
+                            <div className="flex items-center">
+                              <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
+                                <Folder className="h-5 w-5 text-blue-400" />
+                              </div>
+                              <div className="ml-3">
+                                <h3 className="text-sm font-medium text-white">{pdf.title}</h3>
+                                <p className="text-xs text-gray-400">Template</p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {/* Complete Module Button */}
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <button
+                          onClick={async () => {
+                            try {
+                              // Mark all templates as 100% complete
+                              const templates = getAssignedPDFs('templates');
+                              for (const pdf of templates) {
+                                await supabaseHelpers.savePodcastProgressWithRetry(
+                                  userId || '',
+                                  pdf.id,
+                                  100, // playback position
+                                  100, // duration
+                                  100  // progress percent
+                                );
+                                
+                                // Update local state
+                                setPodcastProgress(prev => ({
+                                  ...prev,
+                                  [pdf.id]: {
+                                    id: pdf.id,
+                                    user_id: userId || '',
+                                    podcast_id: pdf.id,
+                                    playback_position: 100,
+                                    duration: 100,
+                                    progress_percent: 100,
+                                    last_played_at: new Date().toISOString()
+                                  }
+                                }));
+                              }
+                              
+                              alert('All templates marked as complete!');
+                              // Refresh progress to update UI
+                              setTimeout(() => {
+                                loadPodcastProgress();
+                              }, 500);
+                            } catch (error) {
+                              console.error('Error marking templates as complete:', error);
+                              alert('Error marking modules as complete');
+                            }
+                          }}
+                          className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                        >
+                          Mark Entire Template Module Complete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Quizzes Tab */}
+            {activeTab === 'quizzes' && (
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Quizzes</h2>
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Quiz List - Left Side */}
+                  <div className="lg:w-1/2">
+                    <div className="space-y-3">
+                      {(() => {
+                        const assignedPodcasts = getAssignedPodcasts();
+                        console.log('Rendering quizzes tab, assigned podcasts count:', assignedPodcasts.length);
                         return assignedPodcasts.length > 0 ? 
                           assignedPodcasts.map(podcast => {
-                            const completion = getPodcastCompletion(podcast.id);
-                            
                             return (
                               <div 
                                 key={podcast.id} 
@@ -1037,40 +1250,32 @@ export default function CourseDetail() {
                                 <div className="flex items-center">
                                   <div className="flex-shrink-0 mr-3">
                                     <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
-                                      <Youtube className="h-5 w-5 text-blue-400" />
+                                      <BookOpen className="h-5 w-5 text-blue-400" />
                                     </div>
                                   </div> 
                                   <div className="flex-1 min-w-0">
                                     <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
-                                    <p className="text-xs text-gray-400">Video content</p>
-                                    {completion > 0 && (
-                                      <div className="ml-2 flex items-center">
-                                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                          <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
-                                        </div>
-                                        <span className="text-xs text-gray-500 ml-1">{completion}%</span>
-                                      </div>
-                                    )}
+                                    <p className="text-xs text-gray-400">Quiz</p>
                                   </div>
                                 </div>
                               </div>
                             );
                           }) : (
                             <div className="text-center py-8 text-gray-400">
-                              <Youtube className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                              <h3 className="text-lg font-medium text-white mb-2">No Video Content</h3>
-                              <p className="text-gray-400">No video content has been assigned to you for this course.</p>
+                              <BookOpen className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                              <h3 className="text-lg font-medium text-white mb-2">No Quizzes</h3>
+                              <p className="text-gray-400">No quizzes have been assigned to you for this course.</p>
                             </div>
                           );
                       })()}
                     </div>
                   </div>
-                  {/* Video Completion Panel */}
+                  {/* Quiz Completion Panel */}
                   <div className="mt-6 bg-gray-800 rounded-lg p-4">
-                    <h3 className="text-lg font-medium text-white mb-2">Video Module Completion</h3>
-                    <p className="text-gray-300 text-sm mb-3">After watching all video content, mark the entire module as complete:</p>
+                    <h3 className="text-lg font-medium text-white mb-2">Quiz Module Completion</h3>
+                    <p className="text-gray-300 text-sm mb-3">After completing all quizzes, mark the entire module as complete:</p>
                     <div className="space-y-2">
-                      {getAssignedPodcasts().filter(p => p.is_youtube_video).map((podcast) => {
+                      {getAssignedPodcasts().map((podcast) => {
                         const completion = getPodcastCompletion(podcast.id);
                         return (
                           <div key={podcast.id} className="flex items-center justify-between bg-gray-700 p-2 rounded">
