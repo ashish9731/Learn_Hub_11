@@ -89,6 +89,7 @@ export default function ContentUpload() {
   const [selectedCompanyId, setSelectedCompanyId] = useState('');
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [selectedAdminId, setSelectedAdminId] = useState('');
+  const [assignmentSelectedCourse, setAssignmentSelectedCourse] = useState('');
   
   // Supabase data
   const [supabaseData, setSupabaseData] = useState<{
@@ -755,23 +756,28 @@ export default function ContentUpload() {
         return;
       }
       
-      // Get unique course IDs from selected content items
+      // Use the selected course directly if one is selected
       const selectedCourseIds = new Set<string>();
       
-      // For each selected content item, find its course
-      for (const contentId of selectedCourses) {
-        // Check if it's a podcast
-        const podcast = supabaseData.podcasts.find(p => p.id === contentId);
-        if (podcast) {
-          selectedCourseIds.add(podcast.course_id);
-          continue;
-        }
-        
-        // Check if it's a PDF
-        const pdf = supabaseData.pdfs.find(p => p.id === contentId);
-        if (pdf) {
-          selectedCourseIds.add(pdf.course_id);
-          continue;
+      if (assignmentSelectedCourse) {
+        // If a specific course is selected, use that
+        selectedCourseIds.add(assignmentSelectedCourse);
+      } else {
+        // Otherwise, get course IDs from selected content items
+        for (const contentId of selectedCourses) {
+          // Check if it's a podcast
+          const podcast = supabaseData.podcasts.find(p => p.id === contentId);
+          if (podcast) {
+            selectedCourseIds.add(podcast.course_id);
+            continue;
+          }
+          
+          // Check if it's a PDF
+          const pdf = supabaseData.pdfs.find(p => p.id === contentId);
+          if (pdf) {
+            selectedCourseIds.add(pdf.course_id);
+            continue;
+          }
         }
       }
       
@@ -2019,7 +2025,7 @@ export default function ContentUpload() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {/* Select Company */}
               <div>
                 <label htmlFor="company" className="block text-sm font-medium text-white mb-2">
@@ -2063,13 +2069,36 @@ export default function ContentUpload() {
                 </select>
               </div>
 
+              {/* Select Course for Assignment */}
+              <div>
+                <label htmlFor="assignment-course" className="block text-sm font-medium text-white mb-2">
+                  Select Course *
+                </label>
+                <select
+                  id="assignment-course"
+                  value={assignmentSelectedCourse}
+                  onChange={(e) => setAssignmentSelectedCourse(e.target.value)}
+                  className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                  disabled={!selectedCompanyId}
+                >
+                  <option value="">Choose a course...</option>
+                  {supabaseData.courses
+                    .filter((course: any) => !selectedCompanyId || course.company_id === selectedCompanyId || !course.company_id)
+                    .map((course: any) => (
+                      <option key={course.id} value={course.id}>
+                        {course.title}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
               {/* Select Content */}
               <div>
                 <label className="block text-sm font-medium text-white mb-2">
                   Select Content *
                 </label>
                 <div className="border border-[#333333] rounded-md bg-[#252525] max-h-64 overflow-y-auto">
-                  {courseHierarchy.length > 0 ? (
+                  {courseHierarchy.filter(course => !assignmentSelectedCourse || course.id === assignmentSelectedCourse).length > 0 ? (
                     <div className="divide-y divide-[#333333]">
                       {courseHierarchy.map((course) => (
                         <div key={course.id} className="border-b border-[#333333]">
@@ -2185,7 +2214,7 @@ export default function ContentUpload() {
                     </div>
                   ) : (
                     <div className="text-center py-4 text-[#a0a0a0] text-sm">
-                      No content available. Upload content first.
+                      {assignmentSelectedCourse ? 'No content available for selected course' : 'No content available. Upload content first.'}
                     </div>
                   )}
                 </div>
@@ -2205,6 +2234,7 @@ export default function ContentUpload() {
                   setAssignmentDescription('');
                   setSelectedCompanyId('');
                   setSelectedAdminId('');
+                  setAssignmentSelectedCourse('');
                   setSelectedCourses([]);
                 }}
                 className="flex-1 px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
