@@ -55,10 +55,12 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     courses: Course[];
     userCourses: UserCourse[];
     podcasts: any[];
+    pdfs: any[];
   }>({
     courses: [],
     userCourses: [],
-    podcasts: []
+    podcasts: [],
+    pdfs: []
   });
   const [podcastProgress, setPodcastProgress] = useState<PodcastProgress[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +91,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         setSupabaseData({
           courses: [],
           userCourses: [],
-          podcasts: []
+          podcasts: [],
+          pdfs: []
         });
         setUserProfile(null);
         setPodcastProgress([]);
@@ -102,6 +105,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       // Load courses using regular supabase client to respect RLS policies
       let coursesData = [];
       let podcastsData = [];
+      let pdfsData = [];
       
       try {
         const { data: courses, error: coursesError } = await supabase
@@ -127,10 +131,23 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         } else {
           podcastsData = podcasts || [];
         }
+        
+        // Load PDFs for all courses
+        const { data: pdfs, error: pdfsError } = await supabase
+          .from('pdfs')
+          .select('*');
+        
+        if (pdfsError) {
+          console.error('Error fetching PDFs:', pdfsError);
+          pdfsData = [];
+        } else {
+          pdfsData = pdfs || [];
+        }
       } catch (dataError) {
         console.error('Exception fetching data:', dataError);
         coursesData = [];
         podcastsData = [];
+        pdfsData = [];
       }
       
       // Filter courses to show only courses assigned to this specific user
@@ -143,7 +160,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         ...prev,
         courses: assignedCourses,
         userCourses: userCoursesData || [],
-        podcasts: podcastsData || []
+        podcasts: podcastsData || [],
+        pdfs: pdfsData || []
       }));
     } catch (err) {
       console.error('Failed to load user data:', err);
@@ -174,10 +192,49 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     }
   };
 
+  // Load PDF assignments for all assigned courses
+  const loadPdfAssignments = async () => {
+    if (!userId) return;
+    
+    try {
+      // Get all assigned course IDs
+      const assignedCourseIds = supabaseData.userCourses.map(uc => uc.course_id);
+      
+      if (assignedCourseIds.length === 0) {
+        return;
+      }
+      
+      // Get PDF assignments for this user for all assigned courses
+      const { data, error } = await supabase
+        .from('pdf_assignments')
+        .select(`
+          *,
+          pdfs!inner (
+            id,
+            course_id
+          )
+        `)
+        .eq('user_id', userId)
+        .in('pdfs.course_id', assignedCourseIds);
+        
+      if (error) {
+        console.error('Error loading PDF assignments:', error);
+        return;
+      }
+      
+      console.log('PDF assignments loaded:', data);
+      // We'll use the assignments to filter PDFs when needed
+    } catch (error) {
+      console.error('Error loading PDF assignments:', error);
+    }
+  };
+
   // Real-time sync for all relevant tables
   useRealtimeSync('user-courses', loadUserData);
   useRealtimeSync('courses', loadUserData);
   useRealtimeSync('podcasts', loadUserData);
+  useRealtimeSync('pdfs', loadUserData);
+  useRealtimeSync('pdf-assignments', loadPdfAssignments);
   useRealtimeSync('podcast-progress', loadPodcastProgress);
 
   // Get user ID on component mount
@@ -246,7 +303,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
           setSupabaseData({
             courses: [],
             userCourses: [],
-            podcasts: []
+            podcasts: [],
+            pdfs: []
           });
           setPodcastProgress([]);
           setUserProfile(null);
@@ -260,7 +318,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
           // Load all data in parallel
           await Promise.all([
             loadUserData(),
-            loadPodcastProgress()
+            loadPodcastProgress(),
+            loadPdfAssignments()
           ]);
         }
       } catch (error) {
@@ -280,6 +339,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     if (userId) {
       loadUserData();
       loadPodcastProgress();
+      loadPdfAssignments();
     }
   }, [userId]);
 

@@ -844,7 +844,7 @@ export default function CourseDetail() {
                     </div>
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
                       <div className="text-2xl font-bold text-yellow-400 mb-1">
-                        {pdfs.length}
+                        {getAssignedPDFs('docs').length + getAssignedPDFs('images').length + getAssignedPDFs('templates').length}
                       </div>
                       <div className="text-sm font-medium text-gray-300">Documents</div>
                     </div>
