@@ -72,6 +72,27 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
               
             quizDocuments = result.data || null;
             documentsError = result.error;
+            
+            // If we get an error about content_text column not existing, try without it
+            if (documentsError && documentsError.message && documentsError.message.includes('content_text')) {
+              console.log('content_text column not found, trying without it');
+              const fallbackResult = await supabase
+                .from('pdfs')
+                .select('id, title')
+                .eq('course_id', courseId)
+                .eq('content_type', 'quizzes');
+                
+              quizDocuments = fallbackResult.data || null;
+              documentsError = fallbackResult.error;
+              
+              // Add placeholder content_text for each document
+              if (quizDocuments) {
+                quizDocuments = quizDocuments.map(doc => ({
+                  ...doc,
+                  content_text: 'Quiz content not available. Please contact administrator.'
+                }));
+              }
+            }
           } catch (selectError) {
             console.error('Error selecting pdfs with content_text:', selectError);
             // Try without content_text column as fallback

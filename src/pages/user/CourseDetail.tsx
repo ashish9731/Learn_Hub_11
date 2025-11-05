@@ -503,7 +503,8 @@ export default function CourseDetail() {
   // Get the completion percentage for a podcast
   const getPodcastCompletion = (podcastId: string) => {
     const progress = podcastProgress[podcastId];
-    return progress ? progress.progress_percent : 0;
+    // Only return completion if progress exists and has been saved (user actually played)
+    return progress && progress.progress_percent ? progress.progress_percent : 0;
   };
 
   // Check if all modules are completed
@@ -784,7 +785,7 @@ export default function CourseDetail() {
               <div className="md:flex">
                 {/* Course Image - Left Side */}
                 <div className="md:w-1/3">
-                  <div className="aspect-video bg-gray-800 relative rounded-xl overflow-hidden border border-gray-700 h-full">
+                  <div className="aspect-video bg-gray-800 relative rounded-t-xl md:rounded-tr-none md:rounded-l-xl overflow-hidden border border-gray-700">
                     {course?.image_url ? (
                       <img
                         src={course.image_url}
@@ -903,7 +904,8 @@ export default function CourseDetail() {
                         console.log('Rendering audio tab, assigned podcasts count:', assignedPodcasts.length);
                         return assignedPodcasts.length > 0 ? 
                           assignedPodcasts.map(podcast => {
-                            const completion = getPodcastCompletion(podcast.id);
+                            const progress = podcastProgress[podcast.id];
+                            const completion = progress ? progress.progress_percent : 0;
                             
                             return (
                               <div 
@@ -936,6 +938,14 @@ export default function CourseDetail() {
                                       </div>
                                     )}
                                   </div>
+                                  {/* Show checkmark when completed */}
+                                  {completion >= 100 && (
+                                    <div className="flex-shrink-0 ml-2">
+                                      <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -1081,8 +1091,9 @@ export default function CourseDetail() {
                       console.log('Rendering video tab, assigned podcasts count:', assignedPodcasts.length);
                       return assignedPodcasts.length > 0 ? 
                         assignedPodcasts.map(podcast => {
-                          const completion = getPodcastCompletion(podcast.id);
-                          
+                          const progress = podcastProgress[podcast.id];
+                          const completion = progress ? progress.progress_percent : 0;
+                            
                           return (
                             <div 
                               key={podcast.id} 
@@ -1091,12 +1102,14 @@ export default function CourseDetail() {
                                   ? 'bg-gray-800 border border-blue-500' 
                                   : 'bg-gray-800'
                               }`}
-                              onClick={() => handlePlayPodcast(podcast)}
+                              onClick={() => {
+                                handlePlayPodcast(podcast);
+                              }}
                             >
                               <div className="flex items-center">
                                 <div className="flex-shrink-0 mr-3">
-                                  <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center">
-                                    <Youtube className="h-5 w-5 text-blue-400" />
+                                  <div className="w-10 h-10 bg-purple-900 rounded-full flex items-center justify-center">
+                                    <Youtube className="h-5 w-5 text-purple-400" />
                                   </div>
                                 </div> 
                                 <div className="flex-1 min-w-0">
@@ -1132,7 +1145,7 @@ export default function CourseDetail() {
                             <p className="text-gray-400">No video content has been assigned to you for this course.</p>
                           </div>
                         );
-                    })()}
+                      })()}
                     {/* Complete Module Button for Video - Only show if there are video files and not all are completed */}
                     {getAssignedPodcasts().filter(p => p.is_youtube_video).length > 0 && !getAssignedPodcasts().filter(p => p.is_youtube_video).every(p => getPodcastCompletion(p.id) >= 100) && (
                       <div className="mt-4">
