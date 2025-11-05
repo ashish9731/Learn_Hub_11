@@ -5,7 +5,6 @@ import { useRealtimeSync } from '../../hooks/useSupabase';
 import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, Music, Folder, User, Image, RefreshCw } from 'lucide-react';
 import PodcastPlayer from '../../components/Media/PodcastPlayer';
 import { useNavigate } from 'react-router-dom';
-import DebugUserCourses from '../../components/Debug/DebugUserCourses';
 
 interface Course {
   id: string;
@@ -694,10 +693,7 @@ export default function MyCourses() {
               <div className="text-red-400 mb-4">Error loading courses: {error}</div>
               {error.includes('Authentication') && (
                 <button
-                  onClick={() => {
-                    // Redirect to login page
-                    window.location.href = '/login';
-                  }}
+                  onClick={() => navigate('/login')}
                   className="mt-4 px-4 py-2 bg-red-600/20 backdrop-blur-lg border border-red-500/30 rounded-lg text-red-300 hover:bg-red-600/30 transition-colors"
                 >
                   Go to Login
@@ -705,11 +701,7 @@ export default function MyCourses() {
               )}
             </div>
             
-            {/* Debug component for troubleshooting */}
-            <div className="mt-8">
-              <h3 className="text-lg font-bold mb-4 text-white">Debug Information</h3>
-              <DebugUserCourses />
-            </div>
+            {/* Debug component removed to prevent RLS errors */}
           </div>
         </div>
       </div>
