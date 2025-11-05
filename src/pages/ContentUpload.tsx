@@ -705,14 +705,43 @@ export default function ContentUpload() {
       
       console.log('Current user (Super Admin):', currentUser.id, currentUser.email);
       
-      // Get the admin user
-      const { data: adminUser, error: adminError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', selectedAdminId)
-        .single();
-        
-      if (adminError) {
+      // Get the admin user - using a more permissive query for Super Admin
+      let adminUser = null;
+      let adminError = null;
+      
+      try {
+        // First try to get the user directly
+        const { data: directUser, error: directError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', selectedAdminId)
+          .single();
+          
+        if (directUser && !directError) {
+          adminUser = directUser;
+        } else {
+          // If direct query fails, try to find in the loaded users data
+          const allUsers = await supabaseHelpers.getUsers();
+          adminUser = allUsers.find((user: any) => user.id === selectedAdminId);
+          
+          if (!adminUser) {
+            adminError = directError || new Error('User not found');
+          }
+        }
+      } catch (queryError) {
+        // Fallback to loaded users data
+        try {
+          const allUsers = await supabaseHelpers.getUsers();
+          adminUser = allUsers.find((user: any) => user.id === selectedAdminId);
+          if (!adminUser) {
+            adminError = queryError;
+          }
+        } catch (fallbackError) {
+          adminError = queryError || fallbackError;
+        }
+      }
+      
+      if (adminError || !adminUser) {
         console.error('Error fetching admin user:', adminError);
         alert('Error fetching admin user. Please try again.');
         return;
