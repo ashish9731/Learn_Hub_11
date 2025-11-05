@@ -210,6 +210,10 @@ export default function YouTubeVideoPlayer({
         if (duration > 0) {
           const progressPercent = Math.min(100, Math.round((currentTime / duration) * 100));
           
+          // Only save progress if it's meaningful (greater than 0% and less than 100%)
+          // Or if it's exactly 100% (meaning the video has ended)
+          if (progressPercent <= 0) return;
+          
           // Save progress to database
           await supabaseHelpers.savePodcastProgressWithRetry(
             userId,
@@ -321,6 +325,7 @@ export default function YouTubeVideoPlayer({
       }));
       
       // Save completion status to database (using podcast_progress table for YouTube videos too)
+      // Only mark as 100% when video actually ends
       await supabaseHelpers.savePodcastProgressWithRetry(
         userId,
         videoId,

@@ -109,6 +109,10 @@ export default function PodcastPlayer({
       
       const progressPercent = Math.min(100, Math.round((playbackPosition / duration) * 100));
       
+      // Only save progress if it's meaningful (greater than 0% and less than 100%)
+      // Or if it's exactly 100% (meaning the audio has ended)
+      if (progressPercent <= 0) return;
+      
       try {
         // Use the helper function with retry logic
         await supabaseHelpers.savePodcastProgressWithRetry(

@@ -503,8 +503,10 @@ export default function CourseDetail() {
   // Get the completion percentage for a podcast
   const getPodcastCompletion = (podcastId: string) => {
     const progress = podcastProgress[podcastId];
-    // Only return completion if progress exists and has been saved (user actually played)
-    return progress && progress.progress_percent ? progress.progress_percent : 0;
+    // Only return completion if progress exists and is meaningful (greater than 0)
+    // Return 0 for any progress less than 1% to avoid showing fake completion
+    const completion = progress && progress.progress_percent ? progress.progress_percent : 0;
+    return completion > 0 ? completion : 0;
   };
 
   // Check if all modules are completed
@@ -905,7 +907,8 @@ export default function CourseDetail() {
                         return assignedPodcasts.length > 0 ? 
                           assignedPodcasts.map(podcast => {
                             const progress = podcastProgress[podcast.id];
-                            const completion = progress ? progress.progress_percent : 0;
+                            // Only show progress if user has actually played the content
+                            const completion = (progress && progress.progress_percent && progress.progress_percent > 0) ? progress.progress_percent : 0;
                             
                             return (
                               <div 
@@ -938,7 +941,7 @@ export default function CourseDetail() {
                                       </div>
                                     )}
                                   </div>
-                                  {/* Show checkmark when completed */}
+                                  {/* Show checkmark only when actually completed (100%) */}
                                   {completion >= 100 && (
                                     <div className="flex-shrink-0 ml-2">
                                       <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1092,59 +1095,60 @@ export default function CourseDetail() {
                       return assignedPodcasts.length > 0 ? 
                         assignedPodcasts.map(podcast => {
                           const progress = podcastProgress[podcast.id];
-                          const completion = progress ? progress.progress_percent : 0;
+                          // Only show progress if user has actually played the content
+                          const completion = (progress && progress.progress_percent && progress.progress_percent > 0) ? progress.progress_percent : 0;
                             
                           return (
                             <div 
                               key={podcast.id} 
                               className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
-                                currentPodcast?.id === podcast.id 
-                                  ? 'bg-gray-800 border border-blue-500' 
-                                  : 'bg-gray-800'
-                              }`}
-                              onClick={() => {
-                                handlePlayPodcast(podcast);
-                              }}
-                            >
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 mr-3">
-                                  <div className="w-10 h-10 bg-purple-900 rounded-full flex items-center justify-center">
-                                    <Youtube className="h-5 w-5 text-purple-400" />
-                                  </div>
-                                </div> 
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
-                                  {podcast.description && (
-                                    <p className="text-xs text-gray-300 mb-1">{podcast.description}</p>
-                                  )}
-                                  <p className="text-xs text-gray-400">Video content</p>
-                                  {completion > 0 && (
-                                    <div className="ml-2 flex items-center">
-                                      <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                        <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                                  currentPodcast?.id === podcast.id 
+                                    ? 'bg-gray-800 border border-blue-500' 
+                                    : 'bg-gray-800'
+                                }`}
+                                onClick={() => {
+                                  handlePlayPodcast(podcast);
+                                }}
+                              >
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 mr-3">
+                                    <div className="w-10 h-10 bg-purple-900 rounded-full flex items-center justify-center">
+                                      <Youtube className="h-5 w-5 text-purple-400" />
+                                    </div>
+                                  </div> 
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
+                                    {podcast.description && (
+                                      <p className="text-xs text-gray-300 mb-1">{podcast.description}</p>
+                                    )}
+                                    <p className="text-xs text-gray-400">Video content</p>
+                                    {completion > 0 && (
+                                      <div className="ml-2 flex items-center">
+                                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                          <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                                        </div>
+                                        <span className="text-xs text-gray-500 ml-1">{completion}%</span>
                                       </div>
-                                      <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                                    )}
+                                  </div>
+                                  {/* Show checkmark only when actually completed (100%) */}
+                                  {completion >= 100 && (
+                                    <div className="flex-shrink-0 ml-2">
+                                      <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
                                     </div>
                                   )}
                                 </div>
-                                {/* Show checkmark when completed */}
-                                {completion >= 100 && (
-                                  <div className="flex-shrink-0 ml-2">
-                                    <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                  </div>
-                                )}
                               </div>
+                            );
+                          }) : (
+                            <div className="text-center py-8 text-gray-400">
+                              <Youtube className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                              <h3 className="text-lg font-medium text-white mb-2">No Video Content</h3>
+                              <p className="text-gray-400">No video content has been assigned to you for this course.</p>
                             </div>
                           );
-                        }) : (
-                          <div className="text-center py-8 text-gray-400">
-                            <Youtube className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                            <h3 className="text-lg font-medium text-white mb-2">No Video Content</h3>
-                            <p className="text-gray-400">No video content has been assigned to you for this course.</p>
-                          </div>
-                        );
                       })()}
                     {/* Complete Module Button for Video - Only show if there are video files and not all are completed */}
                     {getAssignedPodcasts().filter(p => p.is_youtube_video).length > 0 && !getAssignedPodcasts().filter(p => p.is_youtube_video).every(p => getPodcastCompletion(p.id) >= 100) && (

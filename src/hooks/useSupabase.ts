@@ -851,6 +851,12 @@ export const supabaseHelpers = {
       throw new Error('Admin client not available');
     }
     
+    // Don't save progress if it's not meaningful
+    if (progressPercent <= 0) return;
+    
+    // For very small progress, don't save to avoid fake completion
+    if (progressPercent < 1 && currentTime < 5) return;
+    
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const { error } = await supabaseAdmin
