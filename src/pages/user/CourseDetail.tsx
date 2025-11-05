@@ -270,6 +270,12 @@ export default function CourseDetail() {
     console.log('Total PDFs:', pdfs.length);
     console.log('Requested content type:', contentType);
     
+    // For quizzes, we don't filter by assignment since quizzes are generated from uploaded documents
+    if (contentType === 'quizzes') {
+      console.log('Showing all quiz documents (not filtered by assignment)');
+      return pdfs.filter(pdf => pdf.content_type === 'quizzes');
+    }
+    
     // If no PDF assignments exist, show no PDFs (proper assignment filtering)
     if (pdfAssignments.length === 0) {
       console.log('No PDF assignments found, returning empty array');
