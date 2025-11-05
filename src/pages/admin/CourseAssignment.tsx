@@ -294,14 +294,15 @@ export default function CourseAssignment() {
     const courseCategories = supabaseData.categories.filter((cat: Category) => cat.course_id === course.id);
     console.log('Course categories:', courseCategories.length);
     
-    // Get assigned podcasts for this admin
+    // For Admins, show ALL content within assigned courses, not just pre-assigned content
+    // Get ALL podcasts for this course (no filtering by assignment)
     const assignedPodcastIds = new Set(supabaseData.podcastAssignments.map((assignment: any) => assignment.podcast_id));
     console.log('Assigned podcast IDs:', Array.from(assignedPodcastIds));
     
-    // Get content for each category - only assigned content
+    // Get content for each category - show ALL content for assigned courses
     const categoriesWithContent = courseCategories.map((category: Category) => {
       const categoryPodcasts = supabaseData.podcasts.filter(
-        (podcast: Podcast) => podcast.category_id === category.id && assignedPodcastIds.has(podcast.id)
+        (podcast: Podcast) => podcast.category_id === category.id
       );
       console.log(`Category ${category.id} (${category.name}) - Podcasts: ${categoryPodcasts.length}`);
       
@@ -311,17 +312,17 @@ export default function CourseAssignment() {
       };
     });
     
-    // Get uncategorized content (directly assigned to course) - only assigned content
+    // Get uncategorized content (directly assigned to course) - show ALL content for assigned courses
     const uncategorizedPodcasts = supabaseData.podcasts.filter(
-      (podcast: Podcast) => podcast.course_id === course.id && !podcast.category_id && assignedPodcastIds.has(podcast.id)
+      (podcast: Podcast) => podcast.course_id === course.id && !podcast.category_id
     );
     console.log('Uncategorized podcasts:', uncategorizedPodcasts.length);
     
-    // Get podcasts by predefined categories (Books, HBR, TED Talks, Concept) - only assigned content
+    // Get podcasts by predefined categories (Books, HBR, TED Talks, Concept) - show ALL content for assigned courses
     const predefinedCategories = ['Books', 'HBR', 'TED Talks', 'Concept'];
     const podcastsByCategory = predefinedCategories.map(categoryName => {
       const categoryPodcasts = supabaseData.podcasts.filter(
-        (podcast: Podcast) => podcast.course_id === course.id && podcast.category === categoryName && assignedPodcastIds.has(podcast.id)
+        (podcast: Podcast) => podcast.course_id === course.id && podcast.category === categoryName
       );
       console.log(`Predefined category ${categoryName} - Podcasts: ${categoryPodcasts.length}`);
       
@@ -333,12 +334,12 @@ export default function CourseAssignment() {
       };
     }).filter(cat => cat.podcasts.length > 0);
     
-    // Get assigned PDFs for this admin
+    // Get ALL PDFs for this course and separate by content type - show ALL content for assigned courses
     const assignedPdfIds = new Set(supabaseData.pdfAssignments.map((assignment: any) => assignment.pdf_id));
     console.log('Assigned PDF IDs:', Array.from(assignedPdfIds));
     
-    // Get all PDFs for this course and separate by content type - only assigned content
-    const coursePdfs = supabaseData.pdfs.filter((pdf: PDF) => pdf.course_id === course.id && assignedPdfIds.has(pdf.id));
+    // Get all PDFs for this course and separate by content type - NO filtering by assignment for Admins
+    const coursePdfs = supabaseData.pdfs.filter((pdf: PDF) => pdf.course_id === course.id);
     const docs = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'docs');
     const images = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'images');
     const templates = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'templates');
@@ -346,9 +347,9 @@ export default function CourseAssignment() {
     
     console.log(`Course ${course.id} PDF counts - Total: ${coursePdfs.length}, Docs: ${docs.length}, Images: ${images.length}, Templates: ${templates.length}, Quizzes: ${quizzes.length}`);
     
-    // Calculate total content - only assigned content
+    // Calculate total content - show ALL content for assigned courses
     const totalPodcasts = supabaseData.podcasts.filter(
-      (podcast: Podcast) => podcast.course_id === course.id && assignedPodcastIds.has(podcast.id)
+      (podcast: Podcast) => podcast.course_id === course.id
     ).length;
     
     console.log(`Course ${course.id} content counts - Podcasts: ${totalPodcasts}, PDFs: ${coursePdfs.length}`);
