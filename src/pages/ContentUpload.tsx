@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, Music, Image, RefreshCw } from 'lucide-react';
 import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseAdmin } from '../lib/supabase';
 
 // Content Upload Page - Reverted to commit 102f9ff for Vercel deployment
 // This comment was added to trigger a new deployment
@@ -765,12 +765,30 @@ export default function ContentUpload() {
       
       console.log('Creating assignments:', assignments);
       
-      // Insert assignments into user_courses table
-      const { error: insertError } = await supabase
-        .from('user_courses')
-        .upsert(assignments, {
-          onConflict: 'user_id,course_id'
-        });
+      // Insert assignments into user_courses table using admin client to bypass RLS
+      let insertError = null;
+      
+      // Check if we have admin client available
+      if (supabaseAdmin) {
+        console.log('Using admin client to create assignments');
+        const { error: adminError } = await supabaseAdmin
+          .from('user_courses')
+          .upsert(assignments, {
+            onConflict: 'user_id,course_id'
+          });
+        
+        insertError = adminError;
+      } else {
+        console.log('Admin client not available, using regular client');
+        // Fallback to regular client
+        const { error: regularError } = await supabase
+          .from('user_courses')
+          .upsert(assignments, {
+            onConflict: 'user_id,course_id'
+          });
+          
+        insertError = regularError;
+      }
         
       if (insertError) {
         console.error('Error creating assignments:', insertError);
