@@ -94,7 +94,7 @@ Requirements:
   ]
 }
 
-Return ONLY a JSON array of 5 question objects. No other text.`;
+Return ONLY a valid JSON array of 5 question objects. No other text, no markdown formatting, no code blocks, just the raw JSON array. Ensure the JSON is properly formatted with no syntax errors.`;
 
     console.log('Generating module quiz with prompt:', prompt.substring(0, 200) + '...');
 
@@ -122,11 +122,26 @@ Return ONLY a JSON array of 5 question objects. No other text.`;
 
     let quizData;
     try {
+      // First try to parse the response directly
       quizData = JSON.parse(response.choices[0].message.content || '[]');
     } catch (parseError) {
       console.error('Error parsing OpenAI response:', parseError);
       console.error('Raw response:', response.choices[0].message.content);
-      return null;
+      
+      // Try to extract JSON from the response if it contains extra text
+      try {
+        const content = response.choices[0].message.content || '';
+        // Look for JSON array pattern in the response
+        const jsonMatch = content.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          quizData = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No JSON array found in response');
+        }
+      } catch (extractError) {
+        console.error('Error extracting JSON from response:', extractError);
+        return null;
+      }
     }
     
     if (!Array.isArray(quizData) || quizData.length !== 5) {
@@ -259,7 +274,7 @@ Requirements:
   ]
 }
 
-Return ONLY a JSON array of 25 question objects. No other text.`;
+Return ONLY a valid JSON array of 25 question objects. No other text, no markdown formatting, no code blocks, just the raw JSON array. Ensure the JSON is properly formatted with no syntax errors.`;
 
     console.log('Generating final quiz with prompt:', prompt.substring(0, 200) + '...');
 
@@ -287,11 +302,26 @@ Return ONLY a JSON array of 25 question objects. No other text.`;
 
     let quizData;
     try {
+      // First try to parse the response directly
       quizData = JSON.parse(response.choices[0].message.content || '[]');
     } catch (parseError) {
       console.error('Error parsing OpenAI response:', parseError);
       console.error('Raw response:', response.choices[0].message.content);
-      return null;
+      
+      // Try to extract JSON from the response if it contains extra text
+      try {
+        const content = response.choices[0].message.content || '';
+        // Look for JSON array pattern in the response
+        const jsonMatch = content.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          quizData = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No JSON array found in response');
+        }
+      } catch (extractError) {
+        console.error('Error extracting JSON from response:', extractError);
+        return null;
+      }
     }
     
     if (!Array.isArray(quizData) || quizData.length !== 25) {
@@ -421,7 +451,7 @@ Requirements:
   ]
 }
 
-Return ONLY a JSON array of 25 question objects. No other text.`;
+Return ONLY a valid JSON array of 25 question objects. No other text, no markdown formatting, no code blocks, just the raw JSON array. Ensure the JSON is properly formatted with no syntax errors.`;
 
     console.log('Generating document quiz with prompt length:', prompt.length);
 
@@ -449,11 +479,26 @@ Return ONLY a JSON array of 25 question objects. No other text.`;
 
     let quizData;
     try {
+      // First try to parse the response directly
       quizData = JSON.parse(response.choices[0].message.content || '[]');
     } catch (parseError) {
       console.error('Error parsing OpenAI response:', parseError);
       console.error('Raw response:', response.choices[0].message.content);
-      return null;
+      
+      // Try to extract JSON from the response if it contains extra text
+      try {
+        const content = response.choices[0].message.content || '';
+        // Look for JSON array pattern in the response
+        const jsonMatch = content.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          quizData = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No JSON array found in response');
+        }
+      } catch (extractError) {
+        console.error('Error extracting JSON from response:', extractError);
+        return null;
+      }
     }
     
     if (!Array.isArray(quizData) || quizData.length !== 25) {

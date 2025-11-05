@@ -907,8 +907,8 @@ export default function CourseDetail() {
                         return assignedPodcasts.length > 0 ? 
                           assignedPodcasts.map(podcast => {
                             const progress = podcastProgress[podcast.id];
-                            // Only show progress if user has actually played the content
-                            const completion = (progress && progress.progress_percent && progress.progress_percent > 0) ? progress.progress_percent : 0;
+                            // Only show progress if user has actually played the content meaningfully
+                            const completion = (progress && progress.progress_percent && progress.progress_percent >= 1) ? progress.progress_percent : 0;
                             
                             return (
                               <div 
@@ -932,7 +932,7 @@ export default function CourseDetail() {
                                       <p className="text-xs text-gray-300 mb-1">{podcast.description}</p>
                                     )}
                                     <p className="text-xs text-gray-400">Audio content</p>
-                                    {completion > 0 && (
+                                    {completion > 0 && completion < 100 && (
                                       <div className="ml-2 flex items-center">
                                         <div className="w-16 bg-gray-200 rounded-full h-1.5">
                                           <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
@@ -973,9 +973,9 @@ export default function CourseDetail() {
                                     await supabaseHelpers.savePodcastProgressWithRetry(
                                       userId || '',
                                       podcast.id,
-                                      100, // playback position
-                                      100, // duration
-                                      100  // progress percent
+                                      1800, // playback position (30 minutes default)
+                                      1800, // duration (30 minutes default)
+                                      100   // progress percent
                                     );
                                   } catch (error) {
                                     console.error(`Error saving progress for podcast ${podcast.id}:`, error);
@@ -989,8 +989,8 @@ export default function CourseDetail() {
                                       id: podcast.id,
                                       user_id: userId || '',
                                       podcast_id: podcast.id,
-                                      playback_position: 100,
-                                      duration: 100,
+                                      playback_position: 1800,
+                                      duration: 1800,
                                       progress_percent: 100,
                                       last_played_at: new Date().toISOString()
                                     }
@@ -1095,8 +1095,8 @@ export default function CourseDetail() {
                       return assignedPodcasts.length > 0 ? 
                         assignedPodcasts.map(podcast => {
                           const progress = podcastProgress[podcast.id];
-                          // Only show progress if user has actually played the content
-                          const completion = (progress && progress.progress_percent && progress.progress_percent > 0) ? progress.progress_percent : 0;
+                          // Only show progress if user has actually played the content meaningfully
+                          const completion = (progress && progress.progress_percent && progress.progress_percent >= 1) ? progress.progress_percent : 0;
                             
                           return (
                             <div 
@@ -1122,7 +1122,7 @@ export default function CourseDetail() {
                                       <p className="text-xs text-gray-300 mb-1">{podcast.description}</p>
                                     )}
                                     <p className="text-xs text-gray-400">Video content</p>
-                                    {completion > 0 && (
+                                    {completion > 0 && completion < 100 && (
                                       <div className="ml-2 flex items-center">
                                         <div className="w-16 bg-gray-200 rounded-full h-1.5">
                                           <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
@@ -1150,59 +1150,59 @@ export default function CourseDetail() {
                             </div>
                           );
                       })()}
-                    {/* Complete Module Button for Video - Only show if there are video files and not all are completed */}
-                    {getAssignedPodcasts().filter(p => p.is_youtube_video).length > 0 && !getAssignedPodcasts().filter(p => p.is_youtube_video).every(p => getPodcastCompletion(p.id) >= 100) && (
-                      <div className="mt-4">
-                        <button
-                          onClick={async () => {
-                            try {
-                              const videoPodcasts = getAssignedPodcasts().filter(p => p.is_youtube_video);
-                              // Mark all video podcasts as 100% complete
-                              for (const podcast of videoPodcasts) {
-                                try {
-                                  await supabaseHelpers.savePodcastProgressWithRetry(
-                                    userId || '',
-                                    podcast.id,
-                                    1800, // playback position (30 minutes default)
-                                    1800, // duration (30 minutes default)
-                                    100   // progress percent
-                                  );
-                                } catch (error) {
-                                  console.error(`Error saving progress for video ${podcast.id}:`, error);
-                                  // Continue with other videos even if one fails
+                      {/* Complete Module Button for Video - Only show if there are video files and not all are completed */}
+                      {getAssignedPodcasts().filter(p => p.is_youtube_video).length > 0 && !getAssignedPodcasts().filter(p => p.is_youtube_video).every(p => getPodcastCompletion(p.id) >= 100) && (
+                        <div className="mt-4">
+                          <button
+                            onClick={async () => {
+                              try {
+                                const videoPodcasts = getAssignedPodcasts().filter(p => p.is_youtube_video);
+                                // Mark all video podcasts as 100% complete
+                                for (const podcast of videoPodcasts) {
+                                  try {
+                                    await supabaseHelpers.savePodcastProgressWithRetry(
+                                      userId || '',
+                                      podcast.id,
+                                      1800, // playback position (30 minutes default)
+                                      1800, // duration (30 minutes default)
+                                      100   // progress percent
+                                    );
+                                  } catch (error) {
+                                    console.error(`Error saving progress for video ${podcast.id}:`, error);
+                                    // Continue with other videos even if one fails
+                                  }
+                                  
+                                  // Update local state
+                                  setPodcastProgress(prev => ({
+                                    ...prev,
+                                    [podcast.id]: {
+                                      id: podcast.id,
+                                      user_id: userId || '',
+                                      podcast_id: podcast.id,
+                                      playback_position: 1800,
+                                      duration: 1800,
+                                      progress_percent: 100,
+                                      last_played_at: new Date().toISOString()
+                                    }
+                                  }));
                                 }
                                 
-                                // Update local state
-                                setPodcastProgress(prev => ({
-                                  ...prev,
-                                  [podcast.id]: {
-                                    id: podcast.id,
-                                    user_id: userId || '',
-                                    podcast_id: podcast.id,
-                                    playback_position: 1800,
-                                    duration: 1800,
-                                    progress_percent: 100,
-                                    last_played_at: new Date().toISOString()
-                                  }
-                                }));
+                                alert('All video modules marked as complete!');
+                                // Refresh progress to update UI
+                                setTimeout(() => {
+                                  loadPodcastProgress();
+                                }, 500);
+                              } catch (error) {
+                                console.error('Error marking video modules as complete:', error);
+                                alert('Error marking video modules as complete');
                               }
-                              
-                              alert('All video modules marked as complete!');
-                              // Refresh progress to update UI
-                              setTimeout(() => {
-                                loadPodcastProgress();
-                              }, 500);
-                            } catch (error) {
-                              console.error('Error marking video modules as complete:', error);
-                              alert('Error marking video modules as complete');
-                            }
-                          }}
-                          className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                        >
-                          Mark All Video Modules Complete
-                        </button>
-                      </div>
-                    )}
+                            }}
+                            className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            Mark All Video Modules Complete
+                          </button>
+                        </div>
+                      )}
                   </div>
                   
                   {/* Video Player - Right Side */}
