@@ -156,12 +156,10 @@ export default function MyCourses() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {assignedCourses.map((course, index) => {
-          const courseCategories = supabaseData.categories.filter(cat => cat.course_id === course.id);
-          const coursePodcasts = supabaseData.podcasts.filter(p => p.course_id === course.id);
-          const coursePdfs = supabaseData.pdfs.filter(p => p.course_id === course.id);
-          const progress = getCourseProgress(course.id);
+          // Find the user course record to check completion status
+          const userCourse = supabaseData.userCourses.find(uc => uc.course_id === course.id);
+          const isCompleted = userCourse?.completed === true;
           const courseImage = course.image_url || getDefaultImage(course.title);
-          const isCompleted = progress >= 100;
 
           return (
             <div
@@ -169,7 +167,7 @@ export default function MyCourses() {
               className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 relative"
               onClick={() => navigate(`/user/courses/${course.id}`)}
             >
-              {/* Completed badge - only show when course is completed */}
+              {/* Completed badge - only show when course is actually completed */}
               {isCompleted && (
                 <div className="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
                   Completed

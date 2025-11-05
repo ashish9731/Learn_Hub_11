@@ -783,8 +783,8 @@ export default function CourseDetail() {
             <div className="bg-gray-900 rounded-xl shadow-lg overflow-hidden mb-8 border border-gray-800">
               <div className="md:flex">
                 {/* Course Image - Left Side */}
-                <div className="md:w-1/3 flex items-stretch">
-                  <div className="aspect-video bg-gray-800 relative rounded-xl overflow-hidden border border-gray-700 flex-grow">
+                <div className="md:w-1/3">
+                  <div className="aspect-video bg-gray-800 relative rounded-xl overflow-hidden border border-gray-700 h-full">
                     {course?.image_url ? (
                       <img
                         src={course.image_url}
@@ -802,7 +802,7 @@ export default function CourseDetail() {
                 </div>
 
                 {/* Course Details - Right Side */}
-                <div className="md:w-2/3 p-8 flex flex-col">
+                <div className="md:w-2/3 p-8">
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <div className="flex items-center">
@@ -830,7 +830,7 @@ export default function CourseDetail() {
                     </div>
                   </div>
 
-                  <p className="text-gray-300 text-lg mb-8 leading-relaxed flex-grow">
+                  <p className="text-gray-300 text-lg mb-8 leading-relaxed">
                     {course.description ? course.description : 'No description provided for this course.'}
                   </p>
 

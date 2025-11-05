@@ -371,7 +371,9 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
   // Calculate KPIs
   const calculateKPIs = () => {
     const assignedCourses = supabaseData.userCourses.length;
-    const completedCourses = supabaseData.userCourses.filter(uc => uc.completed).length;
+    
+    // Calculate completed courses correctly - based on user_courses completed field
+    const completedCourses = supabaseData.userCourses.filter(uc => uc.completed === true).length;
     
     // Calculate total learning hours based on actual podcast durations from progress data
     let totalPossibleSeconds = 0;
@@ -478,12 +480,16 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         }
       });
       
+      // Check if course is completed based on user_courses table
+      const isCompleted = uc.completed === true;
+      
       return {
         name: uc.courses.title.length > 15 ? `${uc.courses.title.substring(0, 15)}...` : uc.courses.title,
         progress: avgProgress,
         timeSpent: Math.round(courseTimeSeconds / 60), // Time spent in minutes
         modulesCompleted: coursePodcasts.filter(p => (p.progress_percent || 0) >= 100).length,
-        totalModules: coursePodcasts.length
+        totalModules: coursePodcasts.length,
+        isCompleted: isCompleted
       };
     });
     
@@ -497,32 +503,27 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
               podcast.id === p.podcast_id && podcast.course_id === uc.course_id
             )
           );
-          return courseProgress.length === 0 || courseProgress.every(p => (p.progress_percent || 0) === 0);
+          return courseProgress.length === 0;
         }).length 
       },
       { 
         name: 'In Progress', 
         value: supabaseData.userCourses.filter(uc => {
+          // A course is in progress if it's not completed but has some progress
+          if (uc.completed === true) return false;
+          
           const courseProgress = podcastProgress.filter(p => 
             supabaseData.podcasts.some(podcast => 
               podcast.id === p.podcast_id && podcast.course_id === uc.course_id
             )
           );
-          // A course is in progress if at least one podcast has progress > 0 and < 100
-          return courseProgress.some(p => (p.progress_percent || 0) > 0 && (p.progress_percent || 0) < 100);
+          // A course is in progress if it has progress but not all podcasts are 100%
+          return courseProgress.length > 0 && !courseProgress.every(p => (p.progress_percent || 0) >= 100);
         }).length 
       },
       { 
         name: 'Completed', 
-        value: supabaseData.userCourses.filter(uc => {
-          const courseProgress = podcastProgress.filter(p => 
-            supabaseData.podcasts.some(podcast => 
-              podcast.id === p.podcast_id && podcast.course_id === uc.course_id
-            )
-          );
-          // A course is completed if all podcasts have 100% progress
-          return courseProgress.length > 0 && courseProgress.every(p => (p.progress_percent || 0) >= 100);
-        }).length 
+        value: supabaseData.userCourses.filter(uc => uc.completed === true).length
       }
     ];
     
@@ -790,6 +791,9 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                   ? new Date(Math.max(...courseProgressItems.map(p => new Date(p.last_played_at || 0).getTime())))
                   : null;
                 
+                // Check if course is completed
+                const isCompleted = userCourse.completed === true;
+                
                 return (
                   <div 
                     key={userCourse.course_id}
@@ -798,8 +802,13 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                   >
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="font-semibold text-white line-clamp-2">{course.title}</h3>
+                      {isCompleted && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-green-500 text-white">
+                          Completed
+                        </span>
+                      )}
                       {course.level && (
-                        <span className={`px-2 py-1 text-xs rounded-full ${
+                        <span className={`px-2 py-1 text-xs rounded-full ml-2 ${
                           course.level === 'Basics' 
                             ? 'bg-green-500/20 text-green-300' 
                             : course.level === 'Intermediate' 
