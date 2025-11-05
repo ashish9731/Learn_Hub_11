@@ -34,6 +34,7 @@ interface Podcast {
   is_youtube_video: boolean;
   created_by: string | null;
   created_at: string;
+  description?: string;
 }
 
 interface PDF {
@@ -43,6 +44,7 @@ interface PDF {
   pdf_url: string;
   created_at: string;
   content_type: string;
+  description?: string;
 }
 
 interface PodcastProgress {
@@ -915,6 +917,9 @@ export default function CourseDetail() {
                                   </div> 
                                   <div className="flex-1 min-w-0">
                                     <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
+                                    {podcast.description && (
+                                      <p className="text-xs text-gray-300 mb-1">{podcast.description}</p>
+                                    )}
                                     <p className="text-xs text-gray-400">Audio content</p>
                                     {completion > 0 && (
                                       <div className="ml-2 flex items-center">
@@ -997,6 +1002,9 @@ export default function CourseDetail() {
                     {currentPodcast && !currentPodcast.is_youtube_video ? (
                       <div className="bg-gray-800 rounded-lg p-4">
                         <h3 className="text-lg font-medium text-white mb-2">{currentPodcast.title}</h3>
+                        {currentPodcast.description && (
+                          <p className="text-sm text-gray-300 mb-4">{currentPodcast.description}</p>
+                        )}
                         <div className="mt-4">
                           <PodcastPlayer 
                             podcast={currentPodcast} 
@@ -1087,6 +1095,9 @@ export default function CourseDetail() {
                                 </div> 
                                 <div className="flex-1 min-w-0">
                                   <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
+                                  {podcast.description && (
+                                    <p className="text-xs text-gray-300 mb-1">{podcast.description}</p>
+                                  )}
                                   <p className="text-xs text-gray-400">Video content</p>
                                   {completion > 0 && (
                                     <div className="ml-2 flex items-center">
@@ -1176,6 +1187,9 @@ export default function CourseDetail() {
                     {currentPodcast && currentPodcast.is_youtube_video ? (
                       <div className="bg-gray-800 rounded-lg p-4">
                         <h3 className="text-lg font-medium text-white mb-2">{currentPodcast.title}</h3>
+                        {currentPodcast.description && (
+                          <p className="text-sm text-gray-300 mb-4">{currentPodcast.description}</p>
+                        )}
                         <div className="mt-4">
                           {renderYouTubePlayer(currentPodcast.video_url)}
                         </div>
@@ -1210,6 +1224,9 @@ export default function CourseDetail() {
                               </div>
                               <div className="ml-3 flex-1">
                                 <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
+                                {pdf.description && (
+                                  <p className="text-xs text-gray-300 mb-2">{pdf.description}</p>
+                                )}
                                 <p className="text-xs text-gray-400 mb-3">
                                   {(pdf && pdf.content_type === 'docs') ? 'PDF Document' : 'Template/Document'}
                                 </p>
@@ -1264,6 +1281,9 @@ export default function CourseDetail() {
                               />
                             </div>
                             <h3 className="text-sm font-medium text-white mb-1 truncate">{pdf.title}</h3>
+                            {pdf.description && (
+                              <p className="text-xs text-gray-300 mb-2">{pdf.description}</p>
+                            )}
                             <p className="text-xs text-gray-400 mb-2">Image</p>
                             <a 
                               href={pdf.pdf_url} 
@@ -1312,6 +1332,9 @@ export default function CourseDetail() {
                               </div>
                               <div className="ml-3 flex-1">
                                 <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
+                                {pdf.description && (
+                                  <p className="text-xs text-gray-300 mb-2">{pdf.description}</p>
+                                )}
                                 <p className="text-xs text-gray-400 mb-3">
                                   {(pdf && pdf.content_type === 'templates') ? 'Template/Document' : 'PDF Document'}
                                 </p>

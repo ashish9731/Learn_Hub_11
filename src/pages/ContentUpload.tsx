@@ -544,7 +544,8 @@ export default function ContentUpload() {
           mp3_url: publicUrl,
           video_url: null, // Explicitly set to null for regular podcasts
           created_by: user.id,
-          is_youtube_video: false
+          is_youtube_video: false,
+          description: contentDescription || null
         });
 
         if (podcastError) {
@@ -562,7 +563,8 @@ export default function ContentUpload() {
           video_url: youtubeUrl,
           mp3_url: null, // Explicitly set to null for YouTube videos
           created_by: user.id,
-          is_youtube_video: true
+          is_youtube_video: true,
+          description: contentDescription || null
         });
 
         if (podcastError) {
@@ -609,7 +611,8 @@ export default function ContentUpload() {
           course_id: selectedCourse,
           pdf_url: publicUrl,
           created_by: user.id,
-          content_type: contentType // Add content_type field
+          content_type: contentType, // Add content_type field
+          description: contentDescription || null
         });
 
         if (pdfError) {
