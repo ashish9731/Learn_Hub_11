@@ -91,6 +91,7 @@ export default function CourseAssignment() {
     userCourses: UserCourse[];
     pdfAssignments: any[];
     podcastAssignments: any[];
+    courseAssignments: any[];
   }>({
     users: [],
     courses: [],
@@ -101,7 +102,8 @@ export default function CourseAssignment() {
     userProfiles: [],
     userCourses: [],
     pdfAssignments: [],
-    podcastAssignments: []
+    podcastAssignments: [],
+    courseAssignments: []
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -127,8 +129,9 @@ export default function CourseAssignment() {
       }
       
       // Load assigned content for this admin
-      let pdfAssignmentsData = [];
-      let podcastAssignmentsData = [];
+      let pdfAssignmentsData: any[] = [];
+      let podcastAssignmentsData: any[] = [];
+      let courseAssignmentsData: any[] = [];
       
       if (user?.id) {
         // Get PDF assignments assigned TO this admin (by SuperAdmins)
@@ -146,6 +149,14 @@ export default function CourseAssignment() {
           .eq('user_id', user.id);
           
         podcastAssignmentsData = podcastAssignments || [];
+        
+        // Get course assignments for this admin
+        const { data: courseAssignments } = await supabase
+          .from('user_courses')
+          .select('course_id')
+          .eq('user_id', user.id);
+          
+        courseAssignmentsData = courseAssignments || [];
       }
       
       const [usersData, coursesData, podcastsData, pdfsData, categoriesData, companiesData, userProfilesData, userCoursesData] = await Promise.all([
@@ -169,7 +180,8 @@ export default function CourseAssignment() {
         userProfiles: userProfilesData || [],
         userCourses: userCoursesData || [],
         pdfAssignments: pdfAssignmentsData || [],
-        podcastAssignments: podcastAssignmentsData || []
+        podcastAssignments: podcastAssignmentsData || [],
+        courseAssignments: courseAssignmentsData || []
       });
     } catch (err) {
       console.error('Failed to load data:', err);
@@ -237,11 +249,10 @@ export default function CourseAssignment() {
   };
 
   // Build course hierarchy for content selection
-  // Show only courses that have content assigned to this admin by SuperAdmins
-  const assignedCourseIds = new Set([
-    ...supabaseData.pdfAssignments.map((assignment: any) => assignment.pdf?.course_id),
-    ...supabaseData.podcastAssignments.map((assignment: any) => assignment.podcast?.course_id)
-  ].filter(Boolean));
+  // Show all courses assigned to this admin (not just those with content)
+  const assignedCourseIds = new Set(
+    supabaseData.courseAssignments.map((assignment: any) => assignment.course_id)
+  );
   
   const courseHierarchy = supabaseData.courses
     .filter((course: Course) => assignedCourseIds.has(course.id))
