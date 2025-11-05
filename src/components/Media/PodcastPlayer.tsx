@@ -25,6 +25,7 @@ export default function PodcastPlayer({
   const [lastValidTime, setLastValidTime] = useState<number>(0);
   const [maxAllowedTime, setMaxAllowedTime] = useState<number>(0); // Track maximum allowed time
   const [hasPlayed, setHasPlayed] = useState(false); // Track if user has actually played the audio
+  const [playbackStarted, setPlaybackStarted] = useState(false); // Track if playback has actually started
 
   useEffect(() => {
     // Reset player state when podcast changes
@@ -32,6 +33,7 @@ export default function PodcastPlayer({
     setLastValidTime(0);
     setMaxAllowedTime(0);
     setHasPlayed(false);
+    setPlaybackStarted(false);
 
     // Load saved progress if available
     if (userId) {
@@ -194,6 +196,7 @@ export default function PodcastPlayer({
   const handlePlay = () => {
     // Mark that the user has actually played the audio
     setHasPlayed(true);
+    setPlaybackStarted(true);
   };
 
   const handleEnded = () => {
@@ -218,6 +221,8 @@ export default function PodcastPlayer({
         onError={(e) => console.error('Audio error:', e)}
         controls
         className="w-full"
+        // Add attributes to prevent download
+        onContextMenu={(e) => e.preventDefault()}
       />
     </div>
   );

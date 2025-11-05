@@ -1246,6 +1246,8 @@ export default function CourseDetail() {
                                     // Open in new window/tab for view-only
                                     window.open(pdf.pdf_url, '_blank');
                                   }}
+                                  // Prevent right-click and download
+                                  onContextMenu={(e) => e.preventDefault()}
                                 >
                                   <FileText className="h-3 w-3 mr-1" />
                                   {(pdf && pdf.content_type === 'docs') ? 'View Document' : 'View Template'}
@@ -1284,6 +1286,8 @@ export default function CourseDetail() {
                                 src={pdf.pdf_url} 
                                 alt={pdf.title}
                                 className="w-full h-full object-contain"
+                                // Prevent right-click and download
+                                onContextMenu={(e) => e.preventDefault()}
                               />
                             </div>
                             <h3 className="text-sm font-medium text-white mb-1 truncate">{pdf.title}</h3>
@@ -1301,6 +1305,8 @@ export default function CourseDetail() {
                                 // Open in new window/tab for view-only
                                 window.open(pdf.pdf_url, '_blank');
                               }}
+                              // Prevent right-click and download
+                              onContextMenu={(e) => e.preventDefault()}
                             >
                               <Image className="h-3 w-3 mr-1" />
                               View Image

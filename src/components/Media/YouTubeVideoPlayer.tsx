@@ -288,7 +288,7 @@ export default function YouTubeVideoPlayer({
   }, [userId, videos]);
 
   const handleVideoEnd = () => {
-    // Mark current video as watched
+    // Mark current video as watched only when it actually ends
     markVideoAsWatched(currentVideo.id);
     
     // If this is the last video, show quiz
@@ -655,6 +655,8 @@ export default function YouTubeVideoPlayer({
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen={true}
           title={currentVideo.title}
+          // Add attributes to prevent download/context menu
+          onContextMenu={(e) => e.preventDefault()}
         />
       </div>
       

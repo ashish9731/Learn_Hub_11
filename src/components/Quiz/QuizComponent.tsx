@@ -63,6 +63,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
           let documentsError: any = null;
           
           try {
+            // First try to get documents with content_text column
             const result = await supabase
               .from('pdfs')
               .select('id, title, content_text')
@@ -88,7 +89,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
               if (quizDocuments) {
                 quizDocuments = quizDocuments.map(doc => ({
                   ...doc,
-                  content_text: 'Quiz content not available'
+                  content_text: 'Quiz content not available. Please contact administrator.'
                 }));
               }
             } catch (fallbackError) {
