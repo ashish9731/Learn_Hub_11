@@ -324,26 +324,6 @@ export default function CourseDetail() {
         setLoading(true);
         setError(null);
         
-        // First check if user is assigned to this course
-        const { data: userCourse, error: userCourseError } = await supabase
-          .from('user_courses')
-          .select('user_id, course_id')
-          .eq('user_id', userId)
-          .eq('course_id', courseId)
-          .maybeSingle();
-
-        if (userCourseError) {
-          console.error('Error checking course assignment:', userCourseError);
-          setError('Error checking course assignment');
-          setLoading(false);
-          return;
-        } else if (!userCourse) {
-          // User is not assigned to this course
-          setError('You are not assigned to this course.');
-          setLoading(false);
-          return;
-        }
-        
         // Load course details
         const { data: courseData, error: courseError } = await supabase
           .from('courses')
