@@ -552,7 +552,7 @@ export async function generateQuizFromDocument(
 
     if (existingQuizError) {
       console.error('Error checking existing document quiz:', existingQuizError);
-      return null;
+      // Continue even if there's an error checking for existing quiz
     }
 
     // If quiz already exists, return its ID
@@ -601,7 +601,7 @@ Return ONLY a valid JSON array of EXACTLY 15 question objects. No other text, no
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that creates educational quizzes. You only use the provided content and never hallucinate. Focus on creating clear, accurate questions based on the document content.'
+          content: 'You are a helpful assistant that creates educational quizzes. You only use the provided content and never hallucinate. Focus on creating clear, accurate questions based on the document content. Always return valid JSON.'
         },
         {
           role: 'user',
@@ -715,9 +715,9 @@ Return ONLY a valid JSON array of EXACTLY 15 question objects. No other text, no
       question.answers.filter((a: any) => a.is_correct === true).length === 1 // Exactly one correct answer
     );
     
-    // For document quizzes, we want exactly 25 questions
-    if (validQuestions.length < 10) { // Reduced from 25 to 10 for better reliability
-      console.warn(`Only ${validQuestions.length} valid questions found, expected 25`);
+    // For document quizzes, we want at least 5 questions
+    if (validQuestions.length < 5) {
+      console.warn(`Only ${validQuestions.length} valid questions found, expected at least 5`);
       // If we have some valid questions, we'll use them
       if (validQuestions.length > 0) {
         quizData = validQuestions;
@@ -725,8 +725,8 @@ Return ONLY a valid JSON array of EXACTLY 15 question objects. No other text, no
         return null;
       }
     } else {
-      // Take exactly 25 questions (or as many as we have if less)
-      quizData = validQuestions.slice(0, 25);
+      // Take exactly 15 questions (or as many as we have if less)
+      quizData = validQuestions.slice(0, 15);
     }
 
     // Create the course quiz record
@@ -742,6 +742,60 @@ Return ONLY a valid JSON array of EXACTLY 15 question objects. No other text, no
 
     if (quizError) {
       console.error('Error creating document quiz:', quizError);
+      // If there's an RLS error, try to continue as the admin should have permissions
+      // The quiz might have been created by another process
+      const { data: existingQuizCheck, error: checkError } = await supabase
+        .from('course_quizzes')
+        .select('id')
+        .eq('course_id', courseId)
+        .maybeSingle();
+        
+      if (checkError) {
+        console.error('Error checking for existing quiz after insert failure:', checkError);
+        return null;
+      }
+      
+      if (existingQuizCheck) {
+        // Quiz already exists, use it
+        console.log('Using existing quiz:', existingQuizCheck.id);
+        // Create questions and answers for the existing quiz
+        for (const questionData of quizData) {
+          // Create question
+          const { data: question, error: questionError } = await supabase
+            .from('quiz_questions')
+            .insert({
+              course_quiz_id: existingQuizCheck.id,
+              question_text: questionData.question_text,
+              question_type: questionData.question_type,
+              difficulty: questionData.difficulty
+            })
+            .select()
+            .single();
+
+          if (questionError) {
+            console.error('Error creating quiz question:', questionError);
+            continue;
+          }
+
+          // Create answers
+          for (const answerData of questionData.answers) {
+            const { error: answerError } = await supabase
+              .from('quiz_answers')
+              .insert({
+                question_id: question.id,
+                answer_text: answerData.answer_text,
+                is_correct: answerData.is_correct,
+                explanation: answerData.explanation
+              });
+
+            if (answerError) {
+              console.error('Error creating quiz answer:', answerError);
+            }
+          }
+        }
+        return existingQuizCheck.id;
+      }
+      
       return null;
     }
 

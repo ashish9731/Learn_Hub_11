@@ -155,27 +155,13 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
             
           if (userCourseError) {
             console.error('Error checking user course enrollment:', userCourseError);
-            throw new Error('Failed to verify course enrollment');
+            // Even if there's an error checking enrollment, we should still try to generate the quiz
+            // as the admin has already assigned the course
+            console.log('Proceeding with quiz generation despite enrollment check error');
           }
           
-          // If user is not enrolled, enroll them
-          if (!userCourseData) {
-            const { error: enrollError } = await supabase
-              .from('user_courses')
-              .insert({
-                user_id: session.user.id,
-                course_id: courseId,
-                completed: false,
-                progress_percent: 0
-              });
-              
-            if (enrollError) {
-              console.error('Error enrolling user in course:', enrollError);
-              throw new Error('Failed to enroll in course');
-            }
-          }
-          
-          // Generate quiz from document content
+          // Generate quiz from document content regardless of enrollment status
+          // since admin has already assigned the course to the user
           const generatedQuizId = await generateQuizFromDocument(
             courseId,
             courseData.title,
