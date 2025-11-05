@@ -161,85 +161,47 @@ export default function MyCourses() {
           const coursePdfs = supabaseData.pdfs.filter(p => p.course_id === course.id);
           const progress = getCourseProgress(course.id);
           const courseImage = course.image_url || getDefaultImage(course.title);
+          const isCompleted = progress >= 100;
 
           return (
             <div
               key={course.id}
-              className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+              className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 relative"
               onClick={() => navigate(`/user/courses/${course.id}`)}
             >
-              <div className="md:flex">
-                {/* Course Image - Left Side */}
-                <div className="md:w-1/3">
-                  <div className="aspect-video bg-gray-800 relative rounded-xl overflow-hidden border border-gray-700">
-                    <img
-                      src={courseImage}
-                      alt={course.title}
-                      className="w-full h-full object-cover"
-                      onError={handleImageError}
-                    />
-                  </div>
+              {/* Completed badge - only show when course is completed */}
+              {isCompleted && (
+                <div className="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
+                  Completed
                 </div>
+              )}
+              
+              {/* Course Image */}
+              <div className="aspect-video bg-gray-800 relative rounded-t-xl overflow-hidden">
+                <img
+                  src={courseImage}
+                  alt={course.title}
+                  className="w-full h-full object-cover"
+                  onError={handleImageError}
+                />
+              </div>
 
-                {/* Course Details - Right Side */}
-                <div className="md:w-2/3 p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-xl font-semibold text-white line-clamp-2">
-                      {course.title}
-                    </h3>
-                    {course.level && (
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        course.level === 'Basics' 
-                          ? 'bg-green-500/20 text-green-300' 
-                          : course.level === 'Intermediate' 
-                            ? 'bg-yellow-500/20 text-yellow-300' 
-                            : 'bg-red-500/20 text-red-300'
-                      }`}>
-                        {course.level}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <p className="text-sm text-gray-300 mb-4 line-clamp-2">
-                    {course.description || `This course contains ${coursePodcasts.length} podcasts and ${coursePdfs.length} documents to help you master the subject.`}
-                  </p>
-
-                  {/* Course Metadata - Match KPI section from Course Detail */}
-                  <div className="grid grid-cols-3 gap-3 mb-4">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-3 text-center shadow-sm border border-gray-700">
-                      <div className="text-lg font-bold text-green-400 mb-1">
-                        {coursePodcasts.length}
-                      </div>
-                      <div className="text-xs font-medium text-gray-300">Podcasts</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-3 text-center shadow-sm border border-gray-700">
-                      <div className="text-lg font-bold text-purple-400 mb-1">
-                        {coursePdfs.filter(p => p.content_type === 'docs').length}
-                      </div>
-                      <div className="text-xs font-medium text-gray-300">Docs</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-3 text-center shadow-sm border border-gray-700">
-                      <div className="text-lg font-bold text-yellow-400 mb-1">
-                        {coursePdfs.filter(p => p.content_type === 'images' || p.content_type === 'templates').length}
-                      </div>
-                      <div className="text-xs font-medium text-gray-300">Other</div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 pt-3 border-t border-gray-700/50">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-300">Progress</span>
-                      <span className="text-white font-medium">{progress}%</span>
-                    </div>
-                    
-                    <div className="w-full bg-white/20 rounded-full h-2">
-                      <div
-                        className="bg-[#8b5cf6] h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
+              {/* Course Title and Start Button */}
+              <div className="p-6">
+                <h3 className="text-xl font-semibold text-white mb-4 line-clamp-2">
+                  {course.title}
+                </h3>
+                
+                <button 
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-medium py-3 px-4 rounded-lg shadow-lg transform transition hover:scale-105 duration-300 flex items-center justify-center"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/user/courses/${course.id}`);
+                  }}
+                >
+                  <Play className="h-5 w-5 mr-2" />
+                  Click to Start
+                </button>
               </div>
             </div>
           );
