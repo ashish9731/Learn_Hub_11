@@ -212,12 +212,14 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         assignedCourseIds.has(course.id)
       );
       
-      // Show all courses from Super Admin that are available for assignment to this admin's company
-      // Include courses that are either:
-      // 1. Not assigned to any company (NULL company_id) - these are available to all admins
-      // 2. Assigned to the admin's company
+      // Show only courses that have content assigned to this admin by SuperAdmins
+      const adminAssignedCourseIds = new Set([
+        ...pdfAssignmentsData.map((assignment: any) => assignment.pdf?.course_id),
+        ...podcastAssignmentsData.map((assignment: any) => assignment.podcast?.course_id)
+      ].filter(Boolean));
+      
       const availableCourses = (coursesData || []).filter((course: Course) => 
-        course.company_id === null || course.company_id === companyId
+        adminAssignedCourseIds.has(course.id)
       );
       
       // Calculate total hours from actual podcast durations
