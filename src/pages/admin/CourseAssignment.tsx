@@ -237,25 +237,20 @@ export default function CourseAssignment() {
   };
 
   // Build course hierarchy for content selection
-  // Show only courses that have content assigned to this admin by SuperAdmins
-  const assignedCourseIds = new Set([
-    ...supabaseData.pdfAssignments.map((assignment: any) => assignment.pdf?.course_id),
-    ...supabaseData.podcastAssignments.map((assignment: any) => assignment.podcast?.course_id)
-  ].filter(Boolean));
-  
+  // Show all courses from Super Admin that are available for assignment
+  // Include courses that are either:
+  // 1. Not assigned to any company (NULL company_id) - these are available to all admins
+  // 2. Assigned to the admin's company
   const courseHierarchy = supabaseData.courses
-    .filter((course: Course) => assignedCourseIds.has(course.id))
+    .filter((course: Course) => course.company_id === null || course.company_id === adminCompanyId)
     .map((course: Course) => {
     // Get categories for this course
     const courseCategories = supabaseData.categories.filter((cat: Category) => cat.course_id === course.id);
     
-    // Get assigned podcasts for this admin
-    const assignedPodcastIds = new Set(supabaseData.podcastAssignments.map((assignment: any) => assignment.podcast_id));
-    
-    // Get content for each category - only assigned content
+    // Get all content for each category
     const categoriesWithContent = courseCategories.map((category: Category) => {
       const categoryPodcasts = supabaseData.podcasts.filter(
-        (podcast: Podcast) => podcast.category_id === category.id && assignedPodcastIds.has(podcast.id)
+        (podcast: Podcast) => podcast.category_id === category.id
       );
       
       return {
@@ -264,16 +259,16 @@ export default function CourseAssignment() {
       };
     });
     
-    // Get uncategorized content (directly assigned to course) - only assigned content
+    // Get uncategorized content (directly assigned to course)
     const uncategorizedPodcasts = supabaseData.podcasts.filter(
-      (podcast: Podcast) => podcast.course_id === course.id && !podcast.category_id && assignedPodcastIds.has(podcast.id)
+      (podcast: Podcast) => podcast.course_id === course.id && !podcast.category_id
     );
     
-    // Get podcasts by predefined categories (Books, HBR, TED Talks, Concept) - only assigned content
+    // Get podcasts by predefined categories (Books, HBR, TED Talks, Concept)
     const predefinedCategories = ['Books', 'HBR', 'TED Talks', 'Concept'];
     const podcastsByCategory = predefinedCategories.map(categoryName => {
       const categoryPodcasts = supabaseData.podcasts.filter(
-        (podcast: Podcast) => podcast.course_id === course.id && podcast.category === categoryName && assignedPodcastIds.has(podcast.id)
+        (podcast: Podcast) => podcast.course_id === course.id && podcast.category === categoryName
       );
       
       return {
@@ -284,19 +279,16 @@ export default function CourseAssignment() {
       };
     }).filter(cat => cat.podcasts.length > 0);
     
-    // Get assigned PDFs for this admin
-    const assignedPdfIds = new Set(supabaseData.pdfAssignments.map((assignment: any) => assignment.pdf_id));
-    
-    // Get all PDFs for this course and separate by content type - only assigned content
-    const coursePdfs = supabaseData.pdfs.filter((pdf: PDF) => pdf.course_id === course.id && assignedPdfIds.has(pdf.id));
+    // Get all PDFs for this course and separate by content type
+    const coursePdfs = supabaseData.pdfs.filter((pdf: PDF) => pdf.course_id === course.id);
     const docs = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'docs');
     const images = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'images');
     const templates = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'templates');
     const quizzes = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'quizzes');
     
-    // Calculate total content - only assigned content
+    // Calculate total content
     const totalPodcasts = supabaseData.podcasts.filter(
-      (podcast: Podcast) => podcast.course_id === course.id && assignedPodcastIds.has(podcast.id)
+      (podcast: Podcast) => podcast.course_id === course.id
     ).length;
     
     return {
