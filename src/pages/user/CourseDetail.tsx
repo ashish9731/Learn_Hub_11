@@ -1268,7 +1268,7 @@ export default function CourseDetail() {
                                   onContextMenu={(e) => e.preventDefault()}
                                 >
                                   <FileText className="h-3 w-3 mr-1" />
-                                  {(pdf && pdf.content_type === 'docs') ? 'View Document' : 'View Template'}
+                                  View Document
                                 </a>
                               </div>
                             </div>
