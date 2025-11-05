@@ -134,6 +134,8 @@ export default function CourseAssignment() {
       let courseAssignmentsData: any[] = [];
       
       if (user?.id) {
+        console.log('Loading assignments for user:', user.id);
+        
         // Get PDF assignments assigned TO this admin (by SuperAdmins)
         const { data: pdfAssignments } = await supabase
           .from('pdf_assignments')
@@ -141,6 +143,7 @@ export default function CourseAssignment() {
           .eq('user_id', user.id);
         
         pdfAssignmentsData = pdfAssignments || [];
+        console.log('PDF assignments loaded:', pdfAssignmentsData.length);
         
         // Get podcast assignments assigned TO this admin (by SuperAdmins)
         const { data: podcastAssignments } = await supabase
@@ -149,6 +152,7 @@ export default function CourseAssignment() {
           .eq('user_id', user.id);
           
         podcastAssignmentsData = podcastAssignments || [];
+        console.log('Podcast assignments loaded:', podcastAssignmentsData.length);
         
         // Get course assignments for this admin
         const { data: courseAssignments } = await supabase
@@ -157,6 +161,10 @@ export default function CourseAssignment() {
           .eq('user_id', user.id);
           
         courseAssignmentsData = courseAssignments || [];
+        console.log('Course assignments loaded:', courseAssignmentsData.length);
+        if (courseAssignmentsData.length > 0) {
+          console.log('Course assignment IDs:', courseAssignmentsData.map(ca => ca.course_id));
+        }
       }
       
       const [usersData, coursesData, podcastsData, pdfsData, categoriesData, companiesData, userProfilesData, userCoursesData] = await Promise.all([
@@ -169,6 +177,8 @@ export default function CourseAssignment() {
         supabaseHelpers.getAllUserProfiles(),
         supabaseHelpers.getAllUserCourses()
       ]);
+      
+      console.log('All courses loaded:', coursesData?.length || 0);
       
       setSupabaseData({
         users: usersData || [],
@@ -254,8 +264,15 @@ export default function CourseAssignment() {
     supabaseData.courseAssignments.map((assignment: any) => assignment.course_id)
   );
   
+  console.log('Assigned course IDs:', Array.from(assignedCourseIds));
+  console.log('All courses:', supabaseData.courses.length);
+  
   const courseHierarchy = supabaseData.courses
-    .filter((course: Course) => assignedCourseIds.has(course.id))
+    .filter((course: Course) => {
+      const shouldInclude = assignedCourseIds.has(course.id);
+      console.log(`Course ${course.id} (${course.title}) - Assigned: ${shouldInclude}`);
+      return shouldInclude;
+    })
     .map((course: Course) => {
     // Get categories for this course
     const courseCategories = supabaseData.categories.filter((cat: Category) => cat.course_id === course.id);
@@ -310,6 +327,8 @@ export default function CourseAssignment() {
       (podcast: Podcast) => podcast.course_id === course.id && assignedPodcastIds.has(podcast.id)
     ).length;
     
+    console.log(`Course ${course.id} content counts - Podcasts: ${totalPodcasts}, PDFs: ${coursePdfs.length}`);
+    
     return {
       ...course,
       categories: categoriesWithContent,
@@ -324,6 +343,8 @@ export default function CourseAssignment() {
       totalContent: totalPodcasts + coursePdfs.length
     };
   });
+  
+  console.log('Course hierarchy built:', courseHierarchy.length);
 
   const getTotalSelectedContent = () => {
     return selectedContent.podcasts.length + selectedContent.pdfs.length;
