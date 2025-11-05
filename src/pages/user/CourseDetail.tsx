@@ -503,10 +503,9 @@ export default function CourseDetail() {
   // Get the completion percentage for a podcast
   const getPodcastCompletion = (podcastId: string) => {
     const progress = podcastProgress[podcastId];
-    // Only return completion if progress exists and is meaningful (greater than 0)
-    // Return 0 for any progress less than 1% to avoid showing fake completion
-    const completion = progress && progress.progress_percent ? progress.progress_percent : 0;
-    return completion > 0 ? completion : 0;
+    // ONLY return 100% if actually completed, otherwise 0
+    // No fake completion percentages
+    return (progress && progress.progress_percent === 100) ? 100 : 0;
   };
 
   // Check if all modules are completed
@@ -534,10 +533,11 @@ export default function CourseDetail() {
       return true;
     }
     
-    // Check if all required content has 100% progress
+    // Check if all required content has EXACTLY 100% progress - no fake completion
     const completionResults = allRequiredContent.map(content => {
       const progress = podcastProgress[content.id];
-      const isCompleted = progress && progress.progress_percent >= 100;
+      // ONLY consider completed if progress is EXACTLY 100%
+      const isCompleted = progress && progress.progress_percent === 100;
       console.log(`Content ${content.id} - Title: ${content.title}, Progress: ${progress?.progress_percent || 0}%, Completed: ${isCompleted}`);
       return {
         content,
@@ -907,8 +907,8 @@ export default function CourseDetail() {
                         return assignedPodcasts.length > 0 ? 
                           assignedPodcasts.map(podcast => {
                             const progress = podcastProgress[podcast.id];
-                            // Only show progress if user has actually played the content meaningfully
-                            const completion = (progress && progress.progress_percent && progress.progress_percent >= 1) ? progress.progress_percent : 0;
+                            // ONLY show completion if it's actually 100% - no fake completion
+                            const completion = (progress && progress.progress_percent === 100) ? 100 : 0;
                             
                             return (
                               <div 
@@ -941,8 +941,8 @@ export default function CourseDetail() {
                                       </div>
                                     )}
                                   </div>
-                                  {/* Show checkmark only when actually completed (100%) */}
-                                  {completion >= 100 && (
+                                  {/* Show checkmark ONLY when actually completed (exactly 100%) */}
+                                  {completion === 100 && (
                                     <div className="flex-shrink-0 ml-2">
                                       <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -1095,8 +1095,8 @@ export default function CourseDetail() {
                       return assignedPodcasts.length > 0 ? 
                         assignedPodcasts.map(podcast => {
                           const progress = podcastProgress[podcast.id];
-                          // Only show progress if user has actually played the content meaningfully
-                          const completion = (progress && progress.progress_percent && progress.progress_percent >= 1) ? progress.progress_percent : 0;
+                          // ONLY show completion if it's actually 100% - no fake completion
+                          const completion = (progress && progress.progress_percent === 100) ? 100 : 0;
                             
                           return (
                             <div 
@@ -1131,8 +1131,8 @@ export default function CourseDetail() {
                                       </div>
                                     )}
                                   </div>
-                                  {/* Show checkmark only when actually completed (100%) */}
-                                  {completion >= 100 && (
+                                  {/* Show checkmark ONLY when actually completed (exactly 100%) */}
+                                  {completion === 100 && (
                                     <div className="flex-shrink-0 ml-2">
                                       <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

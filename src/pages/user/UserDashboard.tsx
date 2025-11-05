@@ -373,7 +373,19 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     const assignedCourses = supabaseData.userCourses.length;
     
     // Calculate completed courses correctly - based on user_courses completed field
+    // ONLY count courses where completed = true, not based on progress percentages
     const completedCourses = supabaseData.userCourses.filter(uc => uc.completed === true).length;
+    
+    // Calculate in-progress courses - courses that are assigned but not completed
+    const inProgressCourses = supabaseData.userCourses.filter(uc => uc.completed !== true).length;
+    
+    // Calculate total assigned courses
+    const totalAssignedCourses = supabaseData.userCourses.length;
+    
+    // Calculate average completion - ONLY based on actually completed courses
+    const averageCompletion = totalAssignedCourses > 0 
+      ? Math.round((completedCourses / totalAssignedCourses) * 100) 
+      : 0;
     
     // Calculate total learning hours based on actual podcast durations from progress data
     let totalPossibleSeconds = 0;
@@ -1123,6 +1135,18 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                             />
                           ))}
                         </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
                       </BarChart>
                     </ResponsiveContainer>
                   </div>

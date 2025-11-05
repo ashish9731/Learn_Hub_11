@@ -277,7 +277,8 @@ export default function YouTubeVideoPlayer({
         if (!error && data) {
           const completedStatus: Record<string, boolean> = {};
           data.forEach(item => {
-            if (item.progress_percent >= 100) {
+            // ONLY mark as completed if EXACTLY 100% - no fake completion
+            if (item.progress_percent === 100) {
               completedStatus[item.podcast_id] = true;
             }
           });
