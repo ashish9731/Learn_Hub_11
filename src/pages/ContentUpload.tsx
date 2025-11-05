@@ -768,31 +768,80 @@ export default function ContentUpload() {
       // Insert assignments into user_courses table using admin client to bypass RLS
       let insertError = null;
       
-      // Check if we have admin client available
-      if (supabaseAdmin) {
-        console.log('Using admin client to create assignments');
-        const { error: adminError } = await supabaseAdmin
-          .from('user_courses')
-          .upsert(assignments, {
-            onConflict: 'user_id,course_id'
-          });
-        
-        insertError = adminError;
-      } else {
-        console.log('Admin client not available, using regular client');
-        // Fallback to regular client
-        const { error: regularError } = await supabase
-          .from('user_courses')
-          .upsert(assignments, {
-            onConflict: 'user_id,course_id'
-          });
+      try {
+        // Check if we have admin client available
+        if (supabaseAdmin) {
+          console.log('Using admin client to create assignments');
+          const { error: adminError } = await supabaseAdmin
+            .from('user_courses')
+            .upsert(assignments, {
+              onConflict: 'user_id,course_id',
+              ignoreDuplicates: false
+            });
           
-        insertError = regularError;
+          insertError = adminError;
+        } else {
+          console.log('Admin client not available, using regular client');
+          // Fallback to regular client
+          const { error: regularError } = await supabase
+            .from('user_courses')
+            .upsert(assignments, {
+              onConflict: 'user_id,course_id',
+              ignoreDuplicates: false
+            });
+            
+          insertError = regularError;
+        }
+      } catch (upsertError) {
+        console.error('Upsert error:', upsertError);
+        // If upsert fails, try inserting one by one
+        for (const assignment of assignments) {
+          try {
+            if (supabaseAdmin) {
+              const { error: singleError } = await supabaseAdmin
+                .from('user_courses')
+                .upsert(assignment, {
+                  onConflict: 'user_id,course_id',
+                  ignoreDuplicates: true
+                });
+              
+              if (singleError) {
+                console.error('Single assignment error:', singleError);
+                insertError = singleError;
+              }
+            } else {
+              const { error: singleError } = await supabase
+                .from('user_courses')
+                .upsert(assignment, {
+                  onConflict: 'user_id,course_id',
+                  ignoreDuplicates: true
+                });
+              
+              if (singleError) {
+                console.error('Single assignment error:', singleError);
+                insertError = singleError;
+              }
+            }
+          } catch (singleError) {
+            console.error('Error creating single assignment:', singleError);
+            insertError = singleError;
+          }
+        }
       }
         
       if (insertError) {
         console.error('Error creating assignments:', insertError);
-        alert('Error creating assignments. Please try again.');
+        
+        // Provide more specific error messages
+        let errorMessage = 'Error creating assignments. Please try again.';
+        
+        if (insertError.message && insertError.message.includes('409')) {
+          errorMessage = 'Assignment already exists. The course may already be assigned to this admin.';
+        } else if (insertError.message) {
+          errorMessage = `Error creating assignments: ${insertError.message}`;
+        }
+        
+        alert(errorMessage);
         return;
       }
       
