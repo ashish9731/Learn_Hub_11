@@ -134,13 +134,51 @@ Return ONLY a valid JSON array of 5 question objects. No other text, no markdown
         // Look for JSON array pattern in the response
         const jsonMatch = content.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
-          quizData = JSON.parse(jsonMatch[0]);
+          // Clean up the JSON string to remove any trailing commas or invalid characters
+          let jsonString = jsonMatch[0];
+          // Remove any text after the last closing bracket
+          const lastBracketIndex = jsonString.lastIndexOf(']');
+          if (lastBracketIndex !== -1) {
+            jsonString = jsonString.substring(0, lastBracketIndex + 1);
+          }
+          
+          // Try to parse the cleaned JSON
+          quizData = JSON.parse(jsonString);
         } else {
           throw new Error('No JSON array found in response');
         }
       } catch (extractError) {
         console.error('Error extracting JSON from response:', extractError);
-        return null;
+        // Try to manually parse the response by finding valid JSON objects
+        try {
+          const content = response.choices[0].message.content || '';
+          // Try to find individual JSON objects and build an array
+          const objectMatches = content.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
+          if (objectMatches && objectMatches.length > 0) {
+            const objects = [];
+            for (const objStr of objectMatches) {
+              try {
+                const obj = JSON.parse(objStr);
+                if (obj.question_text && obj.answers && Array.isArray(obj.answers)) {
+                  objects.push(obj);
+                }
+              } catch (e) {
+                // Skip invalid objects
+                continue;
+              }
+            }
+            if (objects.length > 0) {
+              quizData = objects;
+            } else {
+              throw new Error('No valid quiz objects found in response');
+            }
+          } else {
+            throw new Error('No JSON objects found in response');
+          }
+        } catch (manualParseError) {
+          console.error('Error manually parsing response:', manualParseError);
+          return null;
+        }
       }
     }
     
@@ -314,13 +352,51 @@ Return ONLY a valid JSON array of 25 question objects. No other text, no markdow
         // Look for JSON array pattern in the response
         const jsonMatch = content.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
-          quizData = JSON.parse(jsonMatch[0]);
+          // Clean up the JSON string to remove any trailing commas or invalid characters
+          let jsonString = jsonMatch[0];
+          // Remove any text after the last closing bracket
+          const lastBracketIndex = jsonString.lastIndexOf(']');
+          if (lastBracketIndex !== -1) {
+            jsonString = jsonString.substring(0, lastBracketIndex + 1);
+          }
+          
+          // Try to parse the cleaned JSON
+          quizData = JSON.parse(jsonString);
         } else {
           throw new Error('No JSON array found in response');
         }
       } catch (extractError) {
         console.error('Error extracting JSON from response:', extractError);
-        return null;
+        // Try to manually parse the response by finding valid JSON objects
+        try {
+          const content = response.choices[0].message.content || '';
+          // Try to find individual JSON objects and build an array
+          const objectMatches = content.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
+          if (objectMatches && objectMatches.length > 0) {
+            const objects = [];
+            for (const objStr of objectMatches) {
+              try {
+                const obj = JSON.parse(objStr);
+                if (obj.question_text && obj.answers && Array.isArray(obj.answers)) {
+                  objects.push(obj);
+                }
+              } catch (e) {
+                // Skip invalid objects
+                continue;
+              }
+            }
+            if (objects.length > 0) {
+              quizData = objects;
+            } else {
+              throw new Error('No valid quiz objects found in response');
+            }
+          } else {
+            throw new Error('No JSON objects found in response');
+          }
+        } catch (manualParseError) {
+          console.error('Error manually parsing response:', manualParseError);
+          return null;
+        }
       }
     }
     
@@ -491,13 +567,51 @@ Return ONLY a valid JSON array of 25 question objects. No other text, no markdow
         // Look for JSON array pattern in the response
         const jsonMatch = content.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
-          quizData = JSON.parse(jsonMatch[0]);
+          // Clean up the JSON string to remove any trailing commas or invalid characters
+          let jsonString = jsonMatch[0];
+          // Remove any text after the last closing bracket
+          const lastBracketIndex = jsonString.lastIndexOf(']');
+          if (lastBracketIndex !== -1) {
+            jsonString = jsonString.substring(0, lastBracketIndex + 1);
+          }
+          
+          // Try to parse the cleaned JSON
+          quizData = JSON.parse(jsonString);
         } else {
           throw new Error('No JSON array found in response');
         }
       } catch (extractError) {
         console.error('Error extracting JSON from response:', extractError);
-        return null;
+        // Try to manually parse the response by finding valid JSON objects
+        try {
+          const content = response.choices[0].message.content || '';
+          // Try to find individual JSON objects and build an array
+          const objectMatches = content.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
+          if (objectMatches && objectMatches.length > 0) {
+            const objects = [];
+            for (const objStr of objectMatches) {
+              try {
+                const obj = JSON.parse(objStr);
+                if (obj.question_text && obj.answers && Array.isArray(obj.answers)) {
+                  objects.push(obj);
+                }
+              } catch (e) {
+                // Skip invalid objects
+                continue;
+              }
+            }
+            if (objects.length > 0) {
+              quizData = objects;
+            } else {
+              throw new Error('No valid quiz objects found in response');
+            }
+          } else {
+            throw new Error('No JSON objects found in response');
+          }
+        } catch (manualParseError) {
+          console.error('Error manually parsing response:', manualParseError);
+          return null;
+        }
       }
     }
     

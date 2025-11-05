@@ -118,31 +118,42 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
               documentsError = fallbackError;
             }
           }
-            
+          
+          // If we still have an error, show error message
           if (documentsError) {
-            setError('Error loading quiz document: ' + (documentsError.message || 'Unknown error'));
-            setLoading(false);
-            return;
+            console.error('Error fetching quiz documents:', documentsError);
+            throw new Error('Failed to fetch quiz documents. Please try again later.');
           }
           
+          // If no quiz documents found, show message
           if (!quizDocuments || quizDocuments.length === 0) {
-            setError('No quiz document found for this course');
-            setLoading(false);
-            return;
+            throw new Error('No quiz documents found for this course. Please contact your administrator.');
           }
           
-          // Use the first quiz document (assuming one per course)
-          const quizDocument: any = quizDocuments[0];
+          // Use the first quiz document for now (in future we might support multiple)
+          const quizDocument = quizDocuments[0];
+          console.log('Using quiz document:', quizDocument);
+          
+          // Get course title
+          const { data: courseData, error: courseError } = await supabase
+            .from('courses')
+            .select('title')
+            .eq('id', courseId)
+            .single();
+            
+          if (courseError) {
+            throw new Error('Failed to fetch course information');
+          }
           
           // Generate quiz from document content
-          const quizId = await generateQuizFromDocument(
+          const generatedQuizId = await generateQuizFromDocument(
             courseId,
-            'Final Quiz',
-            quizDocument.content_text || ''
+            courseData.title,
+            quizDocument.content_text || 'No content available'
           );
           
-          if (quizId) {
-            setQuizId(quizId);
+          if (generatedQuizId) {
+            setQuizId(generatedQuizId);
             setQuizGenerated(true);
           } else {
             setError('Failed to generate quiz from document');
@@ -229,306 +240,371 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
     initializeQuiz();
   }, [courseId, categoryId, categoryName, isFinalQuiz, isDocumentQuiz]);
 
-  useEffect(() => {
-    const loadQuizQuestions = async () => {
-      if (!quizId || !quizGenerated) return;
+  // Start the quiz attempt
+  const startQuizAttemptHandler = async () => {
+    if (!quizId || !userId) return;
+    
+    try {
+      const attemptId = await startQuizAttempt(userId, quizId, !isFinalQuiz);
+      if (attemptId) {
+        setAttemptId(attemptId);
+        setLoading(false);
+      } else {
+        setError('Failed to start quiz attempt');
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error('Error starting quiz attempt:', err);
+      setError('Failed to start quiz attempt');
+      setLoading(false);
+    }
+  };
+
+  // Load quiz questions
+  const loadQuizQuestions = async () => {
+    if (!quizId) return;
+    
+    try {
+      setLoading(true);
+      let questionsData: any[] = [];
       
-      try {
-        // Load quiz questions
-        const { data: questionsData, error: questionsError } = await supabase
+      if (isFinalQuiz) {
+        // Load course quiz questions
+        const { data, error } = await supabase
           .from('quiz_questions')
           .select(`
             id,
             question_text,
             difficulty,
-            quiz_answers (id, answer_text)
+            quiz_answers (
+              id,
+              answer_text
+            )
           `)
-          .eq(isFinalQuiz ? 'course_quiz_id' : 'module_quiz_id', quizId)
+          .eq('course_quiz_id', quizId)
           .order('id');
-
-        if (questionsError) {
-          setError('Error loading quiz questions');
-          setLoading(false);
-          return;
-        }
-
-        // Format questions data
-        const formattedQuestions = questionsData?.map(question => ({
-          id: question.id,
-          question_text: question.question_text,
-          difficulty: question.difficulty,
-          answers: question.quiz_answers?.map(answer => ({
-            id: answer.id,
-            answer_text: answer.answer_text
-          })) || []
-        })) || [];
-
-        setQuestions(formattedQuestions);
-        
-        // Start quiz attempt
-        if (userId) {
-          const attemptId = await startQuizAttempt(userId, quizId, !isFinalQuiz);
-          if (attemptId) {
-            setAttemptId(attemptId);
-          } else {
-            setError('Failed to start quiz attempt');
-            setLoading(false);
-            return;
-          }
-        }
-        
-        setLoading(false);
-      } catch (err) {
-        console.error('Error loading quiz questions:', err);
-        setError('Failed to load quiz questions');
-        setLoading(false);
+          
+        if (error) throw error;
+        questionsData = data || [];
+      } else {
+        // Load module quiz questions
+        const { data, error } = await supabase
+          .from('quiz_questions')
+          .select(`
+            id,
+            question_text,
+            difficulty,
+            quiz_answers (
+              id,
+              answer_text
+            )
+          `)
+          .eq('module_quiz_id', quizId)
+          .order('id');
+          
+        if (error) throw error;
+        questionsData = data || [];
       }
-    };
-
-    loadQuizQuestions();
-  }, [quizId, quizGenerated, userId, isFinalQuiz]);
-
-  const handleAnswerSelect = (questionId: string, answerId: string) => {
-    // Prevent changing answer if it's already submitted
-    if (submittedAnswers[questionId]) {
-      return;
+      
+      // Transform the data to match our interface
+      const transformedQuestions = questionsData.map(question => ({
+        id: question.id,
+        question_text: question.question_text,
+        difficulty: question.difficulty,
+        answers: question.quiz_answers.map((answer: any) => ({
+          id: answer.id,
+          answer_text: answer.answer_text
+        }))
+      }));
+      
+      setQuestions(transformedQuestions);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error loading quiz questions:', err);
+      setError('Failed to load quiz questions');
+      setLoading(false);
     }
-    
+  };
+
+  // Handle answer selection
+  const handleAnswerSelect = (questionId: string, answerId: string) => {
     setSelectedAnswers(prev => ({
       ...prev,
       [questionId]: answerId
     }));
   };
 
-  const handleSubmitAnswer = async () => {
-    // Submit current answer if not already submitted
-    const currentQuestion = questions[currentQuestionIndex];
-    const selectedAnswerId = selectedAnswers[currentQuestion.id];
+  // Handle answer submission
+  const handleSubmitAnswer = async (questionId: string) => {
+    if (!attemptId || !selectedAnswers[questionId]) return;
     
-    if (selectedAnswerId && attemptId && !submittedAnswers[currentQuestion.id]) {
-      const result = await submitQuizAnswer(attemptId, currentQuestion.id, selectedAnswerId);
+    try {
+      const result = await submitQuizAnswer(
+        attemptId,
+        questionId,
+        selectedAnswers[questionId]
+      );
       
       if (result.success) {
-        // Mark this question as submitted and store feedback
+        // Mark this question as submitted
         setSubmittedAnswers(prev => ({
           ...prev,
-          [currentQuestion.id]: true
+          [questionId]: true
         }));
         
+        // Store feedback
         setAnswerFeedback(prev => ({
           ...prev,
-          [currentQuestion.id]: {
+          [questionId]: {
             isCorrect: result.isCorrect,
             correctAnswerId: result.correctAnswerId || '',
             explanation: result.explanation || ''
           }
         }));
         
-        // Show next button after submission
+        // Show next button
         setShowNextButton(true);
+      } else {
+        setError('Failed to submit answer');
       }
+    } catch (err) {
+      console.error('Error submitting answer:', err);
+      setError('Failed to submit answer');
     }
   };
 
-  const handleNextQuestion = async () => {
-    // Hide next button and reset for next question
-    setShowNextButton(false);
-    
-    // Move to next question or complete quiz
+  // Handle next question
+  const handleNextQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
+      setShowNextButton(false);
     } else {
-      // Complete quiz
-      if (attemptId) {
-        await completeQuizAttempt(attemptId);
-        
-        // Get final score
-        const { data: attemptData, error: attemptError } = await supabase
-          .from('user_quiz_attempts')
-          .select('score, passed')
-          .eq('id', attemptId)
-          .maybeSingle();
-          
-        if (!attemptError && attemptData) {
-          onComplete(attemptData.passed || false, attemptData.score || 0);
-        } else {
-          onComplete(false, 0);
-        }
-      } else {
-        onComplete(false, 0);
-      }
+      // Quiz completed
+      handleQuizCompletion();
     }
   };
 
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
-      // Hide next button when going back
-      setShowNextButton(false);
+  // Handle quiz completion
+  const handleQuizCompletion = async () => {
+    if (!attemptId) return;
+    
+    try {
+      const success = await completeQuizAttempt(attemptId);
+      if (success) {
+        setQuizCompleted(true);
+        // Calculate final score (this would normally come from the completeQuizAttempt function)
+        const correctCount = Object.values(answerFeedback).filter(feedback => feedback.isCorrect).length;
+        const score = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
+        const passed = score >= 60; // 60% passing mark
+        onComplete(passed, score);
+      } else {
+        setError('Failed to complete quiz');
+      }
+    } catch (err) {
+      console.error('Error completing quiz:', err);
+      setError('Failed to complete quiz');
     }
   };
+
+  // Render current question
+  const renderCurrentQuestion = () => {
+    const question = questions[currentQuestionIndex];
+    const isSubmitted = submittedAnswers[question.id];
+    const feedback = answerFeedback[question.id];
+    
+    return (
+      <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-white">Question {currentQuestionIndex + 1} of {questions.length}</h2>
+            <span className="px-3 py-1 bg-blue-500 text-white text-sm rounded-full capitalize">
+              {question.difficulty}
+            </span>
+          </div>
+          <p className="text-lg text-white mb-6">{question.question_text}</p>
+        </div>
+        
+        <div className="space-y-3 mb-6">
+          {question.answers.map((answer) => (
+            <div 
+              key={answer.id}
+              className={`p-4 rounded-lg border transition-all ${
+                isSubmitted 
+                  ? feedback?.isCorrect && selectedAnswers[question.id] === answer.id
+                    ? 'bg-green-500/20 border-green-500'
+                    : !feedback?.isCorrect && selectedAnswers[question.id] === answer.id
+                      ? 'bg-red-500/20 border-red-500'
+                      : feedback?.isCorrect && feedback.correctAnswerId === answer.id
+                        ? 'bg-green-500/20 border-green-500'
+                        : 'bg-gray-800/50 border-gray-700'
+                  : selectedAnswers[question.id] === answer.id
+                    ? 'bg-blue-500/20 border-blue-500'
+                    : 'bg-gray-800/50 border-gray-700 hover:bg-gray-700/50'
+              }`}
+            >
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name={`question-${question.id}`}
+                  value={answer.id}
+                  checked={selectedAnswers[question.id] === answer.id}
+                  onChange={() => handleAnswerSelect(question.id, answer.id)}
+                  disabled={isSubmitted}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="ml-3 text-white">{answer.answer_text}</span>
+              </label>
+            </div>
+          ))}
+        </div>
+        
+        {isSubmitted && feedback && (
+          <div className={`p-4 rounded-lg mb-6 ${
+            feedback.isCorrect ? 'bg-green-500/20 border border-green-500' : 'bg-red-500/20 border border-red-500'
+          }`}>
+            <p className="text-white font-medium mb-2">
+              {feedback.isCorrect ? 'Correct!' : 'Incorrect'}
+            </p>
+            <p className="text-gray-200">
+              {feedback.explanation}
+            </p>
+          </div>
+        )}
+        
+        <div className="flex justify-between">
+          {!isSubmitted ? (
+            <button
+              onClick={() => handleSubmitAnswer(question.id)}
+              disabled={!selectedAnswers[question.id]}
+              className={`px-6 py-3 rounded-lg font-medium ${
+                selectedAnswers[question.id]
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              Submit Answer
+            </button>
+          ) : (
+            <button
+              onClick={handleNextQuestion}
+              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
+            >
+              {currentQuestionIndex < questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Render quiz completion
+  const renderQuizCompletion = () => {
+    const correctCount = Object.values(answerFeedback).filter(feedback => feedback.isCorrect).length;
+    const score = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
+    const passed = score >= 60;
+    
+    return (
+      <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6 text-center">
+        <div className="mb-6">
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+            passed ? 'bg-green-500/20' : 'bg-red-500/20'
+          }`}>
+            {passed ? (
+              <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            ) : (
+              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            )}
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            {passed ? 'Quiz Completed Successfully!' : 'Quiz Not Passed'}
+          </h2>
+          <p className="text-gray-300 mb-4">
+            You scored {score}% ({correctCount} out of {questions.length} questions correct)
+          </p>
+          <p className="text-gray-400">
+            {passed 
+              ? 'Congratulations! You have passed the quiz.' 
+              : 'You need to score at least 60% to pass. Please try again.'}
+          </p>
+        </div>
+        
+        {!passed && (
+          <button
+            onClick={() => {
+              // Reset quiz state to allow retake
+              setCurrentQuestionIndex(0);
+              setSelectedAnswers({});
+              setSubmittedAnswers({});
+              setAnswerFeedback({});
+              setShowNextButton(false);
+              setQuizCompleted(false);
+            }}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"
+          >
+            Retake Quiz
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  // Effect to load questions when quiz is generated
+  useEffect(() => {
+    if (quizGenerated && quizId) {
+      loadQuizQuestions();
+    }
+  }, [quizGenerated, quizId]);
+
+  // Effect to start quiz attempt when questions are loaded
+  useEffect(() => {
+    if (questions.length > 0 && !attemptId) {
+      startQuizAttemptHandler();
+    }
+  }, [questions, attemptId]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">
-            {quizGenerated ? 'Loading quiz questions...' : 'Generating quiz...'}
-          </p>
-        </div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <p className="text-red-600">Error: {error}</p>
-      </div>
-    );
-  }
-
-  if (questions.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-600">No questions available for this quiz.</p>
-      </div>
-    );
-  }
-
-  const currentQuestion = questions[currentQuestionIndex];
-  const selectedAnswer = selectedAnswers[currentQuestion.id];
-  const isSubmitted = submittedAnswers[currentQuestion.id];
-  const feedback = answerFeedback[currentQuestion.id];
-
-  return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      {/* Quiz Header */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
-          {isFinalQuiz ? 'Final Course Quiz' : `${categoryName} Quiz`}
-        </h2>
-        <div className="flex items-center mt-2">
-          <span className="text-sm text-gray-600">
-            Question {currentQuestionIndex + 1} of {questions.length}
-          </span>
-          <div className="ml-4 flex-1 bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full" 
-              style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
-            ></div>
+      <div className="bg-red-900/30 backdrop-blur-lg rounded-2xl border border-red-500/30 shadow-xl p-6">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-300">Error</h3>
+            <div className="mt-2 text-sm text-red-200">
+              <p>{error}</p>
+            </div>
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Question */}
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4">
-          {currentQuestion.question_text}
-        </h3>
-        
-        {/* Difficulty Indicator */}
-        <div className="mb-4">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            currentQuestion.difficulty === 'easy' 
-              ? 'bg-green-100 text-green-800' 
-              : currentQuestion.difficulty === 'medium' 
-                ? 'bg-yellow-100 text-yellow-800' 
-                : 'bg-red-100 text-red-800'
-          }`}>
-            {currentQuestion.difficulty.charAt(0).toUpperCase() + currentQuestion.difficulty.slice(1)}
-          </span>
-        </div>
+  if (quizCompleted) {
+    return renderQuizCompletion();
+  }
 
-        {/* Answer Options */}
-        <div className="space-y-3">
-          {currentQuestion.answers.map((answer) => {
-            const isSelected = selectedAnswer === answer.id;
-            const isCorrectAnswer = feedback?.correctAnswerId === answer.id;
-            
-            return (
-              <div
-                key={answer.id}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                  isSubmitted
-                    ? isSelected
-                      ? feedback.isCorrect
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-red-500 bg-red-50'
-                      : isCorrectAnswer
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 bg-gray-50'
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`answer-${answer.id}`}
-                    checked={isSelected}
-                    onChange={() => !isSubmitted && handleAnswerSelect(currentQuestion.id, answer.id)}
-                    className="h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
-                    disabled={isSubmitted}
-                  />
-                  <label 
-                    htmlFor={`answer-${answer.id}`} 
-                    className="ml-3 text-gray-800 cursor-pointer"
-                  >
-                    {answer.answer_text}
-                  </label>
-                </div>
-                {isSubmitted && isSelected && !feedback.isCorrect && (
-                  <div className="mt-2 text-sm text-red-600">
-                    Incorrect. {feedback.explanation}
-                  </div>
-                )}
-                {isSubmitted && isCorrectAnswer && feedback.isCorrect && (
-                  <div className="mt-2 text-sm text-green-600">
-                    Correct! {feedback.explanation}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+  if (questions.length > 0) {
+    return renderCurrentQuestion();
+  }
 
-      {/* Feedback and Navigation */}
-      <div className="flex justify-between">
-        <button
-          onClick={handlePreviousQuestion}
-          disabled={currentQuestionIndex === 0}
-          className={`px-4 py-2 rounded-md ${
-            currentQuestionIndex === 0
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Previous
-        </button>
-        
-        {!showNextButton ? (
-          <button
-            onClick={handleSubmitAnswer}
-            disabled={!selectedAnswer || isSubmitted}
-            className={`px-4 py-2 rounded-md ${
-              !selectedAnswer || isSubmitted
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
-          >
-            Submit
-          </button>
-        ) : (
-          <button
-            onClick={handleNextQuestion}
-            className="px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
-          >
-            {currentQuestionIndex === questions.length - 1 ? 'Finish Quiz' : 'Next'}
-          </button>
-        )}
-      </div>
+  return (
+    <div className="text-center py-12">
+      <div className="text-gray-400">No questions available for this quiz.</div>
     </div>
   );
 };
