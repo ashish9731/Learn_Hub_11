@@ -16,6 +16,21 @@
   --card-hover: #252525;
 }
 
+/* Light theme variables */
+:root[data-theme="light"] {
+  --background-primary: #ffffff;
+  --background-secondary: #f5f5f5;
+  --background-tertiary: #e5e5e5;
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --text-tertiary: #666666;
+  --accent-primary: #8b5cf6;
+  --accent-secondary: #7c3aed;
+  --border-color: #d1d5db;
+  --card-background: #ffffff;
+  --card-hover: #f9fafb;
+}
+
 /* Custom Button Styles */
 .custom-button {
   position: relative;
@@ -128,57 +143,57 @@
 /* Base styles */
 @layer base {
   body {
-    @apply bg-[#121212] text-white;
+    @apply bg-[var(--background-primary)] text-[var(--text-primary)];
   }
   
   input, textarea, select {
-    @apply text-white bg-[#252525];
+    @apply text-[var(--text-primary)] bg-[var(--background-tertiary)];
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply text-white;
+    @apply text-[var(--text-primary)];
   }
   
   p {
-    @apply text-[#f0f0f0];
+    @apply text-[var(--text-secondary)];
   }
 }
 
 /* Common component styles */
 @layer components {
   .card {
-    @apply bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333];
+    @apply bg-[var(--card-background)] shadow-sm rounded-lg border border-[var(--border-color)];
   }
   
   .card-title {
-    @apply text-lg font-medium text-white;
+    @apply text-lg font-medium text-[var(--text-primary)];
   }
   
   .btn-primary {
-    @apply px-4 py-2 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-medium rounded-md shadow-sm;
+    @apply px-4 py-2 bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] text-white font-medium rounded-md shadow-sm;
   }
   
   .btn-secondary {
-    @apply px-4 py-2 bg-[#252525] hover:bg-[#333333] text-white font-medium rounded-md shadow-sm;
+    @apply px-4 py-2 bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)] text-[var(--text-primary)] font-medium rounded-md shadow-sm;
   }
   
   .input {
-    @apply block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm 
-           bg-[#252525] text-white
-           focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] focus:border-[#8b5cf6];
+    @apply block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm 
+           bg-[var(--background-tertiary)] text-[var(--text-primary)]
+           focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)];
   }
   
   .select {
-    @apply block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm 
-           bg-[#252525] text-white
-           focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] focus:border-[#8b5cf6];
+    @apply block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm 
+           bg-[var(--background-tertiary)] text-[var(--text-primary)]
+           focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)];
   }
   
   .text-secondary {
-    @apply text-[#f0f0f0];
+    @apply text-[var(--text-secondary)];
   }
   
   .text-tertiary {
-    @apply text-[#d0d0d0];
+    @apply text-[var(--text-tertiary)];
   }
 }

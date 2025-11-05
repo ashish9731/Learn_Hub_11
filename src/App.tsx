@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { testSupabaseConnection } from './lib/supabase';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Global real-time sync manager
 const setupGlobalRealtimeSync = () => {
@@ -120,7 +121,9 @@ import AuthPage from './components/Auth/AuthPage';
 function App() {
   return (
     <Router>
-      <AppContent />
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </Router>
   );
 }

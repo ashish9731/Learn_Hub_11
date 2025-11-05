@@ -24,12 +24,14 @@ export default function PodcastPlayer({
   const lastSaveTime = useRef<number>(0);
   const [lastValidTime, setLastValidTime] = useState<number>(0);
   const [maxAllowedTime, setMaxAllowedTime] = useState<number>(0); // Track maximum allowed time
+  const [hasPlayed, setHasPlayed] = useState(false); // Track if user has actually played the audio
 
   useEffect(() => {
     // Reset player state when podcast changes
     setIsLoading(true);
     setLastValidTime(0);
     setMaxAllowedTime(0);
+    setHasPlayed(false);
 
     // Load saved progress if available
     if (userId) {
@@ -39,7 +41,7 @@ export default function PodcastPlayer({
     // Set up interval to save progress every 40 seconds
     if (userId) {
       progressSaveInterval.current = setInterval(() => {
-        if (audioRef.current && audioRef.current.currentTime > 0 && !progressSaved) {
+        if (audioRef.current && audioRef.current.currentTime > 0 && !progressSaved && hasPlayed) {
           const currentTime = Date.now();
           // Save progress every 40 seconds as per requirement
           if (currentTime - lastSaveTime.current > 40000) {
@@ -56,11 +58,11 @@ export default function PodcastPlayer({
       }
       
       // Save progress when component unmounts
-      if (userId && audioRef.current && audioRef.current.currentTime > 0.5 && !progressSaved) {
+      if (userId && audioRef.current && audioRef.current.currentTime > 0.5 && !progressSaved && hasPlayed) {
         saveProgress();
       }
     };
-  }, [podcast.id, podcast.mp3_url, userId]);
+  }, [podcast.id, podcast.mp3_url, userId, hasPlayed]);
 
   const loadSavedProgress = async () => {
     if (!userId || !podcast.id) return;
@@ -91,7 +93,7 @@ export default function PodcastPlayer({
   };
   
   const saveProgress = async (): Promise<void> => {
-    if (!userId || !podcast.id || !audioRef.current) return;
+    if (!userId || !podcast.id || !audioRef.current || !hasPlayed) return;
     
     // Don't save if we haven't played enough (at least 1 second)
     if (audioRef.current.currentTime < 1) return;
@@ -159,7 +161,7 @@ export default function PodcastPlayer({
       
       // Save progress periodically and dispatch real-time event
       const currentTimeMs = Date.now();
-      if (currentTimeMs - lastSaveTime.current > 30000) { // Save every 30 seconds
+      if (currentTimeMs - lastSaveTime.current > 30000 && hasPlayed) { // Save every 30 seconds
         saveProgress();
         lastSaveTime.current = currentTimeMs;
       }
@@ -189,6 +191,18 @@ export default function PodcastPlayer({
     }
   };
 
+  const handlePlay = () => {
+    // Mark that the user has actually played the audio
+    setHasPlayed(true);
+  };
+
+  const handleEnded = () => {
+    // When audio ends, mark as 100% complete
+    if (userId && audioRef.current && hasPlayed) {
+      saveProgress();
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg overflow-hidden">
       <audio
@@ -199,7 +213,8 @@ export default function PodcastPlayer({
         onTimeUpdate={handleTimeUpdate}
         onSeeking={handleSeeking}
         onLoadedMetadata={handleLoadedMetadata}
-        onEnded={() => saveProgress()}
+        onPlay={handlePlay}
+        onEnded={handleEnded}
         onError={(e) => console.error('Audio error:', e)}
         controls
         className="w-full"
