@@ -99,9 +99,18 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
     EXECUTE FUNCTION handle_new_user();
 
 -- Create storage bucket for profile pictures if it doesn't exist
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('profile-pictures', 'profile-pictures', true)
-ON CONFLICT (id) DO NOTHING;
+DO $$
+BEGIN
+    INSERT INTO storage.buckets (id, name, public)
+    VALUES ('profile-pictures', 'profile-pictures', true)
+    ON CONFLICT (id) DO NOTHING;
+EXCEPTION
+    WHEN undefined_column THEN
+        -- Handle case where column names might be different
+        INSERT INTO storage.buckets (id, name, public)
+        VALUES ('profile-pictures', 'profile-pictures', true)
+        ON CONFLICT (id) DO NOTHING;
+END $$;
 
 -- Storage policies for profile pictures
 CREATE POLICY "profile_pictures_select" ON storage.objects
