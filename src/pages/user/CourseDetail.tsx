@@ -395,6 +395,17 @@ export default function CourseDetail() {
     }
   }, [userId, courseId]);
 
+  // Auto-generate quiz when quiz tab is accessed and quiz documents are available
+  useEffect(() => {
+    if (activeTab === 'quizzes' && getAssignedPDFs('quizzes').length > 0 && !showQuiz && !showFinalQuiz && !quizResults) {
+      // Check if all modules are completed
+      if (checkAllModulesCompleted()) {
+        // Automatically start the final quiz
+        setShowFinalQuiz(true);
+      }
+    }
+  }, [activeTab, pdfs, pdfAssignments, showQuiz, showFinalQuiz, quizResults]);
+
   // Get default placeholder image based on course title
   const getDefaultImage = (courseTitle: string) => {
     const title = courseTitle?.toLowerCase() || '';
@@ -825,12 +836,10 @@ export default function CourseDetail() {
                   {/* Quiz tab is separate and only accessible through the button below */}
                   <button
                     onClick={() => {
-                      const confirmed = window.confirm(
-                        'It is recommended to complete all audio and video modules first for better understanding. ' +
-                        'Do you want to proceed to the quiz?'
-                      );
-                      if (confirmed) {
+                      if (checkAllModulesCompleted()) {
                         setActiveTab('quizzes');
+                      } else {
+                        alert('You must complete all audio and video modules before accessing quizzes.');
                       }
                     }}
                     className={`flex-1 min-w-[140px] px-6 py-4 rounded-2xl font-semibold text-lg capitalize transition-all duration-300 transform hover:scale-105 ${
@@ -839,8 +848,8 @@ export default function CourseDetail() {
                         : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:shadow-lg'
                     }`}
                   >
-                    Start Quiz
-                    <span className="block text-xs mt-1">Test Your Knowledge</span>
+                    Document Quiz
+                    <span className="block text-xs mt-1">From Uploaded Document</span>
                   </button>
                 </div>
               </div>
@@ -1402,7 +1411,7 @@ export default function CourseDetail() {
                             Start Final Quiz
                           </button>
                           <div className="mt-4 text-sm text-gray-400">
-                            <p>• 25 questions covering all course material</p>
+                            <p>• Questions from your uploaded quiz document</p>
                             <p>• Multiple choice with detailed explanations</p>
                             <p>• Instant feedback on answers</p>
                           </div>
