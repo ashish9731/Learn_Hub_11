@@ -128,77 +128,86 @@ Return ONLY a valid JSON array of 5 question objects. No other text, no markdown
       console.error('Error parsing OpenAI response:', parseError);
       console.error('Raw response:', response.choices[0].message.content);
       
-      // Try to extract JSON from the response if it contains extra text
+      // Strip Markdown formatting before parsing
       try {
-        const content = response.choices[0].message.content || '';
-        // Look for JSON array pattern in the response
-        const jsonMatch = content.match(/\[[\s\S]*\]/);
-        if (jsonMatch) {
-          // Clean up the JSON string to remove any trailing commas or invalid characters
-          let jsonString = jsonMatch[0];
-          // Remove any text after the last closing bracket
-          const lastBracketIndex = jsonString.lastIndexOf(']');
-          if (lastBracketIndex !== -1) {
-            jsonString = jsonString.substring(0, lastBracketIndex + 1);
-          }
-          
-          // Fix common JSON issues
-          jsonString = jsonString
-            .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
-            .replace(/,\s*\]/g, ']') // Remove trailing commas before closing brackets
-            .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
-            .replace(/'/g, '"') // Replace single quotes with double quotes
-            .replace(/\\'/g, "'") // Unescape single quotes
-            .replace(/\\n/g, '\\n') // Fix newlines
-            .replace(/\\r/g, '\\r') // Fix carriage returns
-            .replace(/\\t/g, '\\t'); // Fix tabs
-          
-          // Try to parse the cleaned JSON
-          quizData = JSON.parse(jsonString);
-        } else {
-          throw new Error('No JSON array found in response');
-        }
-      } catch (extractError) {
-        console.error('Error extracting JSON from response:', extractError);
-        // Try to manually parse the response by finding valid JSON objects
+        const rawResponse = response.choices[0].message.content?.trim() || '';
+        const jsonStr = rawResponse.replace(/```json|```/g, '').trim();
+        quizData = JSON.parse(jsonStr);
+      } catch (stripError) {
+        console.error('Error stripping markdown and parsing:', stripError);
+        
+        // Try to extract JSON from the response if it contains extra text
         try {
           const content = response.choices[0].message.content || '';
-          // Try to find individual JSON objects and build an array
-          const objectMatches = content.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
-          if (objectMatches && objectMatches.length > 0) {
-            const objects = [];
-            for (const objStr of objectMatches) {
-              try {
-                // Clean the object string
-                let cleanObjStr = objStr
-                  .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
-                  .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
-                  .replace(/'/g, '"') // Replace single quotes with double quotes
-                  .replace(/\\'/g, "'") // Unescape single quotes
-                  .replace(/\\n/g, '\\n') // Fix newlines
-                  .replace(/\\r/g, '\\r') // Fix carriage returns
-                  .replace(/\\t/g, '\\t'); // Fix tabs
-                
-                const obj = JSON.parse(cleanObjStr);
-                if (obj.question_text && obj.answers && Array.isArray(obj.answers)) {
-                  objects.push(obj);
-                }
-              } catch (e) {
-                // Skip invalid objects
-                continue;
-              }
+          // Look for JSON array pattern in the response
+          const jsonMatch = content.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            // Clean up the JSON string to remove any trailing commas or invalid characters
+            let jsonString = jsonMatch[0];
+            // Remove any text after the last closing bracket
+            const lastBracketIndex = jsonString.lastIndexOf(']');
+            if (lastBracketIndex !== -1) {
+              jsonString = jsonString.substring(0, lastBracketIndex + 1);
             }
-            if (objects.length > 0) {
-              quizData = objects;
-            } else {
-              throw new Error('No valid quiz objects found in response');
-            }
+            
+            // Fix common JSON issues
+            jsonString = jsonString
+              .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
+              .replace(/,\s*\]/g, ']') // Remove trailing commas before closing brackets
+              .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
+              .replace(/'/g, '"') // Replace single quotes with double quotes
+              .replace(/\\'/g, "'") // Unescape single quotes
+              .replace(/\\n/g, '\\n') // Fix newlines
+              .replace(/\\r/g, '\\r') // Fix carriage returns
+              .replace(/\\t/g, '\\t'); // Fix tabs
+            
+            // Try to parse the cleaned JSON
+            quizData = JSON.parse(jsonString);
           } else {
-            throw new Error('No JSON objects found in response');
+            throw new Error('No JSON array found in response');
           }
-        } catch (manualParseError) {
-          console.error('Error manually parsing response:', manualParseError);
-          return null;
+        } catch (extractError) {
+          console.error('Error extracting JSON from response:', extractError);
+          // Try to manually parse the response by finding valid JSON objects
+          try {
+            const content = response.choices[0].message.content || '';
+            // Try to find individual JSON objects and build an array
+            const objectMatches = content.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
+            if (objectMatches && objectMatches.length > 0) {
+              const objects = [];
+              for (const objStr of objectMatches) {
+                try {
+                  // Clean the object string
+                  let cleanObjStr = objStr
+                    .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
+                    .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
+                    .replace(/'/g, '"') // Replace single quotes with double quotes
+                    .replace(/\\'/g, "'") // Unescape single quotes
+                    .replace(/\\n/g, '\\n') // Fix newlines
+                    .replace(/\\r/g, '\\r') // Fix carriage returns
+                    .replace(/\\t/g, '\\t'); // Fix tabs
+                  
+                  const obj = JSON.parse(cleanObjStr);
+                  if (obj.question_text && obj.answers && Array.isArray(obj.answers)) {
+                    objects.push(obj);
+                  }
+                } catch (e) {
+                  // Skip invalid objects
+                  continue;
+                }
+              }
+              if (objects.length > 0) {
+                quizData = objects;
+              } else {
+                throw new Error('No valid quiz objects found in response');
+              }
+            } else {
+              throw new Error('No JSON objects found in response');
+            }
+          } catch (manualParseError) {
+            console.error('Error manually parsing response:', manualParseError);
+            return null;
+          }
         }
       }
     }
