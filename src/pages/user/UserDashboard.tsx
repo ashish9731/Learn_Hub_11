@@ -1147,15 +1147,4 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     </div>
   );
 }
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+
