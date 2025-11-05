@@ -683,15 +683,59 @@ export default function ContentUpload() {
       return;
     }
 
+    if (!selectedAdminId) {
+      alert('Please select an admin to assign courses to');
+      return;
+    }
+
     try {
       console.log('Creating assignment:', {
         title: assignmentTitle,
         companyId: selectedCompanyId,
+        adminId: selectedAdminId,
         courses: selectedCourses
       });
       
-      // Here you would implement the assignment creation logic
-      // For now, we'll just show a success message
+      // Get the admin user
+      const { data: adminUser, error: adminError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', selectedAdminId)
+        .single();
+        
+      if (adminError) {
+        console.error('Error fetching admin user:', adminError);
+        alert('Error fetching admin user. Please try again.');
+        return;
+      }
+      
+      // Check if admin belongs to the selected company
+      if (adminUser.company_id !== selectedCompanyId) {
+        alert('Selected admin does not belong to the selected company');
+        return;
+      }
+      
+      // Create user_courses records for each selected course
+      const assignments = selectedCourses.map(courseId => ({
+        user_id: selectedAdminId,
+        course_id: courseId,
+        assigned_at: new Date().toISOString(),
+        assigned_by: adminUser.id // This should be the Super Admin's ID
+      }));
+      
+      // Insert assignments into user_courses table
+      const { error: insertError } = await supabase
+        .from('user_courses')
+        .upsert(assignments, {
+          onConflict: 'user_id,course_id'
+        });
+        
+      if (insertError) {
+        console.error('Error creating assignments:', insertError);
+        alert('Error creating assignments. Please try again.');
+        return;
+      }
+      
       alert('Assignment created successfully!');
       
       // Reset assignment form

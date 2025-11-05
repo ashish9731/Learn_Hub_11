@@ -266,6 +266,7 @@ export default function CourseAssignment() {
   
   console.log('Assigned course IDs:', Array.from(assignedCourseIds));
   console.log('All courses:', supabaseData.courses.length);
+  console.log('Course assignments:', supabaseData.courseAssignments.length);
   
   const courseHierarchy = supabaseData.courses
     .filter((course: Course) => {
