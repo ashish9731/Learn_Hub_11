@@ -48,6 +48,22 @@ interface UserCourse {
   completion_date: string;
 }
 
+interface PDFAssignment {
+  id: string;
+  user_id: string;
+  pdf_id: string;
+  assigned_by: string;
+  assigned_at: string;
+}
+
+interface PodcastAssignment {
+  id: string;
+  user_id: string;
+  podcast_id: string;
+  assigned_by: string;
+  assigned_at: string;
+}
+
 export default function AdminDashboard({ userEmail = '' }: { userEmail?: string }) {
   const [supabaseData, setSupabaseData] = useState<{
     companies: Company[];
@@ -56,13 +72,17 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
     pdfs: PDF[];
     podcasts: Podcast[];
     userCourses: UserCourse[];
+    pdfAssignments: PDFAssignment[];
+    podcastAssignments: PodcastAssignment[];
   }>({
     companies: [],
     users: [],
     courses: [],
     pdfs: [],
     podcasts: [],
-    userCourses: []
+    userCourses: [],
+    pdfAssignments: [],
+    podcastAssignments: []
   });
   const [assignedCourses, setAssignedCourses] = useState<Course[]>([]);
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
@@ -107,7 +127,9 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
           courses: [],
           pdfs: [],
           podcasts: [],
-          userCourses: []
+          userCourses: [],
+          pdfAssignments: [],
+          podcastAssignments: []
         });
         setUserProfiles([]);
         setPodcastProgress([]);
@@ -115,6 +137,28 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         setAvailableCourses([]);
         setLoading(false);
         return;
+      }
+      
+      // Load assigned content for this admin
+      let pdfAssignmentsData = [];
+      let podcastAssignmentsData = [];
+      
+      if (adminId) {
+        // Get PDF assignments assigned TO this admin (by SuperAdmins)
+        const { data: pdfAssignments } = await supabase
+          .from('pdf_assignments')
+          .select('*, pdfs!inner(*)')
+          .eq('user_id', adminId);
+        
+        pdfAssignmentsData = pdfAssignments || [];
+        
+        // Get podcast assignments assigned TO this admin (by SuperAdmins)
+        const { data: podcastAssignments } = await supabase
+          .from('podcast_assignments')
+          .select('*, podcasts!inner(*)')
+          .eq('user_id', adminId);
+          
+        podcastAssignmentsData = podcastAssignments || [];
       }
       
       const [companiesData, usersData, coursesData, pdfsData, podcastsData, userCoursesData, userProfilesData] = await Promise.all([
@@ -145,7 +189,9 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         courses: coursesData || [],
         pdfs: pdfsData || [],
         podcasts: podcastsData || [],
-        userCourses: userCoursesData || []
+        userCourses: userCoursesData || [],
+        pdfAssignments: pdfAssignmentsData || [],
+        podcastAssignments: podcastAssignmentsData || []
       });
       
       setUserProfiles(userProfilesData || []);
@@ -166,12 +212,14 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         assignedCourseIds.has(course.id)
       );
       
-      // Show all courses from Super Admin that are available for assignment to this admin's company
-      // Include courses that are either:
-      // 1. Not assigned to any company (NULL company_id) - these are available to all admins
-      // 2. Assigned to the admin's company
+      // Show only courses that have content assigned to this admin by SuperAdmins
+      const adminAssignedCourseIds = new Set([
+        ...pdfAssignmentsData.map((assignment: any) => assignment.pdf?.course_id),
+        ...podcastAssignmentsData.map((assignment: any) => assignment.podcast?.course_id)
+      ].filter(Boolean));
+      
       const availableCourses = (coursesData || []).filter((course: Course) => 
-        course.company_id === null || course.company_id === companyId
+        adminAssignedCourseIds.has(course.id)
       );
       
       // Calculate total hours from actual podcast durations
@@ -291,6 +339,18 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
       loadDashboardData(adminId, companyId);
     }
   });
+  
+  useRealtimeSync('pdf_assignments', () => {
+    if (adminId && companyId) {
+      loadDashboardData(adminId, companyId);
+    }
+  });
+  
+  useRealtimeSync('podcast_assignments', () => {
+    if (adminId && companyId) {
+      loadDashboardData(adminId, companyId);
+    }
+  });
 
   useEffect(() => {
     const getAdminInfo = async () => {
@@ -324,7 +384,9 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
             courses: [],
             pdfs: [],
             podcasts: [],
-            userCourses: []
+            userCourses: [],
+            pdfAssignments: [],
+            podcastAssignments: []
           });
           setUserProfiles([]);
           setPodcastProgress([]);

@@ -89,6 +89,8 @@ export default function CourseAssignment() {
     companies: Company[];
     userProfiles: UserProfile[];
     userCourses: UserCourse[];
+    pdfAssignments: any[];
+    podcastAssignments: any[];
   }>({
     users: [],
     courses: [],
@@ -97,7 +99,9 @@ export default function CourseAssignment() {
     categories: [],
     companies: [],
     userProfiles: [],
-    userCourses: []
+    userCourses: [],
+    pdfAssignments: [],
+    podcastAssignments: []
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -122,6 +126,28 @@ export default function CourseAssignment() {
         }
       }
       
+      // Load assigned content for this admin
+      let pdfAssignmentsData = [];
+      let podcastAssignmentsData = [];
+      
+      if (user?.id) {
+        // Get PDF assignments assigned TO this admin (by SuperAdmins)
+        const { data: pdfAssignments } = await supabase
+          .from('pdf_assignments')
+          .select('*, pdfs!inner(*)')
+          .eq('user_id', user.id);
+        
+        pdfAssignmentsData = pdfAssignments || [];
+        
+        // Get podcast assignments assigned TO this admin (by SuperAdmins)
+        const { data: podcastAssignments } = await supabase
+          .from('podcast_assignments')
+          .select('*, podcasts!inner(*)')
+          .eq('user_id', user.id);
+          
+        podcastAssignmentsData = podcastAssignments || [];
+      }
+      
       const [usersData, coursesData, podcastsData, pdfsData, categoriesData, companiesData, userProfilesData, userCoursesData] = await Promise.all([
         supabaseHelpers.getUsers(),
         supabaseHelpers.getCourses(),
@@ -141,7 +167,9 @@ export default function CourseAssignment() {
         categories: categoriesData || [],
         companies: companiesData || [],
         userProfiles: userProfilesData || [],
-        userCourses: userCoursesData || []
+        userCourses: userCoursesData || [],
+        pdfAssignments: pdfAssignmentsData || [],
+        podcastAssignments: podcastAssignmentsData || []
       });
     } catch (err) {
       console.error('Failed to load data:', err);
@@ -209,20 +237,25 @@ export default function CourseAssignment() {
   };
 
   // Build course hierarchy for content selection
-  // Show all courses from Super Admin that are available for assignment
-  // Include courses that are either:
-  // 1. Not assigned to any company (NULL company_id) - these are available to all admins
-  // 2. Assigned to the admin's company
+  // Show only courses that have content assigned to this admin by SuperAdmins
+  const assignedCourseIds = new Set([
+    ...supabaseData.pdfAssignments.map((assignment: any) => assignment.pdf?.course_id),
+    ...supabaseData.podcastAssignments.map((assignment: any) => assignment.podcast?.course_id)
+  ].filter(Boolean));
+  
   const courseHierarchy = supabaseData.courses
-    .filter((course: Course) => course.company_id === null || course.company_id === adminCompanyId)
+    .filter((course: Course) => assignedCourseIds.has(course.id))
     .map((course: Course) => {
     // Get categories for this course
     const courseCategories = supabaseData.categories.filter((cat: Category) => cat.course_id === course.id);
     
-    // Get content for each category
+    // Get assigned podcasts for this admin
+    const assignedPodcastIds = new Set(supabaseData.podcastAssignments.map((assignment: any) => assignment.podcast_id));
+    
+    // Get content for each category - only assigned content
     const categoriesWithContent = courseCategories.map((category: Category) => {
       const categoryPodcasts = supabaseData.podcasts.filter(
-        (podcast: Podcast) => podcast.category_id === category.id
+        (podcast: Podcast) => podcast.category_id === category.id && assignedPodcastIds.has(podcast.id)
       );
       
       return {
@@ -231,16 +264,16 @@ export default function CourseAssignment() {
       };
     });
     
-    // Get uncategorized content (directly assigned to course)
+    // Get uncategorized content (directly assigned to course) - only assigned content
     const uncategorizedPodcasts = supabaseData.podcasts.filter(
-      (podcast: Podcast) => podcast.course_id === course.id && !podcast.category_id
+      (podcast: Podcast) => podcast.course_id === course.id && !podcast.category_id && assignedPodcastIds.has(podcast.id)
     );
     
-    // Get podcasts by predefined categories (Books, HBR, TED Talks, Concept)
+    // Get podcasts by predefined categories (Books, HBR, TED Talks, Concept) - only assigned content
     const predefinedCategories = ['Books', 'HBR', 'TED Talks', 'Concept'];
     const podcastsByCategory = predefinedCategories.map(categoryName => {
       const categoryPodcasts = supabaseData.podcasts.filter(
-        (podcast: Podcast) => podcast.course_id === course.id && podcast.category === categoryName
+        (podcast: Podcast) => podcast.course_id === course.id && podcast.category === categoryName && assignedPodcastIds.has(podcast.id)
       );
       
       return {
@@ -251,15 +284,19 @@ export default function CourseAssignment() {
       };
     }).filter(cat => cat.podcasts.length > 0);
     
-    // Get all PDFs for this course and separate by content type
-    const coursePdfs = supabaseData.pdfs.filter((pdf: PDF) => pdf.course_id === course.id);
+    // Get assigned PDFs for this admin
+    const assignedPdfIds = new Set(supabaseData.pdfAssignments.map((assignment: any) => assignment.pdf_id));
+    
+    // Get all PDFs for this course and separate by content type - only assigned content
+    const coursePdfs = supabaseData.pdfs.filter((pdf: PDF) => pdf.course_id === course.id && assignedPdfIds.has(pdf.id));
     const docs = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'docs');
     const images = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'images');
     const templates = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'templates');
+    const quizzes = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'quizzes');
     
-    // Calculate total content
+    // Calculate total content - only assigned content
     const totalPodcasts = supabaseData.podcasts.filter(
-      (podcast: Podcast) => podcast.course_id === course.id
+      (podcast: Podcast) => podcast.course_id === course.id && assignedPodcastIds.has(podcast.id)
     ).length;
     
     return {
@@ -271,6 +308,7 @@ export default function CourseAssignment() {
       docs,
       images,
       templates,
+      quizzes,
       totalPodcasts,
       totalContent: totalPodcasts + coursePdfs.length
     };
@@ -763,11 +801,11 @@ export default function CourseAssignment() {
                             )}
                             
                             {/* Documents Section - Separated by content type */}
-                            {(course.docs.length > 0 || course.images.length > 0 || course.templates.length > 0) && (
+                            {(course.docs.length > 0 || course.images.length > 0 || course.templates.length > 0 || course.quizzes.length > 0) && (
                               <div className="mb-4">
                                 <h5 className="text-sm font-medium text-purple-400 mb-2 flex items-center">
                                   <FileText className="h-4 w-4 mr-1" />
-                                  Documents ({course.docs.length + course.images.length + course.templates.length})
+                                  Documents ({course.docs.length + course.images.length + course.templates.length + course.quizzes.length})
                                 </h5>
                                 <div className="space-y-1 ml-4">
                                   {/* Docs */}
@@ -835,6 +873,29 @@ export default function CourseAssignment() {
                                         />
                                         <FileText className="h-3 w-3 text-purple-500 mr-1" />
                                         <span className="text-xs text-white">{pdf.title}</span>
+                                      </div>
+                                    );
+                                  })}
+                                  
+                                  {/* Quizzes */}
+                                  {course.quizzes.map((pdf) => {
+                                    const isSelected = selectedContent.pdfs.includes(pdf.id);
+                                    return (
+                                      <div
+                                        key={pdf.id}
+                                        className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
+                                          isSelected ? 'bg-yellow-900/30 border border-yellow-600' : 'bg-[#252525] hover:bg-[#333333]'
+                                        }`}
+                                        onClick={() => handleContentSelection('pdfs', pdf.id)}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={isSelected}
+                                          onChange={() => handleContentSelection('pdfs', pdf.id)}
+                                          className="h-3 w-3 text-yellow-600 focus:ring-yellow-500 border-[#333333] rounded mr-2"
+                                        />
+                                        <FileText className="h-3 w-3 text-yellow-500 mr-1" />
+                                        <span className="text-xs text-white">{pdf.title} (Quiz)</span>
                                       </div>
                                     );
                                   })}
