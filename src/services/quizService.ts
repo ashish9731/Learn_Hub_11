@@ -142,6 +142,17 @@ Return ONLY a valid JSON array of 5 question objects. No other text, no markdown
             jsonString = jsonString.substring(0, lastBracketIndex + 1);
           }
           
+          // Fix common JSON issues
+          jsonString = jsonString
+            .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
+            .replace(/,\s*\]/g, ']') // Remove trailing commas before closing brackets
+            .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
+            .replace(/'/g, '"') // Replace single quotes with double quotes
+            .replace(/\\'/g, "'") // Unescape single quotes
+            .replace(/\\n/g, '\\n') // Fix newlines
+            .replace(/\\r/g, '\\r') // Fix carriage returns
+            .replace(/\\t/g, '\\t'); // Fix tabs
+          
           // Try to parse the cleaned JSON
           quizData = JSON.parse(jsonString);
         } else {
@@ -158,7 +169,17 @@ Return ONLY a valid JSON array of 5 question objects. No other text, no markdown
             const objects = [];
             for (const objStr of objectMatches) {
               try {
-                const obj = JSON.parse(objStr);
+                // Clean the object string
+                let cleanObjStr = objStr
+                  .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
+                  .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
+                  .replace(/'/g, '"') // Replace single quotes with double quotes
+                  .replace(/\\'/g, "'") // Unescape single quotes
+                  .replace(/\\n/g, '\\n') // Fix newlines
+                  .replace(/\\r/g, '\\r') // Fix carriage returns
+                  .replace(/\\t/g, '\\t'); // Fix tabs
+                
+                const obj = JSON.parse(cleanObjStr);
                 if (obj.question_text && obj.answers && Array.isArray(obj.answers)) {
                   objects.push(obj);
                 }
@@ -360,6 +381,17 @@ Return ONLY a valid JSON array of 25 question objects. No other text, no markdow
             jsonString = jsonString.substring(0, lastBracketIndex + 1);
           }
           
+          // Fix common JSON issues
+          jsonString = jsonString
+            .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
+            .replace(/,\s*\]/g, ']') // Remove trailing commas before closing brackets
+            .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
+            .replace(/'/g, '"') // Replace single quotes with double quotes
+            .replace(/\\'/g, "'") // Unescape single quotes
+            .replace(/\\n/g, '\\n') // Fix newlines
+            .replace(/\\r/g, '\\r') // Fix carriage returns
+            .replace(/\\t/g, '\\t'); // Fix tabs
+          
           // Try to parse the cleaned JSON
           quizData = JSON.parse(jsonString);
         } else {
@@ -376,7 +408,17 @@ Return ONLY a valid JSON array of 25 question objects. No other text, no markdow
             const objects = [];
             for (const objStr of objectMatches) {
               try {
-                const obj = JSON.parse(objStr);
+                // Clean the object string
+                let cleanObjStr = objStr
+                  .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
+                  .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
+                  .replace(/'/g, '"') // Replace single quotes with double quotes
+                  .replace(/\\'/g, "'") // Unescape single quotes
+                  .replace(/\\n/g, '\\n') // Fix newlines
+                  .replace(/\\r/g, '\\r') // Fix carriage returns
+                  .replace(/\\t/g, '\\t'); // Fix tabs
+                
+                const obj = JSON.parse(cleanObjStr);
                 if (obj.question_text && obj.answers && Array.isArray(obj.answers)) {
                   objects.push(obj);
                 }
@@ -529,7 +571,7 @@ export async function generateQuizFromDocument(
 ${truncatedContent}
 
 Requirements:
-1. Generate exactly 25 questions
+1. Generate exactly 15 questions (not more, not less)
 2. Each question should have exactly 4 answer options
 3. Only one answer should be correct
 4. Include detailed explanations for each answer (why correct or incorrect)
@@ -550,7 +592,7 @@ Requirements:
   ]
 }
 
-Return ONLY a valid JSON array of EXACTLY 25 question objects. No other text, no markdown formatting, no code blocks, just the raw JSON array. Ensure the JSON is properly formatted with no syntax errors. Each question must have exactly 4 answers with only one marked as correct.`;
+Return ONLY a valid JSON array of EXACTLY 15 question objects. No other text, no markdown formatting, no code blocks, just the raw JSON array. Ensure the JSON is properly formatted with no syntax errors. Each question must have exactly 4 answers with only one marked as correct. Make sure all strings are properly escaped and there are no unterminated strings.`;
 
     console.log('Generating document quiz with prompt length:', prompt.length);
 
@@ -598,6 +640,17 @@ Return ONLY a valid JSON array of EXACTLY 25 question objects. No other text, no
             jsonString = jsonString.substring(0, lastBracketIndex + 1);
           }
           
+          // Fix common JSON issues
+          jsonString = jsonString
+            .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
+            .replace(/,\s*\]/g, ']') // Remove trailing commas before closing brackets
+            .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
+            .replace(/'/g, '"') // Replace single quotes with double quotes
+            .replace(/\\'/g, "'") // Unescape single quotes
+            .replace(/\\n/g, '\\n') // Fix newlines
+            .replace(/\\r/g, '\\r') // Fix carriage returns
+            .replace(/\\t/g, '\\t'); // Fix tabs
+          
           // Try to parse the cleaned JSON
           quizData = JSON.parse(jsonString);
         } else {
@@ -614,7 +667,17 @@ Return ONLY a valid JSON array of EXACTLY 25 question objects. No other text, no
             const objects = [];
             for (const objStr of objectMatches) {
               try {
-                const obj = JSON.parse(objStr);
+                // Clean the object string
+                let cleanObjStr = objStr
+                  .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
+                  .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
+                  .replace(/'/g, '"') // Replace single quotes with double quotes
+                  .replace(/\\'/g, "'") // Unescape single quotes
+                  .replace(/\\n/g, '\\n') // Fix newlines
+                  .replace(/\\r/g, '\\r') // Fix carriage returns
+                  .replace(/\\t/g, '\\t'); // Fix tabs
+                
+                const obj = JSON.parse(cleanObjStr);
                 if (obj.question_text && obj.answers && Array.isArray(obj.answers)) {
                   objects.push(obj);
                 }
@@ -653,7 +716,7 @@ Return ONLY a valid JSON array of EXACTLY 25 question objects. No other text, no
     );
     
     // For document quizzes, we want exactly 25 questions
-    if (validQuestions.length < 25) {
+    if (validQuestions.length < 10) { // Reduced from 25 to 10 for better reliability
       console.warn(`Only ${validQuestions.length} valid questions found, expected 25`);
       // If we have some valid questions, we'll use them
       if (validQuestions.length > 0) {
@@ -662,7 +725,7 @@ Return ONLY a valid JSON array of EXACTLY 25 question objects. No other text, no
         return null;
       }
     } else {
-      // Take exactly 25 questions
+      // Take exactly 25 questions (or as many as we have if less)
       quizData = validQuestions.slice(0, 25);
     }
 

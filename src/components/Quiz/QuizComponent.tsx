@@ -145,6 +145,36 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
             throw new Error('Failed to fetch course information');
           }
           
+          // Check if user is enrolled in the course
+          const { data: userCourseData, error: userCourseError } = await supabase
+            .from('user_courses')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .eq('course_id', courseId)
+            .maybeSingle();
+            
+          if (userCourseError) {
+            console.error('Error checking user course enrollment:', userCourseError);
+            throw new Error('Failed to verify course enrollment');
+          }
+          
+          // If user is not enrolled, enroll them
+          if (!userCourseData) {
+            const { error: enrollError } = await supabase
+              .from('user_courses')
+              .insert({
+                user_id: session.user.id,
+                course_id: courseId,
+                completed: false,
+                progress_percent: 0
+              });
+              
+            if (enrollError) {
+              console.error('Error enrolling user in course:', enrollError);
+              throw new Error('Failed to enroll in course');
+            }
+          }
+          
           // Generate quiz from document content
           const generatedQuizId = await generateQuizFromDocument(
             courseId,
