@@ -755,8 +755,30 @@ export default function ContentUpload() {
         return;
       }
       
+      // Get unique course IDs from selected content items
+      const selectedCourseIds = new Set<string>();
+      
+      // For each selected content item, find its course
+      for (const contentId of selectedCourses) {
+        // Check if it's a podcast
+        const podcast = supabaseData.podcasts.find(p => p.id === contentId);
+        if (podcast) {
+          selectedCourseIds.add(podcast.course_id);
+          continue;
+        }
+        
+        // Check if it's a PDF
+        const pdf = supabaseData.pdfs.find(p => p.id === contentId);
+        if (pdf) {
+          selectedCourseIds.add(pdf.course_id);
+          continue;
+        }
+      }
+      
+      console.log('Selected content belongs to courses:', Array.from(selectedCourseIds));
+      
       // Create user_courses records for each selected course
-      const assignments = selectedCourses.map(courseId => ({
+      const assignments = Array.from(selectedCourseIds).map(courseId => ({
         user_id: selectedAdminId,
         course_id: courseId,
         assigned_at: new Date().toISOString(),
@@ -800,7 +822,7 @@ export default function ContentUpload() {
             if (supabaseAdmin) {
               const { error: singleError } = await supabaseAdmin
                 .from('user_courses')
-                .upsert(assignment, {
+                .upsert([assignment], {
                   onConflict: 'user_id,course_id',
                   ignoreDuplicates: true
                 });
@@ -812,7 +834,7 @@ export default function ContentUpload() {
             } else {
               const { error: singleError } = await supabase
                 .from('user_courses')
-                .upsert(assignment, {
+                .upsert([assignment], {
                   onConflict: 'user_id,course_id',
                   ignoreDuplicates: true
                 });
@@ -835,10 +857,18 @@ export default function ContentUpload() {
         // Provide more specific error messages
         let errorMessage = 'Error creating assignments. Please try again.';
         
-        if (insertError.message && insertError.message.includes('409')) {
-          errorMessage = 'Assignment already exists. The course may already be assigned to this admin.';
-        } else if (insertError.message) {
-          errorMessage = `Error creating assignments: ${insertError.message}`;
+        // Type-safe error checking
+        if (typeof insertError === 'object' && insertError !== null) {
+          const errorObj = insertError as any;
+          if (errorObj.message && typeof errorObj.message === 'string') {
+            if (errorObj.message.includes('409')) {
+              errorMessage = 'Assignment already exists. The course may already be assigned to this admin.';
+            } else {
+              errorMessage = `Error creating assignments: ${errorObj.message}`;
+            }
+          }
+        } else if (typeof insertError === 'string') {
+          errorMessage = `Error creating assignments: ${insertError}`;
         }
         
         alert(errorMessage);
