@@ -264,39 +264,13 @@ export default function CourseDetail() {
     return filteredPodcasts;
   };
 
-  // Filter PDFs to only show assigned ones
-  const getAssignedPDFs = (contentType: string): PDF[] => {
-    console.log('Filtering PDFs, assignments count:', pdfAssignments.length);
-    console.log('Total PDFs:', pdfs.length);
-    console.log('Requested content type:', contentType);
-    
-    // For quizzes, we don't filter by assignment since quizzes are generated from uploaded documents
-    if (contentType === 'quizzes') {
-      console.log('Showing all quiz documents (not filtered by assignment)');
-      return pdfs.filter(pdf => pdf.content_type === 'quizzes');
-    }
-    
-    // If no PDF assignments exist, show no PDFs (proper assignment filtering)
-    if (pdfAssignments.length === 0) {
-      console.log('No PDF assignments found, returning empty array');
-      return [];
-    }
-    
-    // Filter PDFs to only show assigned ones
-    const assignedPdfIds = new Set(pdfAssignments.map(pa => pa.pdf_id));
-    console.log('Assigned PDF IDs:', Array.from(assignedPdfIds));
-    
-    // Filter by both assignment and content type
-    const filteredPDFs = pdfs.filter(pdf => {
-      const isAssigned = assignedPdfIds.has(pdf.id);
-      const matchesContentType = pdf.content_type === contentType;
-      console.log(`PDF ${pdf.id} - Title: ${pdf.title}, Assigned: ${isAssigned}, ContentType: ${pdf.content_type}, Matches: ${matchesContentType}`);
-      return isAssigned && matchesContentType;
-    });
-    
-    console.log('Filtered PDFs count:', filteredPDFs.length);
-    
-    return filteredPDFs;
+  // Get assigned PDFs by content type
+  const getAssignedPDFs = (contentType: string) => {
+    return pdfs.filter(pdf => 
+      pdf.course_id === courseId && 
+      pdf.content_type === contentType &&
+      pdfAssignments.some(assignment => assignment.pdf_id === pdf.id)
+    );
   };
 
   // Load course data when component mounts or courseId changes
@@ -488,7 +462,7 @@ export default function CourseDetail() {
     return (progress && progress.progress_percent === 100) ? 100 : 0;
   };
 
-  // Check if all modules are completed
+  // Check if all modules are completed (excluding quizzes since they're invisible)
   const checkAllModulesCompleted = () => {
     // Check if all audio and video content has been completed (100% progress)
     // Only audio and video are required for quiz access, not docs, images, or templates
@@ -514,24 +488,15 @@ export default function CourseDetail() {
     }
     
     // Check if all required content has EXACTLY 100% progress - no fake completion
-    const completionResults = allRequiredContent.map(content => {
+    const allCompleted = allRequiredContent.every(content => {
       const progress = podcastProgress[content.id];
       // ONLY consider completed if progress is EXACTLY 100%
       const isCompleted = progress && progress.progress_percent === 100;
-      console.log(`Content ${content.id} - Title: ${content.title}, Progress: ${progress?.progress_percent || 0}%, Completed: ${isCompleted}`);
-      return {
-        content,
-        progress,
-        isCompleted
-      };
+      console.log(`Content ${content.id} completed:`, isCompleted);
+      return isCompleted;
     });
     
-    const allCompleted = completionResults.every(item => item.isCompleted);
-    
-    console.log('Completion results:', completionResults);
     console.log('All modules completed:', allCompleted);
-    console.log('=== END MODULE COMPLETION CHECK ===');
-    
     return allCompleted;
   };
 
@@ -844,32 +809,39 @@ export default function CourseDetail() {
               {/* Content Type Navigation Buttons - Below Course Image */}
               <div className="px-8 pb-8">
                 <div className="flex flex-wrap gap-4 justify-center">
-                  {['audio', 'video', 'docs', 'images', 'templates', 'quizzes'].map((tab) => (
+                  {['audio', 'video', 'docs', 'images', 'templates'].map((tab) => (
                     <button
                       key={tab}
-                      onClick={() => {
-                        // For quizzes, show a message but allow access without module completion
-                        if (tab === 'quizzes') {
-                          const confirmed = window.confirm(
-                            'It is recommended to complete all audio and video modules first for better understanding. ' +
-                            'Do you want to proceed to the quiz?'
-                          );
-                          if (!confirmed) return;
-                        }
-                        setActiveTab(tab);
-                      }}
+                      onClick={() => setActiveTab(tab)}
                       className={`flex-1 min-w-[140px] px-6 py-4 rounded-2xl font-semibold text-lg capitalize transition-all duration-300 transform hover:scale-105 ${
                         activeTab === tab
                           ? 'bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-xl'
                           : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:shadow-lg'
                       }`}
                     >
-                      {tab}
-                      {tab === 'quizzes' && (
-                        <span className="block text-xs mt-1">Start Quiz</span>
-                      )}
+                      {tab === 'docs' ? 'Documents' : tab === 'images' ? 'Images & Infographics' : tab === 'templates' ? 'Templates' : tab}
                     </button>
                   ))}
+                  {/* Quiz tab is separate and only accessible through the button below */}
+                  <button
+                    onClick={() => {
+                      const confirmed = window.confirm(
+                        'It is recommended to complete all audio and video modules first for better understanding. ' +
+                        'Do you want to proceed to the quiz?'
+                      );
+                      if (confirmed) {
+                        setActiveTab('quizzes');
+                      }
+                    }}
+                    className={`flex-1 min-w-[140px] px-6 py-4 rounded-2xl font-semibold text-lg capitalize transition-all duration-300 transform hover:scale-105 ${
+                      activeTab === 'quizzes'
+                        ? 'bg-gradient-to-r from-green-700 to-emerald-800 text-white shadow-xl'
+                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:shadow-lg'
+                    }`}
+                  >
+                    Start Quiz
+                    <span className="block text-xs mt-1">Test Your Knowledge</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1216,7 +1188,8 @@ export default function CourseDetail() {
                 <h2 className="text-xl font-semibold text-white mb-4">Documents</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
-                    const assignedDocs = getAssignedPDFs('docs');
+                    // Filter out quiz documents - they should be invisible to users
+                    const assignedDocs = getAssignedPDFs('docs').filter(pdf => pdf.content_type !== 'quizzes');
                     console.log('Rendering docs tab, assigned docs count:', assignedDocs.length);
                     return assignedDocs.length > 0 ? (
                       <>
@@ -1273,7 +1246,8 @@ export default function CourseDetail() {
                 <h2 className="text-xl font-semibold text-white mb-4">Images & Infographics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
-                    const assignedImages = getAssignedPDFs('images');
+                    // Filter out quiz documents - they should be invisible to users
+                    const assignedImages = getAssignedPDFs('images').filter(pdf => pdf.content_type !== 'quizzes');
                     console.log('Rendering images tab, assigned images count:', assignedImages.length);
                     return assignedImages.length > 0 ? (
                       <>
@@ -1330,7 +1304,8 @@ export default function CourseDetail() {
                 <h2 className="text-xl font-semibold text-white mb-4">Templates & Other Content</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
-                    const assignedTemplates = getAssignedPDFs('templates');
+                    // Filter out quiz documents - they should be invisible to users
+                    const assignedTemplates = getAssignedPDFs('templates').filter(pdf => pdf.content_type !== 'quizzes');
                     console.log('Rendering templates tab, assigned templates count:', assignedTemplates.length);
                     return assignedTemplates.length > 0 ? (
                       <>
@@ -1407,9 +1382,7 @@ export default function CourseDetail() {
                 ) : showQuiz || showFinalQuiz ? (
                   <QuizComponent
                     courseId={courseId || ''}
-                    categoryId={quizCategoryId || undefined}
-                    categoryName={quizCategoryName || undefined}
-                    isFinalQuiz={showFinalQuiz}
+                    isFinalQuiz={true}
                     isDocumentQuiz={getAssignedPDFs('quizzes').length > 0}
                     onComplete={handleQuizComplete}
                   />
