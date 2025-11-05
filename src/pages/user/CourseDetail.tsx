@@ -1400,6 +1400,7 @@ export default function CourseDetail() {
                     categoryId={quizCategoryId || undefined}
                     categoryName={quizCategoryName || undefined}
                     isFinalQuiz={showFinalQuiz}
+                    isDocumentQuiz={getAssignedPDFs('quizzes').length > 0}
                     onComplete={handleQuizComplete}
                   />
                 ) : (
@@ -1407,38 +1408,21 @@ export default function CourseDetail() {
                     {/* Check if quizzes exist for this course */}
                     {getAssignedPDFs('quizzes').length > 0 ? (
                       <>
-                        {/* Module Quiz Section */}
-                        <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
-                          <h3 className="text-lg font-medium text-white mb-2">Module Quiz</h3>
-                          <p className="text-gray-300 mb-4">Test your knowledge on the course modules.</p>
-                          <button
-                            onClick={() => startModuleQuiz('module1', 'Module 1')}
-                            className="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-                          >
-                            Start Module Quiz
-                          </button>
-                        </div>
-
-                        {/* Final Quiz Section */}
-                        <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
-                          <h3 className="text-lg font-medium text-white mb-2">Final Quiz</h3>
-                          <p className="text-gray-300 mb-4">Complete the final quiz to finish the course.</p>
+                        {/* Final Quiz Section - Only show final quiz from uploaded document */}
+                        <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-6">
+                          <h3 className="text-xl font-medium text-white mb-3">Final Quiz</h3>
+                          <p className="text-gray-300 mb-5">This quiz is generated from the uploaded quiz document. Test your knowledge of the course material.</p>
                           <button
                             onClick={startFinalQuiz}
-                            className={`px-4 py-2 rounded-md ${
-                              checkModuleQuizzesCompleted() 
-                                ? 'bg-blue-700 hover:bg-blue-600 text-white' 
-                                : 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                            }`}
-                            disabled={!checkModuleQuizzesCompleted()}
+                            className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-6 py-3 rounded-lg font-medium shadow-lg transform transition hover:scale-105 duration-300"
                           >
                             Start Final Quiz
                           </button>
-                          {!checkModuleQuizzesCompleted() && (
-                            <p className="text-xs text-gray-400 mt-2">
-                              Complete all module quizzes to unlock the final quiz
-                            </p>
-                          )}
+                          <div className="mt-4 text-sm text-gray-400">
+                            <p>• 25 questions covering all course material</p>
+                            <p>• Multiple choice with detailed explanations</p>
+                            <p>• Instant feedback on answers</p>
+                          </div>
                         </div>
                       </>
                     ) : (

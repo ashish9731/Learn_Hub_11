@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { generateModuleQuiz, generateFinalQuiz, startQuizAttempt, submitQuizAnswer, completeQuizAttempt } from '../../services/quizService';
+import { generateModuleQuiz, generateFinalQuiz, generateQuizFromDocument, startQuizAttempt, submitQuizAnswer, completeQuizAttempt } from '../../services/quizService';
 
 interface QuizQuestion {
   id: string;
@@ -17,6 +17,7 @@ interface QuizComponentProps {
   categoryId?: string; // For module quizzes
   categoryName?: string; // For module quizzes
   isFinalQuiz?: boolean; // For final course quizzes
+  isDocumentQuiz?: boolean; // For document-based quizzes
   onComplete: (passed: boolean, score: number) => void;
 }
 
@@ -25,6 +26,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
   categoryId,
   categoryName,
   isFinalQuiz = false,
+  isDocumentQuiz = false,
   onComplete
 }) => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -55,7 +57,45 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
         setUserId(session.user.id);
         
         // Generate quiz if needed
-        if (isFinalQuiz) {
+        if (isDocumentQuiz && isFinalQuiz) {
+          // For document-based final quiz, we need to get the quiz document content
+          const { data: quizDocuments, error: documentsError } = await supabase
+            .from('pdfs')
+            .select('id, title, content_text')
+            .eq('course_id', courseId)
+            .eq('content_type', 'quizzes');
+            
+          if (documentsError) {
+            setError('Error loading quiz document');
+            setLoading(false);
+            return;
+          }
+          
+          if (!quizDocuments || quizDocuments.length === 0) {
+            setError('No quiz document found for this course');
+            setLoading(false);
+            return;
+          }
+          
+          // Use the first quiz document (assuming one per course)
+          const quizDocument = quizDocuments[0];
+          
+          // Generate quiz from document content
+          const quizId = await generateQuizFromDocument(
+            courseId,
+            'Final Quiz',
+            quizDocument.content_text || ''
+          );
+          
+          if (quizId) {
+            setQuizId(quizId);
+            setQuizGenerated(true);
+          } else {
+            setError('Failed to generate quiz from document');
+            setLoading(false);
+            return;
+          }
+        } else if (isFinalQuiz) {
           // For final quiz, we need to get all category content
           const { data: categories, error: categoriesError } = await supabase
             .from('content-categories')
@@ -133,7 +173,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
     };
 
     initializeQuiz();
-  }, [courseId, categoryId, categoryName, isFinalQuiz]);
+  }, [courseId, categoryId, categoryName, isFinalQuiz, isDocumentQuiz]);
 
   useEffect(() => {
     const loadQuizQuestions = async () => {

@@ -360,6 +360,168 @@ Return ONLY a JSON array of 25 question objects. No other text.`;
 }
 
 /**
+ * Generate a quiz from uploaded quiz document content
+ * @param courseId The course ID
+ * @param courseTitle The course title
+ * @param quizDocumentContent The content extracted from the uploaded quiz document
+ * @returns Quiz ID if successful, null if failed
+ */
+export async function generateQuizFromDocument(
+  courseId: string,
+  courseTitle: string,
+  quizDocumentContent: string
+): Promise<string | null> {
+  try {
+    // Check if a final quiz already exists for this course
+    const { data: existingQuiz, error: existingQuizError } = await supabase
+      .from('course_quizzes')
+      .select('id')
+      .eq('course_id', courseId)
+      .maybeSingle();
+
+    if (existingQuizError) {
+      console.error('Error checking existing document quiz:', existingQuizError);
+      return null;
+    }
+
+    // If quiz already exists, return its ID
+    if (existingQuiz) {
+      return existingQuiz.id;
+    }
+
+    // Truncate content if too long for the prompt
+    const truncatedContent = quizDocumentContent.length > 3000 
+      ? quizDocumentContent.substring(0, 3000) + '...' 
+      : quizDocumentContent;
+
+    // Generate quiz questions using OpenAI
+    const prompt = `Generate a comprehensive multiple choice quiz based on the following quiz document content for "${courseTitle}":
+
+${truncatedContent}
+
+Requirements:
+1. Generate exactly 25 questions
+2. Each question should have exactly 4 answer options
+3. Only one answer should be correct
+4. Include detailed explanations for each answer (why correct or incorrect)
+5. Questions should test understanding of key concepts from the document
+6. Vary difficulty levels (easy, medium, hard)
+7. Focus ONLY on the content provided, do not hallucinate or add external information
+8. Format each question as JSON with the following structure:
+{
+  "question_text": "The question text",
+  "question_type": "multiple_choice",
+  "difficulty": "easy|medium|hard",
+  "answers": [
+    {
+      "answer_text": "First option",
+      "is_correct": true,
+      "explanation": "Explanation why this is correct/incorrect"
+    }
+  ]
+}
+
+Return ONLY a JSON array of 25 question objects. No other text.`;
+
+    console.log('Generating document quiz with prompt length:', prompt.length);
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful assistant that creates educational quizzes. You only use the provided content and never hallucinate. Focus on creating clear, accurate questions based on the document content.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 4000,
+    });
+
+    // Add better error handling for OpenAI response
+    if (!response.choices || response.choices.length === 0) {
+      console.error('No choices returned from OpenAI:', response);
+      return null;
+    }
+
+    let quizData;
+    try {
+      quizData = JSON.parse(response.choices[0].message.content || '[]');
+    } catch (parseError) {
+      console.error('Error parsing OpenAI response:', parseError);
+      console.error('Raw response:', response.choices[0].message.content);
+      return null;
+    }
+    
+    if (!Array.isArray(quizData) || quizData.length !== 25) {
+      console.error('Invalid quiz data received from OpenAI:', quizData);
+      return null;
+    }
+
+    // Create the course quiz record
+    const { data: quiz, error: quizError } = await supabase
+      .from('course_quizzes')
+      .insert({
+        course_id: courseId,
+        title: `${courseTitle} Final Quiz`,
+        description: `Final quiz generated from uploaded quiz document for ${courseTitle}`
+      })
+      .select()
+      .single();
+
+    if (quizError) {
+      console.error('Error creating document quiz:', quizError);
+      return null;
+    }
+
+    // Create questions and answers
+    for (const questionData of quizData) {
+      // Create question
+      const { data: question, error: questionError } = await supabase
+        .from('quiz_questions')
+        .insert({
+          course_quiz_id: quiz.id,
+          question_text: questionData.question_text,
+          question_type: questionData.question_type,
+          difficulty: questionData.difficulty
+        })
+        .select()
+        .single();
+
+      if (questionError) {
+        console.error('Error creating quiz question:', questionError);
+        continue;
+      }
+
+      // Create answers
+      for (const answerData of questionData.answers) {
+        const { error: answerError } = await supabase
+          .from('quiz_answers')
+          .insert({
+            question_id: question.id,
+            answer_text: answerData.answer_text,
+            is_correct: answerData.is_correct,
+            explanation: answerData.explanation
+          });
+
+        if (answerError) {
+          console.error('Error creating quiz answer:', answerError);
+        }
+      }
+    }
+
+    console.log('Document quiz generated successfully:', quiz.id);
+    return quiz.id;
+  } catch (error) {
+    console.error('Error generating document quiz:', error);
+    return null;
+  }
+}
+
+/**
  * Start a quiz attempt for a user
  * @param userId The user ID
  * @param quizId The quiz ID (either module or course quiz)
