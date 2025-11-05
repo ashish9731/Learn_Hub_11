@@ -59,14 +59,46 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
         // Generate quiz if needed
         if (isDocumentQuiz && isFinalQuiz) {
           // For document-based final quiz, we need to get the quiz document content
-          const { data: quizDocuments, error: documentsError } = await supabase
-            .from('pdfs')
-            .select('id, title, content_text')
-            .eq('course_id', courseId)
-            .eq('content_type', 'quizzes');
+          let quizDocuments: any[] | null = null;
+          let documentsError: any = null;
+          
+          try {
+            const result = await supabase
+              .from('pdfs')
+              .select('id, title, content_text')
+              .eq('course_id', courseId)
+              .eq('content_type', 'quizzes');
+              
+            quizDocuments = result.data || null;
+            documentsError = result.error;
+          } catch (selectError) {
+            console.error('Error selecting pdfs with content_text:', selectError);
+            // Try without content_text column as fallback
+            try {
+              const result = await supabase
+                .from('pdfs')
+                .select('id, title')
+                .eq('course_id', courseId)
+                .eq('content_type', 'quizzes');
+                
+              quizDocuments = result.data || null;
+              documentsError = result.error;
+              
+              // Add a placeholder content_text for each document
+              if (quizDocuments) {
+                quizDocuments = quizDocuments.map(doc => ({
+                  ...doc,
+                  content_text: 'Quiz content not available'
+                }));
+              }
+            } catch (fallbackError) {
+              console.error('Fallback query also failed:', fallbackError);
+              documentsError = fallbackError;
+            }
+          }
             
           if (documentsError) {
-            setError('Error loading quiz document');
+            setError('Error loading quiz document: ' + (documentsError.message || 'Unknown error'));
             setLoading(false);
             return;
           }
@@ -78,7 +110,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
           }
           
           // Use the first quiz document (assuming one per course)
-          const quizDocument = quizDocuments[0];
+          const quizDocument: any = quizDocuments[0];
           
           // Generate quiz from document content
           const quizId = await generateQuizFromDocument(
