@@ -696,6 +696,13 @@ export default function ContentUpload() {
         courses: selectedCourses
       });
       
+      // Get the current user (Super Admin)
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        alert('You must be logged in to create assignments');
+        return;
+      }
+      
       // Get the admin user
       const { data: adminUser, error: adminError } = await supabase
         .from('users')
@@ -720,7 +727,7 @@ export default function ContentUpload() {
         user_id: selectedAdminId,
         course_id: courseId,
         assigned_at: new Date().toISOString(),
-        assigned_by: adminUser.id // This should be the Super Admin's ID
+        assigned_by: currentUser.id // The Super Admin who is making the assignment
       }));
       
       // Insert assignments into user_courses table
