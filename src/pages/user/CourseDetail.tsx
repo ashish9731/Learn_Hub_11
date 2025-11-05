@@ -1405,7 +1405,7 @@ export default function CourseDetail() {
                 ) : (
                   <div className="space-y-4">
                     {/* Check if quizzes exist for this course */}
-                    {quizAttempts.length > 0 ? (
+                    {getAssignedPDFs('quizzes').length > 0 ? (
                       <>
                         {/* Module Quiz Section */}
                         <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-4">
