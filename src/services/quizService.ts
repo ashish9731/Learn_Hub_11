@@ -546,7 +546,8 @@ Return ONLY a valid JSON array of 25 question objects. No other text, no markdow
  */
 function parseQuizFromDocument(documentContent: string): any[] {
   try {
-    console.log('Parsing quiz from document content:', documentContent.substring(0, 200) + '...');
+    console.log('Parsing quiz from document content length:', documentContent.length);
+    console.log('Document content preview:', documentContent.substring(0, 500) + '...');
     
     // Try to parse as JSON first (if document contains pre-formatted JSON)
     try {
@@ -569,60 +570,73 @@ function parseQuizFromDocument(documentContent: string): any[] {
       console.log('Document is not in JSON format, parsing as text');
     }
     
-    // Parse as text format - look for questions with options and answers
+    // Enhanced text parsing with better question/answer detection
     const questions: any[] = [];
     
-    // Split content into lines
-    const lines = documentContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    // Normalize line endings and split into lines
+    const normalizedContent = documentContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalizedContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
-    let currentQuestion: any = null;
+    console.log('Total lines to parse:', lines.length);
+    
+    let currentQuestion: string | null = null;
     let currentAnswers: any[] = [];
-    let questionNumber = 1;
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+      console.log('Processing line:', i, line.substring(0, 50));
       
       // Look for question patterns (numbered questions)
       const questionMatch = line.match(/^(\d+)[\.\)]\s*(.+)$/);
       if (questionMatch) {
         // Save previous question if exists
-        if (currentQuestion) {
+        if (currentQuestion && currentAnswers.length >= 2) {
+          // Ensure at least one answer is marked as correct
+          const hasCorrectAnswer = currentAnswers.some(a => a.is_correct);
+          if (!hasCorrectAnswer && currentAnswers.length > 0) {
+            currentAnswers[0].is_correct = true;
+            console.log('Marking first answer as correct for question:', currentQuestion);
+          }
+          
           questions.push({
             question_text: currentQuestion,
             question_type: 'multiple_choice',
             difficulty: 'medium',
             answers: currentAnswers
           });
+          console.log('Added question with', currentAnswers.length, 'answers');
         }
         
         // Start new question
-        questionNumber = parseInt(questionMatch[1]);
-        currentQuestion = questionMatch[2];
+        currentQuestion = questionMatch[2].trim();
         currentAnswers = [];
+        console.log('Found new question:', currentQuestion);
         continue;
       }
       
-      // Look for answer patterns (lettered options like a), b), c), d) or numbered options)
-      const answerMatch = line.match(/^([a-dA-D]|[0-9]+)[\.\)]\s*(.+)$/);
-      if (answerMatch && currentQuestion) {
-        const answerText = answerMatch[2].trim();
+      // Look for answer patterns (lettered options like a), b), c), d)
+      const letterAnswerMatch = line.match(/^([a-dA-D])[\.\)]\s*(.+)$/);
+      if (letterAnswerMatch && currentQuestion) {
+        const optionLabel = letterAnswerMatch[1].trim();
+        let answerText = letterAnswerMatch[2].trim();
         
-        // Look for indication of correct answer (common patterns)
-        const isCorrect = answerText.includes('[correct]') || 
-                          answerText.includes('(correct)') || 
+        // Look for indication of correct answer
+        const isCorrect = answerText.toLowerCase().includes('[correct]') || 
+                          answerText.toLowerCase().includes('(correct)') || 
                           answerText.includes('*') ||
-                          line.includes('[correct]') || 
-                          line.includes('(correct)') || 
+                          line.toLowerCase().includes('[correct]') || 
+                          line.toLowerCase().includes('(correct)') || 
                           line.includes('*');
         
-        // Look for explanation (text after "Explanation:" or similar)
+        // Extract explanation if present
         let explanation = '';
         const explanationMatch = answerText.match(/Explanation[:\s]+(.+)$/i);
         if (explanationMatch) {
           explanation = explanationMatch[1].trim();
+          answerText = answerText.replace(/Explanation[:\s]+.+$/i, '').trim();
         }
         
-        // Clean up answer text (remove markers)
+        // Clean up answer text
         const cleanAnswerText = answerText
           .replace(/\[correct\]/gi, '')
           .replace(/\(correct\)/gi, '')
@@ -635,46 +649,24 @@ function parseQuizFromDocument(documentContent: string): any[] {
           is_correct: isCorrect,
           explanation: explanation
         });
+        console.log('Added answer:', optionLabel, cleanAnswerText, 'Correct:', isCorrect);
         continue;
       }
       
-      // Look for explicit correct answer indicators
-      if (line.toLowerCase().includes('correct answer:') && currentQuestion) {
-        const correctAnswerMatch = line.match(/correct answer[:\s]+(.+)$/i);
-        if (correctAnswerMatch) {
-          const correctAnswerText = correctAnswerMatch[1].trim();
-          // Mark the matching answer as correct
-          for (let j = 0; j < currentAnswers.length; j++) {
-            if (currentAnswers[j].answer_text.toLowerCase().includes(correctAnswerText.toLowerCase()) ||
-                correctAnswerText.toLowerCase().includes(currentAnswers[j].answer_text.toLowerCase())) {
-              currentAnswers[j].is_correct = true;
-            }
-          }
-        }
-        continue;
-      }
-      
-      // Look for explanation patterns
+      // Look for explanation patterns that follow answers
       if ((line.toLowerCase().startsWith('explanation:') || 
-           line.toLowerCase().startsWith('reason:')) && 
+           line.toLowerCase().startsWith('reason:') ||
+           line.toLowerCase().includes('explanation')) && 
           currentQuestion && currentAnswers.length > 0) {
         const explanationMatch = line.match(/[:\s]+(.+)$/);
         if (explanationMatch) {
           const explanation = explanationMatch[1].trim();
-          // Add explanation to the last answer or create a general explanation
+          // Add explanation to the last answer
           if (currentAnswers.length > 0) {
-            // Find correct answer or add to last answer
-            const correctAnswer = currentAnswers.find(a => a.is_correct);
-            if (correctAnswer) {
-              correctAnswer.explanation = correctAnswer.explanation ? 
-                correctAnswer.explanation + ' ' + explanation : 
-                explanation;
+            if (currentAnswers[currentAnswers.length - 1].explanation) {
+              currentAnswers[currentAnswers.length - 1].explanation += ' ' + explanation;
             } else {
-              // Add to last answer if no correct answer marked
-              currentAnswers[currentAnswers.length - 1].explanation = 
-                currentAnswers[currentAnswers.length - 1].explanation ? 
-                currentAnswers[currentAnswers.length - 1].explanation + ' ' + explanation : 
-                explanation;
+              currentAnswers[currentAnswers.length - 1].explanation = explanation;
             }
           }
         }
@@ -683,13 +675,21 @@ function parseQuizFromDocument(documentContent: string): any[] {
     }
     
     // Save the last question
-    if (currentQuestion) {
+    if (currentQuestion && currentAnswers.length >= 2) {
+      // Ensure at least one answer is marked as correct
+      const hasCorrectAnswer = currentAnswers.some(a => a.is_correct);
+      if (!hasCorrectAnswer && currentAnswers.length > 0) {
+        currentAnswers[0].is_correct = true;
+        console.log('Marking first answer as correct for final question:', currentQuestion);
+      }
+      
       questions.push({
         question_text: currentQuestion,
         question_type: 'multiple_choice',
         difficulty: 'medium',
         answers: currentAnswers
       });
+      console.log('Added final question with', currentAnswers.length, 'answers');
     }
     
     console.log('Parsed', questions.length, 'questions from document text');
@@ -713,6 +713,12 @@ export async function generateQuizFromDocument(
   quizDocumentContent: string
 ): Promise<string | null> {
   try {
+    console.log('=== GENERATE QUIZ FROM DOCUMENT ===');
+    console.log('Course ID:', courseId);
+    console.log('Course Title:', courseTitle);
+    console.log('Document content length:', quizDocumentContent.length);
+    console.log('Document content preview:', quizDocumentContent.substring(0, 200) + '...');
+    
     // Check if a final quiz already exists for this course
     const { data: existingQuiz, error: existingQuizError } = await supabase
       .from('course_quizzes')
@@ -727,12 +733,15 @@ export async function generateQuizFromDocument(
 
     // If quiz already exists, return its ID
     if (existingQuiz) {
+      console.log('Quiz already exists with ID:', existingQuiz.id);
       return existingQuiz.id;
     }
 
     // Parse quiz questions directly from document content (no AI generation)
     console.log('Parsing quiz directly from document content');
     let quizData = parseQuizFromDocument(quizDocumentContent);
+    
+    console.log('Parsed quiz data:', JSON.stringify(quizData, null, 2));
     
     // If parsing failed, try with truncated content
     if (quizData.length === 0 && quizDocumentContent.length > 3000) {
@@ -744,6 +753,7 @@ export async function generateQuizFromDocument(
     // If still no questions parsed, return error
     if (quizData.length === 0) {
       console.error('Failed to parse any questions from document content');
+      console.log('Document content that failed to parse:', quizDocumentContent.substring(0, 1000));
       return null;
     }
     
@@ -762,6 +772,8 @@ export async function generateQuizFromDocument(
       question.answers.length >= 2 && // At least 2 answers
       question.answers.some((a: any) => a.is_correct === true) // At least one correct answer
     );
+    
+    console.log('Valid questions after filtering:', validQuestions.length);
     
     // For document quizzes, we want at least 1 question
     if (validQuestions.length < 1) {
