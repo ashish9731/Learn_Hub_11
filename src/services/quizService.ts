@@ -400,9 +400,32 @@ Return ONLY a valid JSON array of 25 question objects. No other text, no markdow
       }
     }
     
-    if (!Array.isArray(quizData) || quizData.length !== 25) {
+    // Validate and filter the quiz data
+    if (!Array.isArray(quizData)) {
       console.error('Invalid quiz data received from OpenAI:', quizData);
       return null;
+    }
+    
+    // Filter out any invalid questions
+    const validQuestions = quizData.filter(question => 
+      question.question_text && 
+      Array.isArray(question.answers) && 
+      question.answers.length === 4 && // Must have exactly 4 answers
+      question.answers.filter((a: any) => a.is_correct === true).length === 1 // Exactly one correct answer
+    );
+    
+    // For document quizzes, we want exactly 25 questions
+    if (validQuestions.length < 25) {
+      console.warn(`Only ${validQuestions.length} valid questions found, expected 25`);
+      // If we have some valid questions, we'll use them
+      if (validQuestions.length > 0) {
+        quizData = validQuestions;
+      } else {
+        return null;
+      }
+    } else {
+      // Take exactly 25 questions
+      quizData = validQuestions.slice(0, 25);
     }
 
     // Create the course quiz record
@@ -527,7 +550,7 @@ Requirements:
   ]
 }
 
-Return ONLY a valid JSON array of 25 question objects. No other text, no markdown formatting, no code blocks, just the raw JSON array. Ensure the JSON is properly formatted with no syntax errors.`;
+Return ONLY a valid JSON array of EXACTLY 25 question objects. No other text, no markdown formatting, no code blocks, just the raw JSON array. Ensure the JSON is properly formatted with no syntax errors. Each question must have exactly 4 answers with only one marked as correct.`;
 
     console.log('Generating document quiz with prompt length:', prompt.length);
 
@@ -615,9 +638,32 @@ Return ONLY a valid JSON array of 25 question objects. No other text, no markdow
       }
     }
     
-    if (!Array.isArray(quizData) || quizData.length !== 25) {
+    // Validate and filter the quiz data
+    if (!Array.isArray(quizData)) {
       console.error('Invalid quiz data received from OpenAI:', quizData);
       return null;
+    }
+    
+    // Filter out any invalid questions
+    const validQuestions = quizData.filter(question => 
+      question.question_text && 
+      Array.isArray(question.answers) && 
+      question.answers.length === 4 && // Must have exactly 4 answers
+      question.answers.filter((a: any) => a.is_correct === true).length === 1 // Exactly one correct answer
+    );
+    
+    // For document quizzes, we want exactly 25 questions
+    if (validQuestions.length < 25) {
+      console.warn(`Only ${validQuestions.length} valid questions found, expected 25`);
+      // If we have some valid questions, we'll use them
+      if (validQuestions.length > 0) {
+        quizData = validQuestions;
+      } else {
+        return null;
+      }
+    } else {
+      // Take exactly 25 questions
+      quizData = validQuestions.slice(0, 25);
     }
 
     // Create the course quiz record

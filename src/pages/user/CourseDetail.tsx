@@ -868,24 +868,25 @@ export default function CourseDetail() {
                     <button
                       key={tab}
                       onClick={() => {
-                        if (tab === 'quizzes' && !checkAllModulesCompleted()) {
-                          alert('You must complete all modules before accessing quizzes.');
-                          return;
+                        // For quizzes, show a message but allow access without module completion
+                        if (tab === 'quizzes') {
+                          const confirmed = window.confirm(
+                            'It is recommended to complete all audio and video modules first for better understanding. ' +
+                            'Do you want to proceed to the quiz?'
+                          );
+                          if (!confirmed) return;
                         }
                         setActiveTab(tab);
                       }}
                       className={`flex-1 min-w-[140px] px-6 py-4 rounded-2xl font-semibold text-lg capitalize transition-all duration-300 transform hover:scale-105 ${
-                        tab === 'quizzes' && !checkAllModulesCompleted()
-                          ? 'bg-gray-600 text-gray-400 cursor-not-allowed opacity-50'
-                          : activeTab === tab
-                            ? 'bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-xl'
-                            : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:shadow-lg'
+                        activeTab === tab
+                          ? 'bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-xl'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:shadow-lg'
                       }`}
-                      disabled={tab === 'quizzes' && !checkAllModulesCompleted()}
                     >
                       {tab}
-                      {tab === 'quizzes' && !checkAllModulesCompleted() && (
-                        <span className="block text-xs mt-1">Complete modules first</span>
+                      {tab === 'quizzes' && (
+                        <span className="block text-xs mt-1">Start Quiz</span>
                       )}
                     </button>
                   ))}

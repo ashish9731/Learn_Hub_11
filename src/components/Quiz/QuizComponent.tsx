@@ -14,10 +14,10 @@ interface QuizQuestion {
 
 interface QuizComponentProps {
   courseId: string;
-  categoryId?: string; // For module quizzes
-  categoryName?: string; // For module quizzes
-  isFinalQuiz?: boolean; // For final course quizzes
-  isDocumentQuiz?: boolean; // For document-based quizzes
+  categoryId?: string; // For module quizzes (deprecated)
+  categoryName?: string; // For module quizzes (deprecated)
+  isFinalQuiz?: boolean; // For final course quizzes (always true for document quizzes)
+  isDocumentQuiz?: boolean; // For document-based quizzes (always true now)
   onComplete: (passed: boolean, score: number) => void;
 }
 
@@ -25,8 +25,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
   courseId,
   categoryId,
   categoryName,
-  isFinalQuiz = false,
-  isDocumentQuiz = false,
+  isFinalQuiz = true, // Always true for document quizzes
+  isDocumentQuiz = true, // Always true - only document quizzes supported
   onComplete
 }) => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -56,7 +56,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
         
         setUserId(session.user.id);
         
-        // Generate quiz if needed
+        // ONLY generate quiz from document for final quizzes
         if (isDocumentQuiz && isFinalQuiz) {
           // For document-based final quiz, we need to get the quiz document content
           let quizDocuments: any[] | null = null;
@@ -160,79 +160,22 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
             setLoading(false);
             return;
           }
-        } else if (isFinalQuiz) {
-          // For final quiz, we need to get all category content
-          const { data: categories, error: categoriesError } = await supabase
-            .from('content-categories')
-            .select(`
-              id,
-              name,
-              podcasts (id, title, mp3_url)
-            `)
-            .eq('course_id', courseId);
-            
-          if (categoriesError) {
-            setError('Error loading course content');
-            setLoading(false);
-            return;
-          }
-          
-          // Generate final quiz
-          const quizId = await generateFinalQuiz(
-            courseId,
-            'Final Quiz', // This should be the actual course title
-            categories.map(cat => ({
-              id: cat.id,
-              name: cat.name,
-              podcasts: cat.podcasts || []
-            }))
-          );
-          
-          if (quizId) {
-            setQuizId(quizId);
-            setQuizGenerated(true);
-          } else {
-            setError('Failed to generate final quiz');
-            setLoading(false);
-            return;
-          }
+        } 
+        // Remove module quiz generation - only document quizzes are allowed
+        else if (isFinalQuiz) {
+          // This should never happen since we're only allowing document quizzes
+          setError('Only document-based quizzes are supported');
+          setLoading(false);
+          return;
         } else if (categoryId && categoryName) {
-          // For module quiz, get podcast content for this category
-          const { data: podcasts, error: podcastsError } = await supabase
-            .from('podcasts')
-            .select('id, title, mp3_url')
-            .eq('category_id', categoryId);
-            
-          if (podcastsError) {
-            setError('Error loading module content');
-            setLoading(false);
-            return;
-          }
-          
-          // Generate module quiz
-          const quizId = await generateModuleQuiz(
-            courseId,
-            categoryId,
-            categoryName,
-            podcasts
-          );
-          
-          if (quizId) {
-            setQuizId(quizId);
-            setQuizGenerated(true);
-          } else {
-            setError('Failed to generate module quiz');
-            setLoading(false);
-            return;
-          }
-        } else {
-          setError('Invalid quiz parameters');
+          // This should never happen since we're only allowing document quizzes
+          setError('Only document-based quizzes are supported');
           setLoading(false);
           return;
         }
       } catch (err) {
         console.error('Error initializing quiz:', err);
-        setError('Failed to initialize quiz: ' + (err as Error).message);
+        setError(err instanceof Error ? err.message : 'Failed to initialize quiz');
         setLoading(false);
       }
     };
