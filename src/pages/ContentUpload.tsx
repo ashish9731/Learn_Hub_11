@@ -703,6 +703,8 @@ export default function ContentUpload() {
         return;
       }
       
+      console.log('Current user (Super Admin):', currentUser.id, currentUser.email);
+      
       // Get the admin user
       const { data: adminUser, error: adminError } = await supabase
         .from('users')
@@ -715,6 +717,8 @@ export default function ContentUpload() {
         alert('Error fetching admin user. Please try again.');
         return;
       }
+      
+      console.log('Selected admin user:', adminUser);
       
       // Check if admin belongs to the selected company
       if (adminUser.company_id !== selectedCompanyId) {
@@ -730,6 +734,8 @@ export default function ContentUpload() {
         assigned_by: currentUser.id // The Super Admin who is making the assignment
       }));
       
+      console.log('Creating assignments:', assignments);
+      
       // Insert assignments into user_courses table
       const { error: insertError } = await supabase
         .from('user_courses')
@@ -743,6 +749,7 @@ export default function ContentUpload() {
         return;
       }
       
+      console.log('Assignments created successfully');
       alert('Assignment created successfully!');
       
       // Reset assignment form
