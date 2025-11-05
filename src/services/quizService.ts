@@ -186,7 +186,7 @@ Return ONLY a valid JSON array of 5 question objects. No other text, no markdown
                     .replace(/\\n/g, '\\n') // Fix newlines
                     .replace(/\\r/g, '\\r') // Fix carriage returns
                     .replace(/\\t/g, '\\t'); // Fix tabs
-                  
+                
                   const obj = JSON.parse(cleanObjStr);
                   if (obj.question_text && obj.answers && Array.isArray(obj.answers)) {
                     objects.push(obj);
@@ -540,6 +540,167 @@ Return ONLY a valid JSON array of 25 question objects. No other text, no markdow
 }
 
 /**
+ * Parse quiz questions from uploaded document content
+ * @param documentContent The content extracted from the uploaded quiz document
+ * @returns Array of quiz questions parsed from the document
+ */
+function parseQuizFromDocument(documentContent: string): any[] {
+  try {
+    console.log('Parsing quiz from document content:', documentContent.substring(0, 200) + '...');
+    
+    // Try to parse as JSON first (if document contains pre-formatted JSON)
+    try {
+      const jsonData = JSON.parse(documentContent);
+      if (Array.isArray(jsonData)) {
+        // Validate that it's in the correct format
+        const validQuestions = jsonData.filter(question => 
+          question.question_text && 
+          Array.isArray(question.answers) && 
+          question.answers.length >= 2 && // At least 2 answers
+          question.answers.some((a: any) => a.is_correct === true) // At least one correct answer
+        );
+        if (validQuestions.length > 0) {
+          console.log('Parsed quiz from JSON format with', validQuestions.length, 'questions');
+          return validQuestions;
+        }
+      }
+    } catch (jsonError) {
+      // Not JSON format, continue with text parsing
+      console.log('Document is not in JSON format, parsing as text');
+    }
+    
+    // Parse as text format - look for questions with options and answers
+    const questions: any[] = [];
+    
+    // Split content into lines
+    const lines = documentContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    
+    let currentQuestion: any = null;
+    let currentAnswers: any[] = [];
+    let questionNumber = 1;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Look for question patterns (numbered questions)
+      const questionMatch = line.match(/^(\d+)[\.\)]\s*(.+)$/);
+      if (questionMatch) {
+        // Save previous question if exists
+        if (currentQuestion) {
+          questions.push({
+            question_text: currentQuestion,
+            question_type: 'multiple_choice',
+            difficulty: 'medium',
+            answers: currentAnswers
+          });
+        }
+        
+        // Start new question
+        questionNumber = parseInt(questionMatch[1]);
+        currentQuestion = questionMatch[2];
+        currentAnswers = [];
+        continue;
+      }
+      
+      // Look for answer patterns (lettered options like a), b), c), d) or numbered options)
+      const answerMatch = line.match(/^([a-dA-D]|[0-9]+)[\.\)]\s*(.+)$/);
+      if (answerMatch && currentQuestion) {
+        const answerText = answerMatch[2].trim();
+        
+        // Look for indication of correct answer (common patterns)
+        const isCorrect = answerText.includes('[correct]') || 
+                          answerText.includes('(correct)') || 
+                          answerText.includes('*') ||
+                          line.includes('[correct]') || 
+                          line.includes('(correct)') || 
+                          line.includes('*');
+        
+        // Look for explanation (text after "Explanation:" or similar)
+        let explanation = '';
+        const explanationMatch = answerText.match(/Explanation[:\s]+(.+)$/i);
+        if (explanationMatch) {
+          explanation = explanationMatch[1].trim();
+        }
+        
+        // Clean up answer text (remove markers)
+        const cleanAnswerText = answerText
+          .replace(/\[correct\]/gi, '')
+          .replace(/\(correct\)/gi, '')
+          .replace(/\*/g, '')
+          .replace(/Explanation[:\s]+.+$/i, '')
+          .trim();
+        
+        currentAnswers.push({
+          answer_text: cleanAnswerText,
+          is_correct: isCorrect,
+          explanation: explanation
+        });
+        continue;
+      }
+      
+      // Look for explicit correct answer indicators
+      if (line.toLowerCase().includes('correct answer:') && currentQuestion) {
+        const correctAnswerMatch = line.match(/correct answer[:\s]+(.+)$/i);
+        if (correctAnswerMatch) {
+          const correctAnswerText = correctAnswerMatch[1].trim();
+          // Mark the matching answer as correct
+          for (let j = 0; j < currentAnswers.length; j++) {
+            if (currentAnswers[j].answer_text.toLowerCase().includes(correctAnswerText.toLowerCase()) ||
+                correctAnswerText.toLowerCase().includes(currentAnswers[j].answer_text.toLowerCase())) {
+              currentAnswers[j].is_correct = true;
+            }
+          }
+        }
+        continue;
+      }
+      
+      // Look for explanation patterns
+      if ((line.toLowerCase().startsWith('explanation:') || 
+           line.toLowerCase().startsWith('reason:')) && 
+          currentQuestion && currentAnswers.length > 0) {
+        const explanationMatch = line.match(/[:\s]+(.+)$/);
+        if (explanationMatch) {
+          const explanation = explanationMatch[1].trim();
+          // Add explanation to the last answer or create a general explanation
+          if (currentAnswers.length > 0) {
+            // Find correct answer or add to last answer
+            const correctAnswer = currentAnswers.find(a => a.is_correct);
+            if (correctAnswer) {
+              correctAnswer.explanation = correctAnswer.explanation ? 
+                correctAnswer.explanation + ' ' + explanation : 
+                explanation;
+            } else {
+              // Add to last answer if no correct answer marked
+              currentAnswers[currentAnswers.length - 1].explanation = 
+                currentAnswers[currentAnswers.length - 1].explanation ? 
+                currentAnswers[currentAnswers.length - 1].explanation + ' ' + explanation : 
+                explanation;
+            }
+          }
+        }
+        continue;
+      }
+    }
+    
+    // Save the last question
+    if (currentQuestion) {
+      questions.push({
+        question_text: currentQuestion,
+        question_type: 'multiple_choice',
+        difficulty: 'medium',
+        answers: currentAnswers
+      });
+    }
+    
+    console.log('Parsed', questions.length, 'questions from document text');
+    return questions;
+  } catch (error) {
+    console.error('Error parsing quiz from document:', error);
+    return [];
+  }
+}
+
+/**
  * Generate a quiz from uploaded quiz document content
  * @param courseId The course ID
  * @param courseTitle The course title
@@ -569,159 +730,28 @@ export async function generateQuizFromDocument(
       return existingQuiz.id;
     }
 
-    // Truncate content if too long for the prompt
-    const truncatedContent = quizDocumentContent.length > 3000 
-      ? quizDocumentContent.substring(0, 3000) + '...' 
-      : quizDocumentContent;
-
-    // Generate quiz questions using OpenAI
-    const prompt = `Generate a comprehensive multiple choice quiz based on the following quiz document content for "${courseTitle}":
-
-${truncatedContent}
-
-Requirements:
-1. Generate exactly 15 questions (not more, not less)
-2. Each question should have exactly 4 answer options
-3. Only one answer should be correct
-4. Include detailed explanations for each answer (why correct or incorrect)
-5. Questions should test understanding of key concepts from the document
-6. Vary difficulty levels (easy, medium, hard)
-7. Focus ONLY on the content provided, do not hallucinate or add external information
-8. Format each question as JSON with the following structure:
-{
-  "question_text": "The question text",
-  "question_type": "multiple_choice",
-  "difficulty": "easy|medium|hard",
-  "answers": [
-    {
-      "answer_text": "First option",
-      "is_correct": true,
-      "explanation": "Explanation why this is correct/incorrect"
+    // Parse quiz questions directly from document content (no AI generation)
+    console.log('Parsing quiz directly from document content');
+    let quizData = parseQuizFromDocument(quizDocumentContent);
+    
+    // If parsing failed, try with truncated content
+    if (quizData.length === 0 && quizDocumentContent.length > 3000) {
+      console.log('Parsing failed with full content, trying with truncated content');
+      const truncatedContent = quizDocumentContent.substring(0, 3000) + '...';
+      quizData = parseQuizFromDocument(truncatedContent);
     }
-  ]
-}
-
-Return ONLY a valid JSON array of EXACTLY 15 question objects. No other text, no markdown formatting, no code blocks, just the raw JSON array. Ensure the JSON is properly formatted with no syntax errors. Each question must have exactly 4 answers with only one marked as correct. Make sure all strings are properly escaped and there are no unterminated strings.`;
-
-    console.log('Generating document quiz with prompt length:', prompt.length);
-
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a helpful assistant that creates educational quizzes. You only use the provided content and never hallucinate. Focus on creating clear, accurate questions based on the document content. Always return valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 4000,
-    });
-
-    // Add better error handling for OpenAI response
-    if (!response.choices || response.choices.length === 0) {
-      console.error('No choices returned from OpenAI:', response);
+    
+    // If still no questions parsed, return error
+    if (quizData.length === 0) {
+      console.error('Failed to parse any questions from document content');
       return null;
     }
-
-    let quizData;
-    try {
-      // First try to parse the response directly
-      quizData = JSON.parse(response.choices[0].message.content || '[]');
-    } catch (parseError) {
-      console.error('Error parsing OpenAI response:', parseError);
-      console.error('Raw response:', response.choices[0].message.content);
-      
-      // Strip Markdown formatting before parsing
-      try {
-        const rawResponse = response.choices[0].message.content?.trim() || '';
-        const jsonStr = rawResponse.replace(/```json|```/g, '').trim();
-        quizData = JSON.parse(jsonStr);
-      } catch (stripError) {
-        console.error('Error stripping markdown and parsing:', stripError);
-        
-        // Try to extract JSON from the response if it contains extra text
-        try {
-          const content = response.choices[0].message.content || '';
-          // Look for JSON array pattern in the response
-          const jsonMatch = content.match(/\[[\s\S]*\]/);
-          if (jsonMatch) {
-            // Clean up the JSON string to remove any trailing commas or invalid characters
-            let jsonString = jsonMatch[0];
-            // Remove any text after the last closing bracket
-            const lastBracketIndex = jsonString.lastIndexOf(']');
-            if (lastBracketIndex !== -1) {
-              jsonString = jsonString.substring(0, lastBracketIndex + 1);
-            }
-            
-            // Fix common JSON issues
-            jsonString = jsonString
-              .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
-              .replace(/,\s*\]/g, ']') // Remove trailing commas before closing brackets
-              .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
-              .replace(/'/g, '"') // Replace single quotes with double quotes
-              .replace(/\\'/g, "'") // Unescape single quotes
-              .replace(/\\n/g, '\\n') // Fix newlines
-              .replace(/\\r/g, '\\r') // Fix carriage returns
-              .replace(/\\t/g, '\\t'); // Fix tabs
-            
-            // Try to parse the cleaned JSON
-            quizData = JSON.parse(jsonString);
-          } else {
-            throw new Error('No JSON array found in response');
-          }
-        } catch (extractError) {
-          console.error('Error extracting JSON from response:', extractError);
-          // Try to manually parse the response by finding valid JSON objects
-          try {
-            const content = response.choices[0].message.content || '';
-            // Try to find individual JSON objects and build an array
-            const objectMatches = content.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
-            if (objectMatches && objectMatches.length > 0) {
-              const objects = [];
-              for (const objStr of objectMatches) {
-                try {
-                  // Clean the object string
-                  let cleanObjStr = objStr
-                    .replace(/,\s*}/g, '}')  // Remove trailing commas before closing braces
-                    .replace(/([a-zA-Z0-9_]+):/g, '"$1":') // Add quotes to unquoted keys
-                    .replace(/'/g, '"') // Replace single quotes with double quotes
-                    .replace(/\\'/g, "'") // Unescape single quotes
-                    .replace(/\\n/g, '\\n') // Fix newlines
-                    .replace(/\\r/g, '\\r') // Fix carriage returns
-                    .replace(/\\t/g, '\\t'); // Fix tabs
-                
-                  const obj = JSON.parse(cleanObjStr);
-                  if (obj.question_text && obj.answers && Array.isArray(obj.answers)) {
-                    objects.push(obj);
-                  }
-                } catch (e) {
-                  // Skip invalid objects
-                  continue;
-                }
-              }
-              if (objects.length > 0) {
-                quizData = objects;
-              } else {
-                throw new Error('No valid quiz objects found in response');
-              }
-            } else {
-              throw new Error('No JSON objects found in response');
-            }
-          } catch (manualParseError) {
-            console.error('Error manually parsing response:', manualParseError);
-            return null;
-          }
-        }
-      }
-    }
+    
+    console.log('Successfully parsed', quizData.length, 'questions from document');
     
     // Validate and filter the quiz data
     if (!Array.isArray(quizData)) {
-      console.error('Invalid quiz data received from OpenAI:', quizData);
+      console.error('Invalid quiz data parsed from document:', quizData);
       return null;
     }
     
@@ -729,23 +759,18 @@ Return ONLY a valid JSON array of EXACTLY 15 question objects. No other text, no
     const validQuestions = quizData.filter(question => 
       question.question_text && 
       Array.isArray(question.answers) && 
-      question.answers.length === 4 && // Must have exactly 4 answers
-      question.answers.filter((a: any) => a.is_correct === true).length === 1 // Exactly one correct answer
+      question.answers.length >= 2 && // At least 2 answers
+      question.answers.some((a: any) => a.is_correct === true) // At least one correct answer
     );
     
-    // For document quizzes, we want at least 5 questions
-    if (validQuestions.length < 5) {
-      console.warn(`Only ${validQuestions.length} valid questions found, expected at least 5`);
-      // If we have some valid questions, we'll use them
-      if (validQuestions.length > 0) {
-        quizData = validQuestions;
-      } else {
-        return null;
-      }
-    } else {
-      // Take exactly 15 questions (or as many as we have if less)
-      quizData = validQuestions.slice(0, 15);
+    // For document quizzes, we want at least 1 question
+    if (validQuestions.length < 1) {
+      console.warn(`Only ${validQuestions.length} valid questions found`);
+      return null;
     }
+    
+    // Use the valid questions
+    quizData = validQuestions;
 
     // Since we're having RLS issues with direct inserts, let's try a different approach
     // We'll use the admin client to create the quiz, which bypasses RLS
@@ -778,8 +803,8 @@ Return ONLY a valid JSON array of EXACTLY 15 question objects. No other text, no
           .insert({
             course_quiz_id: quiz.id,
             question_text: questionData.question_text,
-            question_type: questionData.question_type,
-            difficulty: questionData.difficulty
+            question_type: questionData.question_type || 'multiple_choice',
+            difficulty: questionData.difficulty || 'medium'
           })
           .select()
           .single();
@@ -796,8 +821,8 @@ Return ONLY a valid JSON array of EXACTLY 15 question objects. No other text, no
             .insert({
               question_id: question.id,
               answer_text: answerData.answer_text,
-              is_correct: answerData.is_correct,
-              explanation: answerData.explanation
+              is_correct: answerData.is_correct || false,
+              explanation: answerData.explanation || ''
             });
 
           if (answerError) {
@@ -833,8 +858,8 @@ Return ONLY a valid JSON array of EXACTLY 15 question objects. No other text, no
           .insert({
             course_quiz_id: quiz.id,
             question_text: questionData.question_text,
-            question_type: questionData.question_type,
-            difficulty: questionData.difficulty
+            question_type: questionData.question_type || 'multiple_choice',
+            difficulty: questionData.difficulty || 'medium'
           })
           .select()
           .single();
@@ -851,8 +876,8 @@ Return ONLY a valid JSON array of EXACTLY 15 question objects. No other text, no
             .insert({
               question_id: question.id,
               answer_text: answerData.answer_text,
-              is_correct: answerData.is_correct,
-              explanation: answerData.explanation
+              is_correct: answerData.is_correct || false,
+              explanation: answerData.explanation || ''
             });
 
           if (answerError) {
