@@ -261,13 +261,13 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
     if (selectedAnswer && correctAnswer) {
       const isCorrect = selectedAnswer.is_correct;
       
-      // Store feedback
+      // Store feedback - use explanation from correct answer
       setAnswerFeedback(prev => ({
         ...prev,
         [currentQ.id]: {
           isCorrect,
           correctAnswerId: correctAnswer.id,
-          explanation: selectedAnswer.explanation || ''
+          explanation: correctAnswer.explanation || ''
         }
       }));
       
@@ -485,9 +485,21 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                   {feedback.isCorrect ? 'Correct!' : 'Incorrect'}
                 </span>
               </div>
-              <p className="text-gray-200">
-                {feedback.explanation}
-              </p>
+              {!feedback.isCorrect && (
+                <div className="mb-2">
+                  <p className="text-gray-200">
+                    <span className="font-medium">Correct Answer:</span> {
+                      // Find the correct answer text
+                      currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.answer_text || 'Unknown'
+                    }
+                  </p>
+                </div>
+              )}
+              {feedback.explanation && (
+                <p className="text-gray-200">
+                  <span className="font-medium">Explanation:</span> {feedback.explanation}
+                </p>
+              )}
             </div>
           )}
         </div>
