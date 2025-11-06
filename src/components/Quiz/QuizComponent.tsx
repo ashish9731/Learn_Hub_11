@@ -496,7 +496,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                 {/* Show individual answer explanations */}
                 <div className="space-y-2">
                   {currentQ.answers.map((answer) => (
-                    answer.explanation && answer.explanation !== 'No explanation provided for this answer.' && (
+                    answer.explanation && answer.explanation.trim() !== '' && answer.explanation !== 'No explanation provided for this answer.' && (
                       <div key={answer.id} className="text-black dark:text-white ml-4">
                         <span className="font-medium">{answer.answer_text}:</span> {answer.explanation}
                       </div>
@@ -505,9 +505,10 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                 </div>
                 
                 {/* Show explanation for correct answer if not already shown above and only if there's a valid explanation */}
-                {!currentQ.answers.some(a => a.explanation && a.explanation !== 'No explanation provided for this answer.') && 
-                 (feedback.explanation && feedback.explanation !== 'No explanation provided for this answer.' || 
+                {!currentQ.answers.some(a => a.explanation && a.explanation.trim() !== '' && a.explanation !== 'No explanation provided for this answer.') && 
+                 (feedback.explanation && feedback.explanation.trim() !== '' && feedback.explanation !== 'No explanation provided for this answer.' || 
                   (currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation && 
+                   currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation.trim() !== '' && 
                    currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation !== 'No explanation provided for this answer.')) && (
                   <div className="text-black dark:text-white">
                     <span className="font-medium">
