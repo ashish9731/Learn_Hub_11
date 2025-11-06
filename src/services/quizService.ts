@@ -127,7 +127,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
                           line.includes('*');
         
         // Extract explanation if present in the same line
-        let explanation = 'No explanation provided for this answer.';
+        let explanation = '';
         const explanationMatch = answerText.match(/Explanation[:\s]+(.+)$/i);
         if (explanationMatch) {
           explanation = explanationMatch[1].trim();
@@ -145,7 +145,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
         currentAnswers.push({
           answer_text: cleanAnswerText,
           is_correct: isCorrect,
-          explanation: explanation || 'No explanation provided for this answer.'
+          explanation: explanation || ''
         });
         console.log('Added answer:', optionLabel, cleanAnswerText, 'Correct:', isCorrect);
         continue;
@@ -161,7 +161,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
           currentExplanation = explanationMatch[1].trim();
           // Add explanation to the last answer
           if (currentAnswers.length > 0) {
-            if (currentAnswers[currentAnswers.length - 1].explanation) {
+            if (currentAnswers[currentAnswers.length - 1].explanation && currentAnswers[currentAnswers.length - 1].explanation !== '') {
               currentAnswers[currentAnswers.length - 1].explanation += ' ' + currentExplanation;
             } else {
               currentAnswers[currentAnswers.length - 1].explanation = currentExplanation;
@@ -237,7 +237,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
                 answers.push({
                   answer_text: cleanText,
                   is_correct: isCorrect,
-                  explanation: 'No explanation provided for this answer.'
+                  explanation: ''
                 });
               }
             }
