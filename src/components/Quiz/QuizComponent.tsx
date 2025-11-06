@@ -369,7 +369,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
           <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4 dark:text-purple-400" />
           <h2 className="text-2xl font-semibold mb-2 text-black dark:text-white">Generating Your Quiz</h2>
           <p className="text-gray-700 dark:text-gray-300">
-            Generating your quiz from the uploaded document...
+            Please wait while we generate your quiz...
           </p>
         </div>
       </div>
@@ -425,12 +425,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
 
         {/* Question Card */}
         <div className="bg-white backdrop-blur-lg rounded-2xl border border-gray-200 shadow-xl p-6 mb-6 dark:bg-gray-800 dark:border-gray-700">
-          <div className="flex justify-between items-start mb-4">
-            <h2 className="text-xl font-semibold text-black dark:text-white">{currentQ.question_text}</h2>
-            <span className="px-2 py-1 bg-purple-600 text-white text-xs font-medium rounded-full capitalize dark:bg-purple-700">
-              {currentQ.difficulty}
-            </span>
-          </div>
+          <h2 className="text-xl font-semibold text-black dark:text-white mb-4">{currentQ.question_text}</h2>
 
           <div className="space-y-3">
             {currentQ.answers.map((answer) => (
