@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { generateQuizFromDocument } from '../../services/quizService';
-import { Loader2, ChevronRight, ChevronLeft, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, ChevronRight, ChevronLeft, CheckCircle2, XCircle, Play } from 'lucide-react';
 
 interface Answer {
   id: string;
@@ -34,150 +34,159 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Changed to false by default
   const [error, setError] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isAnswered, setIsAnswered] = useState<boolean[]>([]);
   const [quizGenerated, setQuizGenerated] = useState(false);
   const [quizId, setQuizId] = useState<string | null>(null);
   const [answerFeedback, setAnswerFeedback] = useState<Record<string, { isCorrect: boolean; correctAnswerId: string; explanation: string }>>({});
+  const [showStartButton, setShowStartButton] = useState(true); // New state for start button
 
+  // Get user session
   useEffect(() => {
-    const initializeQuiz = async () => {
-      try {
-        // Get current user
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) {
-          setError('You must be logged in to take this quiz');
-          setIsLoading(false);
-          return;
-        }
+    const getUserSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        setError('You must be logged in to take this quiz');
+        return;
+      }
+      setUserId(session.user.id);
+    };
+
+    getUserSession();
+  }, []);
+
+  // Function to start the quiz
+  const startQuiz = async () => {
+    setIsLoading(true);
+    setError(null);
+    setShowStartButton(false);
+    
+    try {
+      // ONLY generate quiz from document for final quizzes
+      if (isDocumentQuiz && isFinalQuiz) {
+        // For document-based final quiz, we need to get the quiz document content
+        let quizDocuments: any[] | null = null;
+        let documentsError: any = null;
         
-        setUserId(session.user.id);
-        
-        // ONLY generate quiz from document for final quizzes
-        if (isDocumentQuiz && isFinalQuiz) {
-          // For document-based final quiz, we need to get the quiz document content
-          let quizDocuments: any[] | null = null;
-          let documentsError: any = null;
+        try {
+          // First try to get documents with content_text column
+          const result = await supabase
+            .from('pdfs')
+            .select('id, title, content_text')
+            .eq('course_id', courseId)
+            .eq('content_type', 'quizzes');
+            
+          quizDocuments = result.data || null;
+          documentsError = result.error;
           
+          // If we get an error about content_text column not existing, try without it
+          if (documentsError && documentsError.message && documentsError.message.includes('content_text')) {
+            console.log('content_text column not found, trying without it');
+            const fallbackResult = await supabase
+              .from('pdfs')
+              .select('id, title')
+              .eq('course_id', courseId)
+              .eq('content_type', 'quizzes');
+              
+            quizDocuments = fallbackResult.data || null;
+            documentsError = fallbackResult.error;
+            
+            // Add placeholder content_text for each document
+            if (quizDocuments) {
+              quizDocuments = quizDocuments.map(doc => ({
+                ...doc,
+                content_text: 'Quiz content not available. Please contact administrator.'
+              }));
+            }
+          }
+        } catch (selectError) {
+          console.error('Error selecting pdfs with content_text:', selectError);
+          // Try without content_text column as fallback
           try {
-            // First try to get documents with content_text column
             const result = await supabase
               .from('pdfs')
-              .select('id, title, content_text')
+              .select('id, title')
               .eq('course_id', courseId)
               .eq('content_type', 'quizzes');
               
             quizDocuments = result.data || null;
             documentsError = result.error;
             
-            // If we get an error about content_text column not existing, try without it
-            if (documentsError && documentsError.message && documentsError.message.includes('content_text')) {
-              console.log('content_text column not found, trying without it');
-              const fallbackResult = await supabase
-                .from('pdfs')
-                .select('id, title')
-                .eq('course_id', courseId)
-                .eq('content_type', 'quizzes');
-                
-              quizDocuments = fallbackResult.data || null;
-              documentsError = fallbackResult.error;
-              
-              // Add placeholder content_text for each document
-              if (quizDocuments) {
-                quizDocuments = quizDocuments.map(doc => ({
-                  ...doc,
-                  content_text: 'Quiz content not available. Please contact administrator.'
-                }));
-              }
+            // Add a placeholder content_text for each document
+            if (quizDocuments) {
+              quizDocuments = quizDocuments.map(doc => ({
+                ...doc,
+                content_text: 'Quiz content not available. Please contact administrator.'
+              }));
             }
-          } catch (selectError) {
-            console.error('Error selecting pdfs with content_text:', selectError);
-            // Try without content_text column as fallback
-            try {
-              const result = await supabase
-                .from('pdfs')
-                .select('id, title')
-                .eq('course_id', courseId)
-                .eq('content_type', 'quizzes');
-                
-              quizDocuments = result.data || null;
-              documentsError = result.error;
-              
-              // Add a placeholder content_text for each document
-              if (quizDocuments) {
-                quizDocuments = quizDocuments.map(doc => ({
-                  ...doc,
-                  content_text: 'Quiz content not available. Please contact administrator.'
-                }));
-              }
-            } catch (fallbackError) {
-              console.error('Fallback query also failed:', fallbackError);
-              documentsError = fallbackError;
-            }
+          } catch (fallbackError) {
+            console.error('Fallback query also failed:', fallbackError);
+            documentsError = fallbackError;
           }
+        }
+        
+        // If we still have an error, show error message
+        if (documentsError) {
+          console.error('Error fetching quiz documents:', documentsError);
+          throw new Error('Failed to fetch quiz documents. Please try again later.');
+        }
+        
+        // If no quiz documents found, show message
+        if (!quizDocuments || quizDocuments.length === 0) {
+          throw new Error('No quiz documents found for this course. Please contact your administrator.');
+        }
+        
+        // Use the first quiz document for now (in future we might support multiple)
+        const quizDocument = quizDocuments[0];
+        console.log('Using quiz document:', quizDocument);
+        
+        // Get course title
+        const { data: courseData, error: courseError } = await supabase
+          .from('courses')
+          .select('title')
+          .eq('id', courseId)
+          .single();
           
-          // If we still have an error, show error message
-          if (documentsError) {
-            console.error('Error fetching quiz documents:', documentsError);
-            throw new Error('Failed to fetch quiz documents. Please try again later.');
-          }
+        if (courseError) {
+          throw new Error('Failed to fetch course information');
+        }
+        
+        // Generate quiz from document content using our existing service
+        // Trust that admin has already assigned the course to the user
+        // No need to check enrollment as it's handled by the assignment system
+        const generatedQuizId = await generateQuizFromDocument(
+          courseId,
+          courseData.title,
+          quizDocument.content_text || 'No content available'
+        );
+        
+        if (generatedQuizId) {
+          setQuizId(generatedQuizId);
+          setQuizGenerated(true);
           
-          // If no quiz documents found, show message
-          if (!quizDocuments || quizDocuments.length === 0) {
-            throw new Error('No quiz documents found for this course. Please contact your administrator.');
-          }
-          
-          // Use the first quiz document for now (in future we might support multiple)
-          const quizDocument = quizDocuments[0];
-          console.log('Using quiz document:', quizDocument);
-          
-          // Get course title
-          const { data: courseData, error: courseError } = await supabase
-            .from('courses')
-            .select('title')
-            .eq('id', courseId)
-            .single();
-            
-          if (courseError) {
-            throw new Error('Failed to fetch course information');
-          }
-          
-          // Generate quiz from document content using our existing service
-          // Trust that admin has already assigned the course to the user
-          // No need to check enrollment as it's handled by the assignment system
-          const generatedQuizId = await generateQuizFromDocument(
-            courseId,
-            courseData.title,
-            quizDocument.content_text || 'No content available'
-          );
-          
-          if (generatedQuizId) {
-            setQuizId(generatedQuizId);
-            setQuizGenerated(true);
-            
-            // Load the generated quiz questions
-            await loadQuizQuestions(generatedQuizId);
-          } else {
-            setError('Failed to generate quiz from document');
-            setIsLoading(false);
-            return;
-          }
+          // Load the generated quiz questions
+          await loadQuizQuestions(generatedQuizId);
         } else {
-          setError('Only document-based quizzes are supported');
+          setError('Failed to generate quiz from document');
           setIsLoading(false);
+          setShowStartButton(true); // Show start button again if failed
           return;
         }
-      } catch (err) {
-        console.error('Error initializing quiz:', err);
-        setError(err instanceof Error ? err.message : 'Failed to initialize quiz');
+      } else {
+        setError('Only document-based quizzes are supported');
         setIsLoading(false);
+        setShowStartButton(true); // Show start button again if failed
+        return;
       }
-    };
-
-    initializeQuiz();
-  }, [courseId, isFinalQuiz, isDocumentQuiz]);
+    } catch (err) {
+      console.error('Error initializing quiz:', err);
+      setError(err instanceof Error ? err.message : 'Failed to initialize quiz');
+      setIsLoading(false);
+      setShowStartButton(true); // Show start button again if failed
+    }
+  };
 
   const loadQuizQuestions = async (generatedQuizId: string) => {
     try {
@@ -225,6 +234,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
       console.error('Error loading quiz questions:', err);
       setError('Failed to load quiz questions');
       setIsLoading(false);
+      setShowStartButton(true); // Show start button again if failed
     }
   };
 
@@ -333,6 +343,27 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
     }
   };
 
+  // Show start button initially
+  if (showStartButton) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-12 text-center max-w-md">
+          <h2 className="text-2xl font-semibold mb-4 text-white">Document Quiz</h2>
+          <p className="text-gray-300 mb-6">
+            Click the button below to start the quiz generated from your uploaded document.
+          </p>
+          <button 
+            onClick={startQuiz}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-lg transform transition hover:scale-105 duration-300 flex items-center justify-center mx-auto"
+          >
+            <Play className="w-5 h-5 mr-2" />
+            Start Quiz
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
@@ -340,7 +371,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
           <Loader2 className="w-12 h-12 animate-spin text-blue-400 mx-auto mb-4" />
           <h2 className="text-2xl font-semibold mb-2 text-white">Generating Your Quiz</h2>
           <p className="text-gray-300">
-            Our AI is crafting intelligent questions from your course content...
+            Our system is crafting your quiz from the uploaded document...
           </p>
         </div>
       </div>
@@ -355,7 +386,11 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
             {error || "No questions generated"}
           </h2>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              setShowStartButton(true);
+              setError(null);
+              setQuestions([]);
+            }}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-lg transform transition hover:scale-105 duration-300"
           >
             Try Again
