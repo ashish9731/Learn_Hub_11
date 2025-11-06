@@ -59,14 +59,17 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
 
   // Function to start the quiz
   const startQuiz = async () => {
+    console.log('=== START QUIZ BUTTON CLICKED ===');
     setIsLoading(true);
-    setError(null);
     setShowStartButton(false);
+    setError(null);
     
     try {
-      // ONLY generate quiz from document for final quizzes
-      if (isDocumentQuiz && isFinalQuiz) {
-        // For document-based final quiz, we need to get the quiz document content
+      // Check if this is a document-based quiz
+      if (isDocumentQuiz) {
+        console.log('Document-based quiz selected, fetching quiz documents...');
+        
+        // Get quiz documents for this course
         let quizDocuments: any[] | null = null;
         let documentsError: any = null;
         
@@ -77,116 +80,105 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
             .select('id, title, content_text')
             .eq('course_id', courseId)
             .eq('content_type', 'quizzes');
-            
-          quizDocuments = result.data || null;
-          documentsError = result.error;
-          
-          // If we get an error about content_text column not existing, try without it
-          if (documentsError && documentsError.message && documentsError.message.includes('content_text')) {
-            console.log('content_text column not found, trying without it');
-            const fallbackResult = await supabase
-              .from('pdfs')
-              .select('id, title')
-              .eq('course_id', courseId)
-              .eq('content_type', 'quizzes');
-              
-            quizDocuments = fallbackResult.data || null;
-            documentsError = fallbackResult.error;
-            
-            // Add placeholder content_text for each document
-            if (quizDocuments) {
-              quizDocuments = quizDocuments.map(doc => ({
-                ...doc,
-                content_text: 'Quiz content not available. Please contact administrator.'
-              }));
-            }
-          }
-        } catch (selectError) {
-          console.error('Error selecting pdfs with content_text:', selectError);
-          // Try without content_text column as fallback
-          try {
-            const result = await supabase
-              .from('pdfs')
-              .select('id, title')
-              .eq('course_id', courseId)
-              .eq('content_type', 'quizzes');
               
             quizDocuments = result.data || null;
             documentsError = result.error;
             
-            // Add a placeholder content_text for each document
-            if (quizDocuments) {
-              quizDocuments = quizDocuments.map(doc => ({
-                ...doc,
-                content_text: 'Quiz content not available. Please contact administrator.'
-              }));
+            // If we get an error about content_text column not existing, try without it
+            if (documentsError && documentsError.message && documentsError.message.includes('content_text')) {
+              console.log('content_text column not found, trying without it');
+              const fallbackResult = await supabase
+                .from('pdfs')
+                .select('id, title')
+                .eq('course_id', courseId)
+                .eq('content_type', 'quizzes');
+                
+              quizDocuments = fallbackResult.data || null;
+              documentsError = fallbackResult.error;
             }
-          } catch (fallbackError) {
-            console.error('Fallback query also failed:', fallbackError);
-            documentsError = fallbackError;
+          } catch (selectError) {
+            console.error('Error selecting pdfs with content_text:', selectError);
+            // Try without content_text column as fallback
+            try {
+              const result = await supabase
+                .from('pdfs')
+                .select('id, title')
+                .eq('course_id', courseId)
+                .eq('content_type', 'quizzes');
+                
+              quizDocuments = result.data || null;
+              documentsError = result.error;
+            } catch (fallbackError) {
+              console.error('Fallback query also failed:', fallbackError);
+              documentsError = fallbackError;
+            }
           }
-        }
-        
-        // If we still have an error, show error message
-        if (documentsError) {
-          console.error('Error fetching quiz documents:', documentsError);
-          throw new Error('Failed to fetch quiz documents. Please try again later.');
-        }
-        
-        // If no quiz documents found, show message
-        if (!quizDocuments || quizDocuments.length === 0) {
-          throw new Error('No quiz documents found for this course. Please contact your administrator.');
-        }
-        
-        // Use the first quiz document for now (in future we might support multiple)
-        const quizDocument = quizDocuments[0];
-        console.log('Using quiz document:', quizDocument);
-        
-        // Get course title
-        const { data: courseData, error: courseError } = await supabase
-          .from('courses')
-          .select('title')
-          .eq('id', courseId)
-          .single();
           
-        if (courseError) {
-          throw new Error('Failed to fetch course information');
-        }
-        
-        // Generate quiz from document content using our existing service
-        // Trust that admin has already assigned the course to the user
-        // No need to check enrollment as it's handled by the assignment system
-        const generatedQuizId = await generateQuizFromDocument(
-          courseId,
-          courseData.title,
-          quizDocument.content_text || 'No content available'
-        );
-        
-        if (generatedQuizId) {
-          setQuizId(generatedQuizId);
-          setQuizGenerated(true);
+          // If we still have an error, show error message
+          if (documentsError) {
+            console.error('Error fetching quiz documents:', documentsError);
+            throw new Error('Failed to fetch quiz documents. Please try again later.');
+          }
           
-          // Load the generated quiz questions
-          await loadQuizQuestions(generatedQuizId);
+          // If no quiz documents found, show message
+          if (!quizDocuments || quizDocuments.length === 0) {
+            throw new Error('No quiz documents found for this course. Please contact your administrator.');
+          }
+          
+          // Use the first quiz document for now (in future we might support multiple)
+          const quizDocument = quizDocuments[0];
+          console.log('Using quiz document:', quizDocument);
+          
+          // Check if content_text is available
+          if (!quizDocument.content_text || quizDocument.content_text.trim() === '') {
+            throw new Error('Quiz document content is not available or is empty. Please re-upload the quiz document or contact your administrator.');
+          }
+          
+          // Get course title
+          const { data: courseData, error: courseError } = await supabase
+            .from('courses')
+            .select('title')
+            .eq('id', courseId)
+            .single();
+            
+          if (courseError) {
+            throw new Error('Failed to fetch course information');
+          }
+          
+          // Generate quiz from document content using our existing service
+          // Trust that admin has already assigned the course to the user
+          // No need to check enrollment as it's handled by the assignment system
+          const generatedQuizId = await generateQuizFromDocument(
+            courseId,
+            courseData.title,
+            quizDocument.content_text
+          );
+          
+          if (generatedQuizId) {
+            setQuizId(generatedQuizId);
+            setQuizGenerated(true);
+            
+            // Load the generated quiz questions
+            await loadQuizQuestions(generatedQuizId);
+          } else {
+            setError('Failed to generate quiz from document. Please check that your document contains properly formatted questions and answers.');
+            setIsLoading(false);
+            setShowStartButton(true); // Show start button again if failed
+            return;
+          }
         } else {
-          setError('Failed to generate quiz from document');
+          setError('Only document-based quizzes are supported');
           setIsLoading(false);
           setShowStartButton(true); // Show start button again if failed
           return;
         }
-      } else {
-        setError('Only document-based quizzes are supported');
+      } catch (err) {
+        console.error('Error initializing quiz:', err);
+        setError(err instanceof Error ? err.message : 'Failed to initialize quiz');
         setIsLoading(false);
         setShowStartButton(true); // Show start button again if failed
-        return;
       }
-    } catch (err) {
-      console.error('Error initializing quiz:', err);
-      setError(err instanceof Error ? err.message : 'Failed to initialize quiz');
-      setIsLoading(false);
-      setShowStartButton(true); // Show start button again if failed
-    }
-  };
+    };
 
   const loadQuizQuestions = async (generatedQuizId: string) => {
     try {
