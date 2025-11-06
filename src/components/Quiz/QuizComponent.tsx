@@ -203,7 +203,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
           )
         `)
         .eq('course_quiz_id', generatedQuizId)
-        .order('order_index'); // Changed from order('id') to order('order_index')
+        .order('id'); // Temporarily use id ordering until order_index column is added to database
         
       if (error) throw error;
       

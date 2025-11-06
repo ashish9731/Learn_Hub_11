@@ -436,8 +436,8 @@ export async function generateQuizFromDocument(
             course_quiz_id: quiz.id,
             question_text: questionData.question_text,
             question_type: questionData.question_type || 'multiple_choice',
-            difficulty: questionData.difficulty || 'medium',
-            order_index: index // Add order index to maintain sequence
+            difficulty: questionData.difficulty || 'medium'
+            // Temporarily remove order_index to avoid database errors until migration is applied
           })
           .select()
           .single();
@@ -493,8 +493,8 @@ export async function generateQuizFromDocument(
             course_quiz_id: quiz.id,
             question_text: questionData.question_text,
             question_type: questionData.question_type || 'multiple_choice',
-            difficulty: questionData.difficulty || 'medium',
-            order_index: index // Add order index to maintain sequence
+            difficulty: questionData.difficulty || 'medium'
+            // Temporarily remove order_index to avoid database errors until migration is applied
           })
           .select()
           .single();
