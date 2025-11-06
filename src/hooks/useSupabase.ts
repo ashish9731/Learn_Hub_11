@@ -568,14 +568,21 @@ export const supabaseHelpers = {
       throw new Error('Admin client not available');
     }
     
+    console.log('Creating PDF with data:', pdfData);
+    
     const { data, error } = await supabaseAdmin
       .from('pdfs')
       .insert(pdfData)
       .select()
       .single();
     
-    if (error) throw error;
-    return data || pdfData; // Return pdfData if select() doesn't return data
+    if (error) {
+      console.error('PDF creation error:', error);
+      throw error;
+    }
+    
+    console.log('PDF created successfully, returned data:', data);
+    return data;
   },
 
   deletePDF: async (pdfId: string) => {
