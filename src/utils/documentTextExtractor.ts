@@ -49,7 +49,20 @@ export async function extractTextFromPDF(file: File): Promise<string> {
       throw new Error('No selectable text found in PDF. This may be an image-only PDF which cannot be processed for quiz generation. Please ensure your PDF contains selectable text.');
     }
     
-    return result;
+    // Clean up the extracted text to improve parsing
+    const cleanedResult = result
+      .replace(/\u0000/g, '') // Remove null characters
+      .replace(/\u2013/g, '-') // Replace en dash with hyphen
+      .replace(/\u2014/g, '-') // Replace em dash with hyphen
+      .replace(/\u2018/g, "'") // Replace left single quotation mark
+      .replace(/\u2019/g, "'") // Replace right single quotation mark
+      .replace(/\u201c/g, '"') // Replace left double quotation mark
+      .replace(/\u201d/g, '"') // Replace right double quotation mark
+      .replace(/\u2026/g, '...') // Replace horizontal ellipsis
+      .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable characters except newlines and tabs
+      .trim();
+    
+    return cleanedResult;
   } catch (error) {
     console.error('Error extracting text from PDF:', error);
     throw new Error('Failed to extract text from PDF file. Please ensure the file is a valid PDF with selectable text.');
@@ -76,7 +89,20 @@ export async function extractTextFromDOCX(file: File): Promise<string> {
       throw new Error('No text content found in DOCX file. Please ensure your document contains text content.');
     }
     
-    return text;
+    // Clean up the extracted text to improve parsing
+    const cleanedText = text
+      .replace(/\u0000/g, '') // Remove null characters
+      .replace(/\u2013/g, '-') // Replace en dash with hyphen
+      .replace(/\u2014/g, '-') // Replace em dash with hyphen
+      .replace(/\u2018/g, "'") // Replace left single quotation mark
+      .replace(/\u2019/g, "'") // Replace right single quotation mark
+      .replace(/\u201c/g, '"') // Replace left double quotation mark
+      .replace(/\u201d/g, '"') // Replace right double quotation mark
+      .replace(/\u2026/g, '...') // Replace horizontal ellipsis
+      .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable characters except newlines and tabs
+      .trim();
+    
+    return cleanedText;
   } catch (error) {
     console.error('Error extracting text from DOCX:', error);
     throw new Error('Failed to extract text from DOCX file. Please ensure the file is a valid DOCX document.');
@@ -100,7 +126,20 @@ export async function extractTextFromTXT(file: File): Promise<string> {
       throw new Error('No text content found in TXT file. Please ensure your file contains text content.');
     }
     
-    return trimmedText;
+    // Clean up the extracted text to improve parsing
+    const cleanedText = trimmedText
+      .replace(/\u0000/g, '') // Remove null characters
+      .replace(/\u2013/g, '-') // Replace en dash with hyphen
+      .replace(/\u2014/g, '-') // Replace em dash with hyphen
+      .replace(/\u2018/g, "'") // Replace left single quotation mark
+      .replace(/\u2019/g, "'") // Replace right single quotation mark
+      .replace(/\u201c/g, '"') // Replace left double quotation mark
+      .replace(/\u201d/g, '"') // Replace right double quotation mark
+      .replace(/\u2026/g, '...') // Replace horizontal ellipsis
+      .replace(/[^\x20-\x7E\n\r\t]/g, '') // Remove non-printable characters except newlines and tabs
+      .trim();
+    
+    return cleanedText;
   } catch (error) {
     console.error('Error extracting text from TXT:', error);
     throw new Error('Failed to extract text from TXT file. Please ensure the file is a valid text document.');

@@ -78,13 +78,14 @@ function parseQuizFromDocument(documentContent: string): any[] {
     let currentQuestion: string | null = null;
     let currentAnswers: any[] = [];
     let currentExplanation = '';
+    let inExplanationSection = false;
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       console.log('Processing line:', i, line.substring(0, 50));
       
       // Look for question patterns (numbered questions)
-      const questionMatch = line.match(/^(\d+)[\.\)]\s*(.+)$/);
+      const questionMatch = line.match(/^(\d+)[\.\-\)]\s*(.+)$/);
       if (questionMatch) {
         // Save previous question if exists
         if (currentQuestion && currentAnswers.length >= 2) {
@@ -152,10 +153,8 @@ function parseQuizFromDocument(documentContent: string): any[] {
       }
       
       // Look for explanation patterns that follow answers
-      if ((line.toLowerCase().startsWith('explanation:') || 
-           line.toLowerCase().startsWith('reason:') ||
-           line.toLowerCase().includes('explanation')) && 
-          currentQuestion && currentAnswers.length > 0) {
+      if (line.toLowerCase().startsWith('explanation:') && currentQuestion && currentAnswers.length > 0) {
+        // Extract the explanation text after the colon
         const explanationMatch = line.match(/[:\s]+(.+)$/);
         if (explanationMatch) {
           currentExplanation = explanationMatch[1].trim();
@@ -168,22 +167,53 @@ function parseQuizFromDocument(documentContent: string): any[] {
             }
           }
         }
+        inExplanationSection = true;
         continue;
       }
       
+      // Handle continuation of explanation text (multi-line explanations)
+      if (inExplanationSection && currentQuestion && currentAnswers.length > 0 && line.trim() !== '' && !line.match(/^(\d+)[\-\.\)]\s*(.+)$/)) {
+        // Add this line to the current explanation
+        if (currentAnswers.length > 0) {
+          if (currentAnswers[currentAnswers.length - 1].explanation && currentAnswers[currentAnswers.length - 1].explanation !== '') {
+            currentAnswers[currentAnswers.length - 1].explanation += ' ' + line.trim();
+          } else {
+            currentAnswers[currentAnswers.length - 1].explanation = line.trim();
+          }
+        }
+        continue;
+      }
+      
+      // End explanation section when we encounter a new question, answer, or empty line
+      if (inExplanationSection && (line.trim() === '' || line.match(/^(\d+)[\-\.\)]\s*(.+)$/))) {
+        inExplanationSection = false;
+      }
+      
       // Alternative format: "Answer: [correct answer text]" or "Correct Answer: [text]"
+      // Also handle "Answer: C" format where C is the letter of the correct answer
       if ((line.toLowerCase().startsWith('answer:') || 
            line.toLowerCase().startsWith('correct answer:')) && 
           currentQuestion) {
         const answerMatch = line.match(/[:\s]+(.+)$/);
         if (answerMatch) {
           const correctAnswerText = answerMatch[1].trim();
-          // Mark the matching answer as correct
-          for (let j = 0; j < currentAnswers.length; j++) {
-            if (currentAnswers[j].answer_text.toLowerCase().includes(correctAnswerText.toLowerCase()) ||
-                correctAnswerText.toLowerCase().includes(currentAnswers[j].answer_text.toLowerCase())) {
-              currentAnswers[j].is_correct = true;
-              console.log('Marked answer as correct based on answer line:', currentAnswers[j].answer_text);
+          
+          // Handle letter-based answer marking (e.g., "Answer: C")
+          if (correctAnswerText.length === 1 && /^[A-Da-d]$/.test(correctAnswerText)) {
+            // Find the answer with matching letter
+            const answerIndex = correctAnswerText.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0);
+            if (answerIndex >= 0 && answerIndex < currentAnswers.length) {
+              currentAnswers[answerIndex].is_correct = true;
+              console.log('Marked answer as correct based on letter:', correctAnswerText, currentAnswers[answerIndex].answer_text);
+            }
+          } else {
+            // Mark the matching answer as correct by text comparison
+            for (let j = 0; j < currentAnswers.length; j++) {
+              if (currentAnswers[j].answer_text.toLowerCase().includes(correctAnswerText.toLowerCase()) ||
+                  correctAnswerText.toLowerCase().includes(currentAnswers[j].answer_text.toLowerCase())) {
+                currentAnswers[j].is_correct = true;
+                console.log('Marked answer as correct based on answer line:', currentAnswers[j].answer_text);
+              }
             }
           }
         }
@@ -219,43 +249,119 @@ function parseQuizFromDocument(documentContent: string): any[] {
       for (const block of questionBlocks) {
         const blockLines = block.split('\n').map(line => line.trim()).filter(line => line.length > 0);
         if (blockLines.length >= 3) { // At least question + 2 answers
-          const questionText = blockLines[0];
-          const answers: any[] = [];
+          // Find the question line (starts with number)
+          let questionLineIndex = -1;
+          let questionText = '';
           
-          for (let i = 1; i < blockLines.length; i++) {
+          for (let i = 0; i < blockLines.length; i++) {
             const line = blockLines[i];
-            // Simple pattern matching for answers
-            if (line.match(/^([a-dA-D])[\.\)]\s*(.+)$/)) {
-              const match = line.match(/^([a-dA-D])[\.\)]\s*(.+)$/);
-              if (match) {
-                const isCorrect = line.includes('*') || line.toLowerCase().includes('[correct]');
-                const cleanText = match[2]
-                  .replace(/\[correct\]/gi, '')
-                  .replace(/\*/g, '')
-                  .trim();
+            const questionMatch = line.match(/^(\d+)[\.\-\)]\s*(.+)$/);
+            if (questionMatch) {
+              questionLineIndex = i;
+              questionText = questionMatch[2].trim();
+              break;
+            }
+          }
+          
+          if (questionLineIndex !== -1 && questionText) {
+            const answers: any[] = [];
+            let correctAnswerLetter = '';
+            
+            // Look for answer lines after the question
+            for (let i = questionLineIndex + 1; i < blockLines.length; i++) {
+              const line = blockLines[i];
+              // Simple pattern matching for answers
+              const letterAnswerMatch = line.match(/^([a-dA-D])[\.\)]\s*(.+)$/);
+              if (letterAnswerMatch) {
+                const letter = letterAnswerMatch[1].trim().toUpperCase();
+                const answerText = letterAnswerMatch[2].trim();
                 
                 answers.push({
-                  answer_text: cleanText,
-                  is_correct: isCorrect,
+                  answer_text: answerText,
+                  is_correct: false, // Will be set later
                   explanation: ''
                 });
               }
             }
-          }
-          
-          if (answers.length >= 2) {
-            // Mark first answer as correct if none marked
-            const hasCorrect = answers.some(a => a.is_correct);
-            if (!hasCorrect && answers.length > 0) {
+            
+            // Look for "Answer: X" line to identify correct answer
+            for (let i = questionLineIndex + 1; i < blockLines.length; i++) {
+              const line = blockLines[i];
+              const answerMatch = line.match(/^(?:Answer|Correct Answer):\s*([A-Da-d])$/i);
+              if (answerMatch) {
+                correctAnswerLetter = answerMatch[1].toUpperCase();
+                break;
+              }
+            }
+            
+            // Look for explanation (line after "Answer: X" or after answers)
+            let explanation = '';
+            let inExplanation = false;
+            
+            for (let i = questionLineIndex + 1; i < blockLines.length; i++) {
+              const line = blockLines[i];
+              
+              // Start of explanation section
+              if (line.toLowerCase().startsWith('explanation:')) {
+                explanation = line.substring(12).trim(); // Remove "Explanation:" prefix
+                inExplanation = true;
+                continue;
+              }
+              
+              // Continue explanation if we're in explanation section and line is not empty
+              // and doesn't start a new question or answer
+              if (inExplanation && line.trim() !== '' && 
+                  !line.match(/^\d+[\.\-\)]\s*.+$/) && 
+                  !line.match(/^[a-dA-D][\.\)]\s*.+$/)) {
+                explanation += ' ' + line.trim();
+                continue;
+              }
+              
+              // End explanation section
+              if (inExplanation && (line.trim() === '' || 
+                  line.match(/^\d+[\.\-\)]\s*.+$/) || 
+                  line.match(/^[a-dA-D][\.\)]\s*.+$/))) {
+                inExplanation = false;
+              }
+              
+              // Look for explanation on the same line as answer
+              if ((line.toLowerCase().startsWith('answer:') || line.toLowerCase().startsWith('correct answer:')) && 
+                  line.toLowerCase().includes('explanation:')) {
+                const explanationMatch = line.match(/explanation:\s*(.+)$/i);
+                if (explanationMatch && explanationMatch[1]) {
+                  explanation = explanationMatch[1].trim();
+                }
+              }
+            }
+            
+            // Mark the correct answer
+            if (correctAnswerLetter && answers.length > 0) {
+              // Assuming answers are in order A, B, C, D
+              const correctIndex = correctAnswerLetter.charCodeAt(0) - 'A'.charCodeAt(0);
+              if (correctIndex >= 0 && correctIndex < answers.length) {
+                answers[correctIndex].is_correct = true;
+              }
+            } else if (answers.length > 0) {
+              // Default to first answer if no correct answer specified
               answers[0].is_correct = true;
             }
             
-            questions.push({
-              question_text: questionText,
-              question_type: 'multiple_choice',
-              difficulty: 'medium',
-              answers: answers
-            });
+            // Add explanation to correct answer
+            if (explanation && answers.length > 0) {
+              const correctAnswer = answers.find(a => a.is_correct);
+              if (correctAnswer) {
+                correctAnswer.explanation = explanation;
+              }
+            }
+            
+            if (answers.length >= 2) {
+              questions.push({
+                question_text: questionText,
+                question_type: 'multiple_choice',
+                difficulty: 'medium',
+                answers: answers
+              });
+            }
           }
         }
       }

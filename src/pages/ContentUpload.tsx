@@ -47,6 +47,7 @@ interface PDF {
   created_by: string | null;
   created_at: string;
   content_type?: string; // Add content_type field as optional
+  content_text?: string; // Add content_text field for quiz documents
 }
 
 interface Company {
@@ -1610,6 +1611,50 @@ export default function ContentUpload() {
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm text-black truncate dark:text-white">
                                       {pdf?.title || 'Untitled Quiz'}
+                                    </p>
+                                    {/* Show content preview if available */}
+                                    {pdf?.content_text && (
+                                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        Content: {pdf.content_text.substring(0, 100)}...
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <a 
+                                      href={pdf?.pdf_url || '#'} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-blue-400 hover:text-blue-300"
+                                    >
+                                      View
+                                    </a>
+                                    <button
+                                      onClick={() => handleDeletePDF(pdf.id)}
+                                      className="text-xs text-red-400 hover:text-red-300"
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Other Files */}
+                        {coursePDFs.filter(pdf => pdf.content_type === 'other').length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium text-gray-400 mb-2 flex items-center">
+                              <FileText className="h-4 w-4 mr-2" />
+                              Other Files ({coursePDFs.filter(pdf => pdf.content_type === 'other').length})
+                            </h4>
+                            <div className="space-y-2">
+                              {coursePDFs.filter(pdf => pdf.content_type === 'other').map((pdf) => (
+                                <div key={pdf.id} className="flex items-center p-3 bg-gray-100 rounded-lg dark:bg-gray-700">
+                                  <FileText className="h-4 w-4 text-gray-500 mr-3" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-black truncate dark:text-white">
+                                      {pdf?.title || 'Untitled File'}
                                     </p>
                                   </div>
                                   <div className="flex space-x-2">
