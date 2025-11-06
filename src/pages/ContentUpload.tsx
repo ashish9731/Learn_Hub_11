@@ -3,6 +3,8 @@ import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Pla
 import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
 import { supabase, supabaseAdmin } from '../lib/supabase';
+import { extractQuizDocumentText } from '../utils/documentTextExtractor';
+
 
 // Content Upload Page - Reverted to commit 102f9ff for Vercel deployment
 // This comment was added to trigger a new deployment
