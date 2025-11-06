@@ -1,36 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: ['class', '[data-theme="dark"]'],
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
-    extend: {
-      colors: {
-        // Custom colors for dark theme
-        primary: '#a855f7',
-        secondary: '#9333ea',
-        background: {
-          primary: '#121212',
-          secondary: '#1e1e1e',
-          tertiary: '#252525',
-        },
-        text: {
-          primary: '#ffffff',
-          secondary: '#a0a0a0',
-        },
-        border: '#333333',
-      }
-    },
+    extend: {},
   },
-  plugins: [
-    function({ addBase }) {
-      addBase({
-        'input, textarea, select': {
-          '@apply text-gray-900 dark:text-white': {}
-        },
-        '.dark input, .dark textarea, .dark select': {
-          '@apply text-[var(--text-primary)] bg-[var(--background-tertiary)] border-[var(--border-color)]': {}
-        }
-      })
-    }
-  ],
+  plugins: [],
 };

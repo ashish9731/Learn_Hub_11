@@ -2,35 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Dark theme variables (default) */
-:root, :root[data-theme="dark"] {
-  --background-primary: #121212;
-  --background-secondary: #1e1e1e;
-  --background-tertiary: #252525;
-  --text-primary: #ffffff; 
-  --text-secondary: #f0f0f0;
-  --text-tertiary: #d0d0d0;
-  --accent-primary: #a855f7;
-  --accent-secondary: #9333ea;
-  --border-color: #333333;
-  --card-background: #1e1e1e;
-  --card-hover: #252525;
-}
-
-/* Light theme variables */
-:root[data-theme="light"] {
-  --background-primary: #ffffff;
-  --background-secondary: #f5f5f5;
-  --background-tertiary: #e5e5e5;
-  --text-primary: #000000;
-  --text-secondary: #333333;
-  --text-tertiary: #666666;
-  --accent-primary: #8b5cf6;
-  --accent-secondary: #7c3aed;
-  --border-color: #d1d5db;
-  --card-background: #ffffff;
-  --card-hover: #f9fafb;
-}
+/* No custom CSS variables needed - using Tailwind's built-in dark mode */
 
 /* Custom Button Styles */
 .custom-button {
@@ -144,57 +116,61 @@
 /* Base styles */
 @layer base {
   body {
-    @apply bg-[var(--background-primary)] text-[var(--text-primary)];
+    @apply bg-white text-black dark:bg-gray-900 dark:text-white transition-colors duration-200;
   }
   
   input, textarea, select {
-    @apply text-[var(--text-primary)] bg-[var(--background-tertiary)];
+    @apply text-black bg-white dark:text-white dark:bg-gray-800 transition-colors duration-200;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply text-[var(--text-primary)];
+    @apply text-black dark:text-white transition-colors duration-200;
   }
   
   p {
-    @apply text-[var(--text-secondary)];
+    @apply text-gray-700 dark:text-gray-300 transition-colors duration-200;
   }
 }
 
 /* Common component styles */
 @layer components {
   .card {
-    @apply bg-[var(--card-background)] shadow-sm rounded-lg border border-[var(--border-color)];
+    @apply bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200;
   }
   
   .card-title {
-    @apply text-lg font-medium text-[var(--text-primary)];
+    @apply text-lg font-medium text-black dark:text-white transition-colors duration-200;
   }
   
   .btn-primary {
-    @apply px-4 py-2 bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] text-white font-medium rounded-md shadow-sm;
+    @apply px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md shadow-sm dark:bg-purple-700 dark:hover:bg-purple-600 transition-colors duration-200;
   }
   
   .btn-secondary {
-    @apply px-4 py-2 bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)] text-[var(--text-primary)] font-medium rounded-md shadow-sm;
+    @apply px-4 py-2 bg-gray-100 hover:bg-gray-200 text-black font-medium rounded-md shadow-sm dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white transition-colors duration-200;
   }
   
   .input {
-    @apply block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm 
-           bg-[var(--background-tertiary)] text-[var(--text-primary)]
-           focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)];
+    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+           bg-white text-black
+           focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500
+           dark:bg-gray-800 dark:text-white dark:border-gray-600
+           dark:focus:ring-purple-500 dark:focus:border-purple-500 transition-colors duration-200;
   }
   
   .select {
-    @apply block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm 
-           bg-[var(--background-tertiary)] text-[var(--text-primary)]
-           focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)];
+    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+           bg-white text-black
+           focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500
+           dark:bg-gray-800 dark:text-white dark:border-gray-600
+           dark:focus:ring-purple-500 dark:focus:border-purple-500 transition-colors duration-200;
   }
   
   .text-secondary {
-    @apply text-[var(--text-secondary)];
+    @apply text-gray-700 dark:text-gray-300 transition-colors duration-200;
   }
   
   .text-tertiary {
-    @apply text-[var(--text-tertiary)];
+    @apply text-gray-500 dark:text-gray-400 transition-colors duration-200;
   }
 }

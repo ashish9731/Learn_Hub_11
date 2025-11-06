@@ -36,9 +36,9 @@ const QuizResults: React.FC<QuizResultsProps> = ({
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-[var(--card-background)] rounded-lg shadow-md border border-[var(--border-color)]">
+    <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Quiz Results</h2>
+        <h2 className="text-2xl font-bold text-black mb-6 dark:text-white">Quiz Results</h2>
         
         {passed ? (
           <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-6 mb-6">
@@ -48,23 +48,23 @@ const QuizResults: React.FC<QuizResultsProps> = ({
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-green-500 mb-2">Congratulations!</h3>
-            <p className="text-[var(--text-secondary)] mb-4">You have successfully passed the quiz.</p>
-            <div className="bg-[var(--background-tertiary)] rounded-lg p-4 shadow-sm mb-6">
+            <p className="text-gray-700 mb-4 dark:text-gray-300">You have successfully passed the quiz.</p>
+            <div className="bg-gray-100 rounded-lg p-4 shadow-sm mb-6 dark:bg-gray-700">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-[var(--text-tertiary)]">Your Score</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Your Score</p>
                   <p className="text-2xl font-bold text-green-500">{correctAnswers}/{totalQuestions}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--text-tertiary)]">Percentage</p>
-                  <p className="text-2xl font-bold text-[var(--text-primary)]">{score}%</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Percentage</p>
+                  <p className="text-2xl font-bold text-black dark:text-white">{score}%</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--text-tertiary)]">Passing Score</p>
-                  <p className="text-2xl font-bold text-[var(--text-primary)]">{passingScore} ({Math.ceil(50)}%)</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Passing Score</p>
+                  <p className="text-2xl font-bold text-black dark:text-white">{passingScore} ({Math.ceil(50)}%)</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--text-tertiary)]">Status</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
                   <p className="text-2xl font-bold text-green-500">PASSED</p>
                 </div>
               </div>
@@ -80,7 +80,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
                 </button>
                 <button
                   onClick={onExit}
-                  className="w-full bg-[var(--background-secondary)] hover:bg-[var(--background-tertiary)] text-[var(--text-primary)] px-4 py-3 rounded-lg font-medium transition-colors"
+                  className="w-full bg-white hover:bg-gray-100 text-black px-4 py-3 rounded-lg font-medium transition-colors dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white"
                 >
                   Exit
                 </button>
@@ -105,23 +105,23 @@ const QuizResults: React.FC<QuizResultsProps> = ({
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-red-500 mb-2">Quiz Not Passed</h3>
-            <p className="text-[var(--text-secondary)] mb-4">You need to score at least {passingScore} to pass this quiz.</p>
-            <div className="bg-[var(--background-tertiary)] rounded-lg p-4 shadow-sm mb-6">
+            <p className="text-gray-700 mb-4 dark:text-gray-300">You need to score at least {passingScore} to pass this quiz.</p>
+            <div className="bg-gray-100 rounded-lg p-4 shadow-sm mb-6 dark:bg-gray-700">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-[var(--text-tertiary)]">Your Score</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Your Score</p>
                   <p className="text-2xl font-bold text-red-500">{correctAnswers}/{totalQuestions}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--text-tertiary)]">Percentage</p>
-                  <p className="text-2xl font-bold text-[var(--text-primary)]">{score}%</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Percentage</p>
+                  <p className="text-2xl font-bold text-black dark:text-white">{score}%</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--text-tertiary)]">Passing Score</p>
-                  <p className="text-2xl font-bold text-[var(--text-primary)]">{passingScore} ({Math.ceil(50)}%)</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Passing Score</p>
+                  <p className="text-2xl font-bold text-black dark:text-white">{passingScore} ({Math.ceil(50)}%)</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--text-tertiary)]">Status</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
                   <p className="text-2xl font-bold text-red-500">FAILED</p>
                 </div>
               </div>
@@ -136,7 +136,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
               </button>
               <button
                 onClick={onExit}
-                className="w-full bg-[var(--background-secondary)] hover:bg-[var(--background-tertiary)] text-[var(--text-primary)] px-4 py-3 rounded-lg font-medium transition-colors"
+                className="w-full bg-white hover:bg-gray-100 text-black px-4 py-3 rounded-lg font-medium transition-colors dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white"
               >
                 Exit
               </button>

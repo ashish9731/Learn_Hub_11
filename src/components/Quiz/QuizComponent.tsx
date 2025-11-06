@@ -344,15 +344,15 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
   // Show start button initially
   if (showStartButton) {
     return (
-      <div className="flex items-center justify-center bg-gradient-to-br from-[var(--background-primary)] to-[var(--background-secondary)] p-4">
-        <div className="bg-[var(--card-background)] backdrop-blur-lg rounded-2xl border border-[var(--border-color)] shadow-xl p-8 text-center max-w-md">
-          <h2 className="text-2xl font-semibold mb-4 text-[var(--text-primary)]">Document Quiz</h2>
-          <p className="text-[var(--text-secondary)] mb-6">
+      <div className="flex items-center justify-center bg-gradient-to-br from-white to-gray-100 p-4 dark:from-gray-900 dark:to-gray-800">
+        <div className="bg-white backdrop-blur-lg rounded-2xl border border-gray-200 shadow-xl p-8 text-center max-w-md dark:bg-gray-800 dark:border-gray-700">
+          <h2 className="text-2xl font-semibold mb-4 text-black dark:text-white">Document Quiz</h2>
+          <p className="text-gray-700 mb-6 dark:text-gray-300">
             Click the button below to start the quiz generated from your uploaded document.
           </p>
           <button 
             onClick={startQuiz}
-            className="px-6 py-3 bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] text-white font-medium rounded-lg shadow-lg transform transition hover:scale-105 duration-300 flex items-center justify-center mx-auto"
+            className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg shadow-lg transform transition hover:scale-105 duration-300 flex items-center justify-center mx-auto dark:bg-purple-700 dark:hover:bg-purple-600"
           >
             <Play className="w-5 h-5 mr-2" />
             Start Quiz
@@ -364,11 +364,11 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center bg-gradient-to-br from-[var(--background-primary)] to-[var(--background-secondary)] p-4">
-        <div className="bg-[var(--card-background)] backdrop-blur-lg rounded-2xl border border-[var(--border-color)] shadow-xl p-8 text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-[var(--accent-primary)] mx-auto mb-4" />
-          <h2 className="text-2xl font-semibold mb-2 text-[var(--text-primary)]">Generating Your Quiz</h2>
-          <p className="text-[var(--text-secondary)]">
+      <div className="flex items-center justify-center bg-gradient-to-br from-white to-gray-100 p-4 dark:from-gray-900 dark:to-gray-800">
+        <div className="bg-white backdrop-blur-lg rounded-2xl border border-gray-200 shadow-xl p-8 text-center dark:bg-gray-800 dark:border-gray-700">
+          <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4 dark:text-purple-400" />
+          <h2 className="text-2xl font-semibold mb-2 text-black dark:text-white">Generating Your Quiz</h2>
+          <p className="text-gray-700 dark:text-gray-300">
             Our system is crafting your quiz from the uploaded document...
           </p>
         </div>
@@ -378,8 +378,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
 
   if (error || questions.length === 0) {
     return (
-      <div className="flex items-center justify-center bg-gradient-to-br from-[var(--background-primary)] to-[var(--background-secondary)] p-4">
-        <div className="bg-[var(--card-background)] backdrop-blur-lg rounded-2xl border border-[var(--border-color)] shadow-xl p-8 text-center max-w-md">
+      <div className="flex items-center justify-center bg-gradient-to-br from-white to-gray-100 p-4 dark:from-gray-900 dark:to-gray-800">
+        <div className="bg-white backdrop-blur-lg rounded-2xl border border-gray-200 shadow-xl p-8 text-center max-w-md dark:bg-gray-800 dark:border-gray-700">
           <h2 className="text-2xl font-semibold mb-4 text-red-400">
             {error || "No questions generated"}
           </h2>
@@ -389,7 +389,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
               setError(null);
               setQuestions([]);
             }}
-            className="px-6 py-3 bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] text-white font-medium rounded-lg shadow-lg transform transition hover:scale-105 duration-300"
+            className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg shadow-lg transform transition hover:scale-105 duration-300 dark:bg-purple-700 dark:hover:bg-purple-600"
           >
             Try Again
           </button>
@@ -403,31 +403,31 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
   const feedback = answerFeedback[currentQ.id];
 
   return (
-    <div className="bg-gradient-to-br from-[var(--background-primary)] to-[var(--background-secondary)] p-4">
+    <div className="bg-gradient-to-br from-white to-gray-100 p-4 dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-4xl mx-auto">
         {/* Progress Bar */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-[var(--text-secondary)]">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Question {currentQuestion + 1} of {questions.length}
             </span>
-            <span className="text-sm font-medium text-[var(--text-secondary)]">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               {Math.round(progress)}% Complete
             </span>
           </div>
-          <div className="w-full bg-[var(--background-tertiary)] rounded-full h-2.5">
+          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
             <div 
-              className="bg-[var(--accent-primary)] h-2.5 rounded-full transition-all duration-300" 
+              className="bg-purple-600 h-2.5 rounded-full transition-all duration-300 dark:bg-purple-500" 
               style={{ width: `${progress}%` }}
             ></div>
           </div>
         </div>
 
         {/* Question Card */}
-        <div className="bg-[var(--card-background)] backdrop-blur-lg rounded-2xl border border-[var(--border-color)] shadow-xl p-6 mb-6">
+        <div className="bg-white backdrop-blur-lg rounded-2xl border border-gray-200 shadow-xl p-6 mb-6 dark:bg-gray-800 dark:border-gray-700">
           <div className="flex justify-between items-start mb-4">
-            <h2 className="text-xl font-semibold text-[var(--text-primary)]">{currentQ.question_text}</h2>
-            <span className="px-2 py-1 bg-[var(--accent-primary)] text-white text-xs font-medium rounded-full capitalize">
+            <h2 className="text-xl font-semibold text-black dark:text-white">{currentQ.question_text}</h2>
+            <span className="px-2 py-1 bg-purple-600 text-white text-xs font-medium rounded-full capitalize dark:bg-purple-700">
               {currentQ.difficulty}
             </span>
           </div>
@@ -458,9 +458,9 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                     checked={selectedAnswers[currentQ.id] === answer.id}
                     onChange={() => handleAnswerSelect(currentQ.id, answer.id)}
                     disabled={isAnswered[currentQuestion]}
-                    className="h-4 w-4 text-[var(--accent-primary)] focus:ring-[var(--accent-primary)]"
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500"
                   />
-                  <span className="ml-3 text-[var(--text-primary)]">{answer.answer_text}</span>
+                  <span className="ml-3 text-black dark:text-white">{answer.answer_text}</span>
                 </label>
               </div>
             ))}
@@ -487,7 +487,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
               </div>
               {!feedback.isCorrect && (
                 <div className="mb-2">
-                  <p className="text-[var(--text-primary)]">
+                  <p className="text-black dark:text-white">
                     <span className="font-medium">Correct Answer:</span> {
                       // Find the correct answer text
                       currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.answer_text || 'Unknown'
@@ -496,7 +496,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                 </div>
               )}
               {(feedback.explanation || !feedback.isCorrect) && (
-                <p className="text-[var(--text-primary)]">
+                <p className="text-black dark:text-white">
                   <span className="font-medium">
                     {feedback.isCorrect ? 'Explanation:' : 'Explanation for correct answer:'}
                   </span> {feedback.explanation || 
@@ -515,8 +515,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
             disabled={currentQuestion === 0}
             className={`px-6 py-3 rounded-lg font-medium ${
               currentQuestion === 0
-                ? 'bg-[var(--background-tertiary)] text-[var(--text-tertiary)] cursor-not-allowed'
-                : 'bg-[var(--background-secondary)] hover:bg-[var(--background-tertiary)] text-[var(--text-primary)]'
+                ? 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
+                : 'bg-white hover:bg-gray-100 text-black dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white'
             }`}
           >
             <ChevronLeft className="w-4 h-4 inline mr-2" />
@@ -529,8 +529,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
               disabled={!selectedAnswers[currentQ.id] || isAnswered[currentQuestion]}
               className={`px-6 py-3 rounded-lg font-medium ${
                 selectedAnswers[currentQ.id] && !isAnswered[currentQuestion]
-                  ? 'bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] text-white'
-                  : 'bg-[var(--background-tertiary)] text-[var(--text-tertiary)] cursor-not-allowed'
+                  ? 'bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-700 dark:hover:bg-purple-600'
+                  : 'bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
               }`}
             >
               Submit Answer

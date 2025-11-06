@@ -519,25 +519,25 @@ export default function SequentialAudioPlayer({
 
   if (showQuiz && currentQuiz) {
     return (
-      <div className="bg-[var(--background-secondary)] rounded-lg border border-[var(--border-color)] p-6">
-        <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">{currentQuiz.title}</h2>
+      <div className="bg-white rounded-lg border border-gray-200 p-6 dark:bg-gray-800 dark:border-gray-700">
+        <h2 className="text-xl font-bold text-black mb-4 dark:text-white">{currentQuiz.title}</h2>
         {currentQuiz.description && (
-          <p className="text-sm text-[var(--text-tertiary)] mb-6">{currentQuiz.description}</p>
+          <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">{currentQuiz.description}</p>
         )}
         
         {!quizSubmitted ? (
           <>
             <div className="space-y-6">
               {currentQuiz.questions.map((question, index) => (
-                <div key={question.id} className="bg-[var(--background-tertiary)] rounded-lg p-4">
-                  <h3 className="font-medium text-[var(--text-primary)] mb-3">
+                <div key={question.id} className="bg-gray-100 rounded-lg p-4 dark:bg-gray-700">
+                  <h3 className="font-medium text-black mb-3 dark:text-white">
                     {index + 1}. {question.question_text}
                   </h3>
                   <div className="space-y-2">
                     {question.answers.map((answer) => (
                       <label 
                         key={answer.id} 
-                        className="flex items-center p-3 rounded-lg cursor-pointer hover:bg-[var(--background-secondary)]"
+                        className="flex items-center p-3 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
                       >
                         <input
                           type="radio"
@@ -545,9 +545,9 @@ export default function SequentialAudioPlayer({
                           value={answer.id}
                           checked={quizAnswers[question.id] === answer.id}
                           onChange={() => handleQuizAnswer(question.id, answer.id)}
-                          className="h-4 w-4 text-[var(--accent-primary)] focus:ring-[var(--accent-primary)]"
+                          className="h-4 w-4 text-purple-600 focus:ring-purple-500"
                         />
-                        <span className="ml-3 text-sm text-[var(--text-primary)]">{answer.answer_text}</span>
+                        <span className="ml-3 text-sm text-black dark:text-white">{answer.answer_text}</span>
                       </label>
                     ))}
                   </div>
@@ -559,7 +559,7 @@ export default function SequentialAudioPlayer({
               <button
                 onClick={submitQuiz}
                 disabled={Object.keys(quizAnswers).length !== currentQuiz.questions.length}
-                className="px-4 py-2 bg-[var(--accent-primary)] text-white rounded-md disabled:opacity-50"
+                className="px-4 py-2 bg-purple-600 text-white rounded-md disabled:opacity-50 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600"
               >
                 Submit Quiz
               </button>
@@ -567,17 +567,17 @@ export default function SequentialAudioPlayer({
           </>
         ) : (
           <div className="text-center py-8">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-[var(--background-tertiary)]">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-700">
               {quizPassed ? (
                 <CheckCircle className="h-6 w-6 text-green-500" />
               ) : (
                 <XCircle className="h-6 w-6 text-red-500" />
               )}
             </div>
-            <h3 className="mt-2 text-lg font-medium text-[var(--text-primary)]">
+            <h3 className="mt-2 text-lg font-medium text-black dark:text-white">
               {quizPassed ? 'Quiz Passed!' : 'Quiz Failed'}
             </h3>
-            <p className="mt-1 text-sm text-[var(--text-tertiary)]">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               You scored {quizScore}% ({Object.keys(quizAnswers).filter(q => {
                 const question = currentQuiz.questions.find(qs => qs.id === q);
                 const selectedAnswer = question?.answers.find(a => a.id === quizAnswers[q]);
@@ -605,7 +605,7 @@ export default function SequentialAudioPlayer({
                 <div className="mt-4 flex justify-center space-x-3">
                   <button
                     onClick={resetQuiz}
-                    className="px-4 py-2 bg-[var(--accent-primary)] text-white rounded-md hover:bg-[var(--accent-secondary)]"
+                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600"
                   >
                     Retry Quiz
                   </button>
@@ -625,11 +625,11 @@ export default function SequentialAudioPlayer({
   }
 
   return (
-    <div className="bg-[var(--background-secondary)] rounded-lg border border-[var(--border-color)] overflow-hidden">
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden dark:bg-gray-800 dark:border-gray-700">
       {/* Podcast Info */}
-      <div className="p-4 border-b border-[var(--border-color)]">
-        <h2 className="text-lg font-medium text-[var(--text-primary)] truncate">{currentPodcast.title}</h2>
-        <div className="mt-1 flex items-center text-sm text-[var(--text-tertiary)]">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg font-medium text-black truncate dark:text-white">{currentPodcast.title}</h2>
+        <div className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
           <span>{currentPodcastIndex + 1} of {podcasts.length}</span>
           <span className="mx-2">•</span>
           <span>
@@ -652,9 +652,9 @@ export default function SequentialAudioPlayer({
         
         {/* Progress Bar */}
         <div className="mb-4">
-          <div className="w-full bg-[var(--background-secondary)] rounded-full h-2">
+          <div className="w-full bg-gray-100 rounded-full h-2 dark:bg-gray-700">
             <div 
-              className="bg-[var(--accent-primary)] h-2 rounded-full transition-all duration-300"
+              className="bg-purple-600 h-2 rounded-full transition-all duration-300 dark:bg-purple-500"
               style={{ width: `${progress[currentPodcast.id] || 0}%` }}
             ></div>
           </div>
@@ -666,14 +666,14 @@ export default function SequentialAudioPlayer({
             <button
               onClick={handleSkipBack}
               disabled={currentPodcastIndex === 0}
-              className="p-2 rounded-full text-[var(--text-tertiary)] hover:text-[var(--text-primary)] disabled:opacity-50"
+              className="p-2 rounded-full text-gray-500 hover:text-black disabled:opacity-50 dark:text-gray-400 dark:hover:text-white"
             >
               <SkipBack className="h-5 w-5" />
             </button>
             
             <button
               onClick={handlePlayPause}
-              className="p-3 rounded-full bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-secondary)]"
+              className="p-3 rounded-full bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600"
             >
               {isPlaying ? (
                 <Pause className="h-5 w-5" />
@@ -684,7 +684,7 @@ export default function SequentialAudioPlayer({
             
             <button
               onClick={handleReset}
-              className="p-2 rounded-full text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+              className="p-2 rounded-full text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
             >
               <RotateCcw className="h-5 w-5" />
             </button>
@@ -692,13 +692,13 @@ export default function SequentialAudioPlayer({
             <button
               onClick={handleSkipForward}
               disabled={currentPodcastIndex === podcasts.length - 1 && (progress[currentPodcast.id] || 0) < 100}
-              className="p-2 rounded-full text-[var(--text-tertiary)] hover:text-[var(--text-primary)] disabled:opacity-50"
+              className="p-2 rounded-full text-gray-500 hover:text-black disabled:opacity-50 dark:text-gray-400 dark:hover:text-white"
             >
               <SkipForward className="h-5 w-5" />
             </button>
           </div>
           
-          <div className="text-sm text-[var(--text-tertiary)]">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             {durations[currentPodcast.id] ? (
               <>
                 {Math.floor((durations[currentPodcast.id] * (progress[currentPodcast.id] || 0) / 100) / 60)}:
@@ -714,15 +714,15 @@ export default function SequentialAudioPlayer({
       </div>
       
       {/* Podcast List */}
-      <div className="border-t border-[var(--border-color)] max-h-60 overflow-y-auto">
+      <div className="border-t border-gray-200 max-h-60 overflow-y-auto dark:border-gray-700">
         {podcasts.map((podcast, index) => (
           <div 
             key={podcast.id}
             className={`flex items-center p-3 cursor-pointer ${
               index === currentPodcastIndex 
-                ? 'bg-[var(--background-tertiary)]' 
-                : 'hover:bg-[var(--background-tertiary)]'
-            }`}
+                ? 'bg-gray-100' 
+                : 'hover:bg-gray-100'
+            } dark:bg-gray-800 dark:hover:bg-gray-700`}
             onClick={() => {
               if (index !== currentPodcastIndex) {
                 saveProgress(); // Save progress before switching
@@ -736,18 +736,18 @@ export default function SequentialAudioPlayer({
               {index < currentPodcastIndex || (index === currentPodcastIndex && (progress[podcast.id] || 0) >= 100) ? (
                 <CheckCircle className="h-4 w-4 text-green-500 mx-auto" />
               ) : (
-                <span className="text-xs text-[var(--text-tertiary)]">{index + 1}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{index + 1}</span>
               )}
             </div>
             <div className="ml-3 flex-1 min-w-0">
               <p className={`text-sm truncate ${
-                index === currentPodcastIndex ? 'text-[var(--text-primary)] font-medium' : 'text-[var(--text-tertiary)]'
+                index === currentPodcastIndex ? 'text-black font-medium dark:text-white' : 'text-gray-500 dark:text-gray-400'
               }`}>
                 {podcast.title}
               </p>
             </div>
             <div className="flex-shrink-0">
-              <span className="text-xs text-[var(--text-tertiary)]">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 {Math.round(progress[podcast.id] || 0)}%
               </span>
             </div>

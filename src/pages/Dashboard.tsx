@@ -442,8 +442,8 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <div>
-            <h2 className="text-2xl font-bold leading-7 text-[var(--text-primary)] sm:text-3xl sm:truncate">Super Admin Dashboard</h2>
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">Manage your learning management system</p>
+            <h2 className="text-2xl font-bold leading-7 text-black dark:text-white sm:text-3xl sm:truncate">Super Admin Dashboard</h2>
+            <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Manage your learning management system</p>
           </div>
         </div>
 
@@ -456,8 +456,8 @@ export default function Dashboard() {
                 onClick={() => navigate(button.path)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
                   location.pathname === button.path
-                    ? 'bg-[var(--accent-primary)] text-white shadow-lg'
-                    : 'bg-[var(--background-secondary)] text-[var(--text-secondary)] hover:bg-[var(--background-tertiary)] border border-[var(--border-color)]'
+                    ? 'bg-purple-600 text-white shadow-lg dark:bg-purple-700'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:border-gray-700'
                 }`}
               >
                 <div className="flex items-center">
@@ -472,29 +472,29 @@ export default function Dashboard() {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
-            { title: 'Total Companies', value: realTimeKPIs.totalCompanies, icon: Building2, color: 'bg-[var(--accent-primary)]', route: '/companies' },
-            { title: 'Total Admins', value: realTimeKPIs.totalAdmins, icon: UserCog, color: 'bg-[var(--accent-primary)]', route: '/admins' },
-            { title: 'Total Users', value: realTimeKPIs.totalUsers, icon: Users, color: 'bg-[var(--accent-primary)]', route: '/users' },
-            { title: 'Learning Hours', value: realTimeKPIs.totalLearningHours.toFixed(1), icon: Clock, color: 'bg-[var(--accent-primary)]', route: '/analytics' }
+            { title: 'Total Companies', value: realTimeKPIs.totalCompanies, icon: Building2, color: 'bg-purple-600', route: '/companies' },
+            { title: 'Total Admins', value: realTimeKPIs.totalAdmins, icon: UserCog, color: 'bg-purple-600', route: '/admins' },
+            { title: 'Total Users', value: realTimeKPIs.totalUsers, icon: Users, color: 'bg-purple-600', route: '/users' },
+            { title: 'Learning Hours', value: realTimeKPIs.totalLearningHours.toFixed(1), icon: Clock, color: 'bg-purple-600', route: '/analytics' }
           ].map((card, index) => (
             <div 
               key={index}
-              className="bg-[var(--background-secondary)] overflow-visible shadow-sm rounded-lg hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-105 border border-[var(--border-color)]"
+              className="bg-white overflow-visible shadow-sm rounded-lg hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-105 border border-gray-200 dark:bg-gray-800 dark:border-gray-700"
               onClick={() => navigate(card.route)}
             >
               <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className={`${card.color} rounded-md p-3`}>
+                    <div className="bg-purple-600 rounded-md p-3 dark:bg-purple-700">
                       <card.icon className="h-6 w-6 text-white" aria-hidden="true" />
                     </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="card-title text-sm font-medium text-[var(--text-secondary)]">
+                      <dt className="card-title text-sm font-medium text-gray-700 dark:text-gray-300">
                         {card.title}
                       </dt>
-                      <dd className="text-2xl font-semibold text-[var(--text-primary)]">{card.value}</dd>
+                      <dd className="text-2xl font-semibold text-black dark:text-white">{card.value}</dd>
                     </dl>
                   </div>
                 </div>
@@ -506,19 +506,19 @@ export default function Dashboard() {
         {/* Admin Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Recent Activity */}
-          <div className="bg-[var(--background-secondary)] shadow-sm rounded-lg border border-[var(--border-color)]">
-            <div className="px-6 py-4 border-b border-[var(--border-color)]">
-              <h3 className="text-lg font-medium text-[var(--text-primary)]">Recent Activity</h3>
+          <div className="bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-medium text-black dark:text-white">Recent Activity</h3>
             </div>
             <div className="p-6">
               <div className="space-y-4">
                 {realTimeKPIs.totalAdmins > 0 && (
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <UserCog className="h-5 w-5 text-[var(--accent-primary)]" />
+                      <UserCog className="h-5 w-5 text-purple-600" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-[var(--text-secondary)]">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
                         {realTimeKPIs.totalAdmins} admin{realTimeKPIs.totalAdmins !== 1 ? 's' : ''} in system
                       </p>
                     </div>
@@ -528,10 +528,10 @@ export default function Dashboard() {
                 {realTimeKPIs.totalUsers > 0 && (
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <Users className="h-5 w-5 text-[var(--accent-primary)]" />
+                      <Users className="h-5 w-5 text-purple-600" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-[var(--text-secondary)]">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
                         {realTimeKPIs.totalUsers} user{realTimeKPIs.totalUsers !== 1 ? 's' : ''} registered
                       </p>
                     </div>
@@ -541,10 +541,10 @@ export default function Dashboard() {
                 {realTimeKPIs.totalCourses > 0 && (
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <BookOpen className="h-5 w-5 text-[var(--accent-primary)]" />
+                      <BookOpen className="h-5 w-5 text-purple-600" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-[var(--text-secondary)]">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
                         {realTimeKPIs.totalCourses} course{realTimeKPIs.totalCourses !== 1 ? 's' : ''} available
                       </p>
                     </div>
@@ -554,10 +554,10 @@ export default function Dashboard() {
                 {realTimeKPIs.totalPodcasts > 0 && (
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <Headphones className="h-5 w-5 text-[var(--accent-primary)]" />
+                      <Headphones className="h-5 w-5 text-purple-600" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-[var(--text-secondary)]">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
                         {realTimeKPIs.totalPodcasts} podcast{realTimeKPIs.totalPodcasts !== 1 ? 's' : ''} available
                       </p>
                     </div>
@@ -567,10 +567,10 @@ export default function Dashboard() {
                 {supabaseData.pdfs.length > 0 && (
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <FileText className="h-5 w-5 text-[var(--accent-primary)]" />
+                      <FileText className="h-5 w-5 text-purple-600" />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-[var(--text-secondary)]">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
                         {supabaseData.pdfs.length} document{supabaseData.pdfs.length !== 1 ? 's' : ''} uploaded
                       </p>
                     </div>
@@ -585,34 +585,34 @@ export default function Dashboard() {
           </div>
 
           {/* System Status */}
-          <div className="bg-[var(--background-secondary)] shadow-sm rounded-lg border border-[var(--border-color)]">
-            <div className="px-6 py-4 border-b border-[var(--border-color)]">
-              <h3 className="text-lg font-medium text-[var(--text-primary)]">System Status</h3>
+          <div className="bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-medium text-black dark:text-white">System Status</h3>
             </div>
             <div className="p-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-[var(--text-secondary)]">Admins</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Admins</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalAdmins > 0 ? 'bg-green-900/30 text-green-400' : 'bg-[var(--background-tertiary)] text-gray-400'
+                    realTimeKPIs.totalAdmins > 0 ? 'bg-green-900/30 text-green-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
                   }`}>
                     {realTimeKPIs.totalAdmins > 0 ? 'Active' : 'None'}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-[var(--text-secondary)]">Users</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Users</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalUsers > 0 ? 'bg-green-900/30 text-green-400' : 'bg-[var(--background-tertiary)] text-gray-400'
+                    realTimeKPIs.totalUsers > 0 ? 'bg-green-900/30 text-green-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
                   }`}>
                     {realTimeKPIs.totalUsers > 0 ? 'Active' : 'None'}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-[var(--text-secondary)]">Courses</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Courses</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalCourses > 0 ? 'bg-green-900/30 text-green-400' : 'bg-[var(--background-tertiary)] text-gray-400'
+                    realTimeKPIs.totalCourses > 0 ? 'bg-green-900/30 text-green-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
                   }`}>
                     {realTimeKPIs.totalCourses > 0 ? 'Available' : 'None'}
                   </span>
@@ -621,7 +621,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-300">Podcasts</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalPodcasts > 0 ? 'bg-blue-900/30 text-blue-400' : 'bg-[var(--background-tertiary)] text-gray-400'
+                    realTimeKPIs.totalPodcasts > 0 ? 'bg-blue-900/30 text-blue-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
                   }`}>
                     {realTimeKPIs.totalPodcasts > 0 ? `${realTimeKPIs.totalPodcasts} Available` : 'None'}
                   </span>
@@ -630,16 +630,16 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-300">Companies</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalCompanies > 0 ? 'bg-purple-900/30 text-purple-400' : 'bg-[var(--background-tertiary)] text-gray-400'
+                    realTimeKPIs.totalCompanies > 0 ? 'bg-purple-900/30 text-purple-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
                   }`}>
                     {realTimeKPIs.totalCompanies > 0 ? `${realTimeKPIs.totalCompanies} Active` : 'None'}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-[var(--text-secondary)]">Content Items</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Content Items</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalCourses > 0 ? 'bg-green-900/30 text-green-400' : 'bg-[var(--background-tertiary)] text-gray-400'
+                    realTimeKPIs.totalCourses > 0 ? 'bg-green-900/30 text-green-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
                   }`}>
                     {realTimeKPIs.totalCourses > 0 ? `${realTimeKPIs.totalCourses} Available` : 'None'}
                   </span>
@@ -649,9 +649,9 @@ export default function Dashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-[var(--background-secondary)] shadow-sm rounded-lg border border-[var(--border-color)]">
-            <div className="px-6 py-4 border-b border-[var(--border-color)]">
-              <h3 className="text-lg font-medium text-[var(--text-primary)]">Quick Actions</h3>
+          <div className="bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-medium text-black dark:text-white">Quick Actions</h3>
             </div>
             <div className="p-6">
               <div className="space-y-3">
@@ -663,10 +663,10 @@ export default function Dashboard() {
                   <span className="edge"></span>
                   <span className="front">
                     <div className="flex items-center w-full">
-                      <UserCog className="h-5 w-5 text-[var(--accent-primary)] mr-3" />
+                      <UserCog className="h-5 w-5 text-purple-600 mr-3" />
                       <div className="text-left">
                         <h4 className="text-sm font-medium text-white">Add Admin</h4>
-                        <p className="text-xs text-[var(--text-tertiary)]">Create new administrator</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Create new administrator</p>
                       </div>
                     </div>
                   </span>
@@ -680,10 +680,10 @@ export default function Dashboard() {
                   <span className="edge"></span>
                   <span className="front">
                     <div className="flex items-center w-full">
-                      <Users className="h-5 w-5 text-[var(--accent-primary)] mr-3" />
+                      <Users className="h-5 w-5 text-purple-600 mr-3" />
                       <div className="text-left">
                         <h4 className="text-sm font-medium text-white">Add User</h4>
-                        <p className="text-xs text-[var(--text-tertiary)]">Create new user account</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Create new user account</p>
                       </div>
                     </div>
                   </span>
@@ -697,10 +697,10 @@ export default function Dashboard() {
                   <span className="edge"></span>
                   <span className="front">
                     <div className="flex items-center w-full">
-                      <BarChart3 className="h-5 w-5 text-[var(--accent-primary)] mr-3" />
+                      <BarChart3 className="h-5 w-5 text-purple-600 mr-3" />
                       <div className="text-left">
                         <h4 className="text-sm font-medium text-white">View Analytics</h4>
-                        <p className="text-xs text-[var(--text-tertiary)]">Check system performance</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Check system performance</p>
                       </div>
                     </div>
                   </span>

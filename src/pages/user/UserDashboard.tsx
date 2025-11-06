@@ -604,7 +604,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
               title: 'Assigned Courses', 
               value: assignedCourses, 
               icon: BookOpen, 
-              color: 'bg-[var(--accent-primary)]',
+              color: 'bg-purple-600',
               subtitle: 'Total courses assigned to you'
             },
             { 
@@ -840,7 +840,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                       
                       <div className="w-full bg-gray-700 rounded-full h-2">
                         <div 
-                          className="bg-[var(--accent-primary)] h-2 rounded-full transition-all duration-300" 
+                          className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
                           style={{ width: `${progressPercent}%` }}
                         ></div>
                       </div>

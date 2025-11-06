@@ -444,30 +444,30 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
     <div className="py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Dashboard</h1>
-          <p className="mt-1 text-sm text-[var(--text-secondary)]">Overview of your learning management system.</p>
+          <h1 className="text-2xl font-bold text-black dark:text-white">Dashboard</h1>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Overview of your learning management system.</p>
         </div>
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
-            { title: 'Total Users', value: realTimeMetrics.totalUsers, icon: Users, color: 'bg-[var(--accent-primary)]' },
-            { title: 'Total Courses', value: realTimeMetrics.totalCourses, icon: BookOpen, color: 'bg-[var(--accent-primary)]' },
-            { title: 'Total Hours', value: realTimeMetrics.totalHours.toFixed(1), icon: Clock, color: 'bg-[var(--accent-primary)]' },
-            { title: 'Active Users', value: realTimeMetrics.activeUsers, icon: CheckCircle, color: 'bg-[var(--accent-primary)]' }
+            { title: 'Total Users', value: realTimeMetrics.totalUsers, icon: Users, color: 'bg-purple-600' },
+            { title: 'Total Courses', value: realTimeMetrics.totalCourses, icon: BookOpen, color: 'bg-purple-600' },
+            { title: 'Total Hours', value: realTimeMetrics.totalHours.toFixed(1), icon: Clock, color: 'bg-purple-600' },
+            { title: 'Active Users', value: realTimeMetrics.activeUsers, icon: CheckCircle, color: 'bg-purple-600' }
           ].map((card, index) => (
-            <div key={index} className="bg-[var(--background-secondary)] overflow-hidden shadow-sm rounded-lg border border-[var(--border-color)]">
+            <div key={index} className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
               <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className={`${card.color} rounded-md p-3`}>
+                    <div className="bg-purple-600 rounded-md p-3 dark:bg-purple-700">
                       <card.icon className="h-6 w-6 text-white" />
                     </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-[var(--text-secondary)] truncate">{card.title}</dt>
-                      <dd className="text-2xl font-semibold text-[var(--text-primary)]">{card.value}</dd>
+                      <dt className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{card.title}</dt>
+                      <dd className="text-2xl font-semibold text-black dark:text-white">{card.value}</dd>
                     </dl>
                   </div>
                 </div>
@@ -477,24 +477,24 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         </div>
 
         {/* User Progress Overview */}
-        <div className="bg-[var(--background-secondary)] shadow-sm rounded-lg border border-[var(--border-color)] mb-8">
-          <div className="px-6 py-4 border-b border-[var(--border-color)]">
-            <h3 className="text-lg font-medium text-[var(--text-primary)]">User Progress Overview</h3>
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 mb-8">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-medium text-black dark:text-white">User Progress Overview</h3>
           </div>
           <div className="p-6">
             <div className="space-y-4">
               {supabaseData.users.filter((user: any) => user.role === 'user' && (!companyId || user.company_id === companyId)).length > 0 ? (
                 supabaseData.users.filter((user: any) => user.role === 'user' && (!companyId || user.company_id === companyId)).slice(0, 5).map((user: any, index: number) => (
-                  <div key={user.id} className="flex items-center justify-between p-4 bg-[var(--background-tertiary)] rounded-lg">
+                  <div key={user.id} className="flex items-center justify-between p-4 bg-gray-100 rounded-lg dark:bg-gray-700">
                     <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-[var(--accent-primary)]" />
+                      <div className="h-10 w-10 rounded-full bg-purple-600/20 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-purple-600" />
                       </div>
                       <div className="ml-3">
-                        <p className="text-sm font-medium text-[var(--text-primary)]">
+                        <p className="text-sm font-medium text-black dark:text-white">
                           {userProfiles.find(p => p.user_id === user.id)?.full_name || user.email}
                         </p>
-                        <p className="text-xs text-[var(--text-secondary)]">
+                        <p className="text-xs text-gray-700 dark:text-gray-300">
                           {supabaseData.userCourses.filter(uc => uc.user_id === user.id).length} courses enrolled
                         </p>
                       </div>
@@ -509,10 +509,10 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                         
                         return (
                           <>
-                      <div className="w-24 bg-[var(--border-color)] rounded-full h-2 mr-3">
-                              <div className="bg-[var(--accent-primary)] h-2 rounded-full" style={{ width: `${avgProgress}%` }}></div>
+                      <div className="w-24 bg-gray-300 rounded-full h-2 mr-3 dark:bg-gray-600">
+                              <div className="bg-purple-600 h-2 rounded-full dark:bg-purple-700" style={{ width: `${avgProgress}%` }}></div>
                       </div>
-                            <span className="text-sm font-medium text-[var(--text-primary)]">{avgProgress}%</span>
+                            <span className="text-sm font-medium text-black dark:text-white">{avgProgress}%</span>
                           </>
                         );
                       })()}
@@ -527,39 +527,39 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         </div>
 
         {/* Companies Overview */}
-        <div className="bg-[var(--background-secondary)] shadow-sm rounded-lg border border-[var(--border-color)]">
-          <div className="px-6 py-4 border-b border-[var(--border-color)]">
-            <h3 className="text-lg font-medium text-[var(--text-primary)]">Companies Overview</h3>
+        <div className="bg-white shadow-sm rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-medium text-black dark:text-white">Companies Overview</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-[var(--border-color)]">
-              <thead className="bg-[var(--background-tertiary)]">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-100 dark:bg-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider dark:text-gray-300">
                     Company Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider dark:text-gray-300">
                     Users
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider dark:text-gray-300">
                     Courses
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider dark:text-gray-300">
                     Created
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-[var(--background-secondary)] divide-y divide-[var(--border-color)]">
+              <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                 {supabaseData.companies.length > 0 ? (
                   supabaseData.companies.map((company: any, index: number) => (
-                    <tr key={company.id} className={index % 2 === 0 ? 'bg-[var(--background-secondary)]' : 'bg-[var(--background-tertiary)]'}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-primary)]">
+                    <tr key={company.id} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-100 dark:bg-gray-700'}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black dark:text-white">
                         {company.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-primary)]">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-white">
                         {(supabaseData.users || []).filter((u: any) => u.company_id === company.id).length}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-primary)]">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-white">
                         {(() => {
                           const companyUsers = (supabaseData.users || []).filter((u: any) => u.company_id === company.id);
                           const companyUserIds = companyUsers.map(u => u.id);
@@ -570,7 +570,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                           return uniqueCourses.size;
                         })()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-primary)]">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-black dark:text-white">
                         {new Date(company.created_at).toLocaleDateString()}
                       </td>
                     </tr>

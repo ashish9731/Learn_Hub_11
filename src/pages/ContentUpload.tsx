@@ -285,15 +285,15 @@ export default function ContentUpload() {
     if (contentType === 'audio') {
       return (
         <div>
-          <label htmlFor="file" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+          <label htmlFor="file" className="block text-sm font-medium text-black mb-2 dark:text-white">
             Audio File Upload <span className="text-red-500">*</span>
           </label>
           
-          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-[var(--border-color)] border-dashed rounded-md">
+          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md dark:border-gray-600">
             <div className="space-y-1 text-center">
-              <Headphones className="mx-auto h-12 w-12 text-[var(--text-tertiary)]" />
-              <div className="flex text-sm text-[var(--text-tertiary)]">
-                <label htmlFor="file-upload-audio" className="relative cursor-pointer bg-[var(--background-secondary)] rounded-md font-medium text-[var(--accent-primary)] hover:text-[var(--accent-secondary)] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[var(--accent-primary)]">
+              <Headphones className="mx-auto h-12 w-12 text-gray-500 dark:text-gray-400" />
+              <div className="flex text-sm text-gray-500 dark:text-gray-400">
+                <label htmlFor="file-upload-audio" className="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-purple-500 dark:bg-gray-800 dark:text-purple-400 dark:hover:text-purple-300">
                   <span>Upload an audio file</span>
                   <input 
                     id="file-upload-audio" 
@@ -306,9 +306,9 @@ export default function ContentUpload() {
                 </label>
                 <p className="pl-1">or drag and drop</p>
               </div>
-              <p className="text-xs text-[var(--text-tertiary)">MP3, WAV, AAC, M4A files supported</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">MP3, WAV, AAC, M4A files supported</p>
               {selectedFile && (
-                <p className="text-sm text-[var(--accent-primary)] font-medium">{selectedFile.name}</p>
+                <p className="text-sm text-purple-600 font-medium dark:text-purple-400">{selectedFile.name}</p>
               )}
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function ContentUpload() {
     } else if (contentType === 'video') {
       return (
         <div>
-          <label htmlFor="youtube-url" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+          <label htmlFor="youtube-url" className="block text-sm font-medium text-black mb-2 dark:text-white">
             YouTube URL <span className="text-red-500">*</span>
           </label>
           <input
@@ -326,9 +326,9 @@ export default function ContentUpload() {
             value={youtubeUrl}
             onChange={(e) => setYoutubeUrl(e.target.value)}
             placeholder="https://www.youtube.com/watch?v=..."
-            className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
+            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:bg-gray-700 dark:text-white"
           />
-          <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             Paste the full YouTube URL. The video will be embedded in the app.
           </p>
         </div>
@@ -337,15 +337,15 @@ export default function ContentUpload() {
       // For docs, images, templates, and quizzes
       return (
         <div>
-          <label htmlFor="file" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+          <label htmlFor="file" className="block text-sm font-medium text-black mb-2 dark:text-white">
             File Upload <span className="text-red-500">*</span>
           </label>
           
-          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-[var(--border-color)] border-dashed rounded-md">
+          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md dark:border-gray-600">
             <div className="space-y-1 text-center">
-              <FileText className="mx-auto h-12 w-12 text-[var(--text-tertiary)]" />
-              <div className="flex text-sm text-[var(--text-tertiary)]">
-                <label htmlFor="file-upload-document" className="relative cursor-pointer bg-[var(--background-secondary)] rounded-md font-medium text-[var(--accent-primary)] hover:text-[var(--accent-secondary)] focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[var(--accent-primary)]">
+              <FileText className="mx-auto h-12 w-12 text-gray-500 dark:text-gray-400" />
+              <div className="flex text-sm text-gray-500 dark:text-gray-400">
+                <label htmlFor="file-upload-document" className="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-purple-500 dark:bg-gray-800 dark:text-purple-400 dark:hover:text-purple-300">
                   <span>Upload a file</span>
                   <input 
                     id="file-upload-document" 
@@ -364,7 +364,7 @@ export default function ContentUpload() {
                 </label>
                 <p className="pl-1">or drag and drop</p>
               </div>
-              <p className="text-xs text-[var(--text-tertiary)]">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {contentType === 'docs' 
                   ? 'PDF, DOCX, PPTX, XLSX, TXT files supported' 
                   : contentType === 'images' 
@@ -374,7 +374,7 @@ export default function ContentUpload() {
                       : 'Any file type supported'}
               </p>
               {selectedFile && (
-                <p className="text-sm text-[var(--accent-primary)] font-medium">{selectedFile.name}</p>
+                <p className="text-sm text-purple-600 font-medium dark:text-purple-400">{selectedFile.name}</p>
               )}
             </div>
           </div>
@@ -1241,10 +1241,10 @@ export default function ContentUpload() {
               const isExpanded = expandedCourses[course.id];
               
               return (
-                <div key={course.id} className="bg-[var(--background-secondary)] rounded-lg shadow-md overflow-hidden border border-[var(--border-color)]">
+                <div key={course.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                   {/* Course Header */}
                   <div 
-                    className="p-6 cursor-pointer hover:bg-[var(--background-tertiary)]"
+                    className="p-6 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                     onClick={() => toggleCourseExpansion(course.id)}
                   >
                     <div className="flex justify-between items-start">
@@ -1289,16 +1289,16 @@ export default function ContentUpload() {
                                 type="text"
                                 value={editingCourseData.title || course.title}
                                 onChange={(e) => setEditingCourseData({...editingCourseData, title: e.target.value})}
-                                className="text-lg font-semibold text-[var(--text-primary)] bg-[var(--background-secondary)] border border-[var(--border-color)] rounded px-2 py-1 w-full"
+                                className="text-lg font-semibold text-black bg-white border border-gray-300 rounded px-2 py-1 w-full dark:text-white dark:bg-gray-800 dark:border-gray-600"
                               />
                             ) : (
-                              <h3 className="text-lg font-semibold text-[var(--text-primary)]">{course.title}</h3>
+                              <h3 className="text-lg font-semibold text-black dark:text-white">{course.title}</h3>
                             )}
                             {editingCourseId === course.id ? (
                               <select
                                 value={editingCourseData.level || course.level || 'Basics'}
                                 onChange={(e) => setEditingCourseData({...editingCourseData, level: e.target.value as 'Basics' | 'Intermediate' | 'Advanced'})}
-                                className="ml-2 px-2 py-1 text-xs rounded bg-[var(--background-secondary)] border border-[var(--border-color)] text-[var(--text-primary)]"
+                                className="ml-2 px-2 py-1 text-xs rounded bg-white border border-gray-300 text-black dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                               >
                                 <option value="Basics">Basic</option>
                                 <option value="Intermediate">Intermediate</option>
@@ -1322,16 +1322,16 @@ export default function ContentUpload() {
                             <textarea
                               value={editingCourseData.description || course.description || ''}
                               onChange={(e) => setEditingCourseData({...editingCourseData, description: e.target.value})}
-                              className="text-sm text-[var(--text-tertiary)] mb-3 w-full bg-[var(--background-secondary)] border border-[var(--border-color)] rounded px-2 py-1"
+                              className="text-sm text-gray-500 mb-3 w-full bg-white border border-gray-300 rounded px-2 py-1 dark:text-gray-400 dark:bg-gray-800 dark:border-gray-600"
                               rows={3}
                               placeholder="Course description"
                             />
                           ) : (
-                            <p className="text-sm text-[var(--text-tertiary)] mb-3 line-clamp-2">
+                            <p className="text-sm text-gray-500 mb-3 line-clamp-2 dark:text-gray-400">
                               {course.description || 'No description provided'}
                             </p>
                           )}
-                          <div className="flex items-center text-xs text-[var(--accent-primary)]">
+                          <div className="flex items-center text-xs text-purple-600 dark:text-purple-400">
                             <span className="mr-4">
                               {coursePodcasts.length} podcast{coursePodcasts.length !== 1 ? 's' : ''}
                             </span>
@@ -1349,9 +1349,9 @@ export default function ContentUpload() {
                       </div>
                       <div className="flex items-center">
                         {isExpanded ? (
-                          <ChevronDown className="h-5 w-5 text-[var(--text-tertiary)]" />
+                          <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                         ) : (
-                          <ChevronRight className="h-5 w-5 text-[var(--text-tertiary)]" />
+                          <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                         )}
                       </div>
                     </div>
@@ -1359,33 +1359,33 @@ export default function ContentUpload() {
                   
                   {/* Course Content (Expanded View) */}
                   {isExpanded && (
-                    <div className="px-6 pb-6 border-t border-[var(--border-color)]">
+                    <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700">
                       <div className="pt-4">
                         {/* Podcasts Section */}
                         {coursePodcasts.length > 0 && (
                           <div className="mb-4">
-                            <h4 className="text-sm font-medium text-[var(--accent-primary)] mb-2 flex items-center">
+                            <h4 className="text-sm font-medium text-purple-600 mb-2 flex items-center dark:text-purple-400">
                               <Headphones className="h-4 w-4 mr-2" />
                               Podcasts ({coursePodcasts.length})
                             </h4>
                             <div className="space-y-2">
                               {coursePodcasts.map((podcast) => (
-                                <div key={podcast.id} className="flex items-center p-3 bg-[var(--background-tertiary)] rounded-lg">
-                                  <Music className="h-4 w-4 text-[var(--accent-primary)] mr-3" />
+                                <div key={podcast.id} className="flex items-center p-3 bg-gray-100 rounded-lg dark:bg-gray-700">
+                                  <Music className="h-4 w-4 text-purple-600 mr-3 dark:text-purple-400" />
                                   <div className="flex-1 min-w-0">
                                     {editingContentId === podcast.id ? (
                                       <input
                                         type="text"
                                         value={editingContentData.title || ''}
                                         onChange={(e) => setEditingContentData({...editingContentData, title: e.target.value})}
-                                        className="w-full px-2 py-1 text-sm border border-[var(--border-color)] rounded bg-[var(--background-secondary)] text-[var(--text-primary)]"
+                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded bg-white text-black dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                         placeholder="Content title"
                                       />
                                     ) : (
-                                      <p className="text-sm text-[var(--text-primary)] truncate">{podcast.title}</p>
+                                      <p className="text-sm text-black truncate dark:text-white">{podcast.title}</p>
                                     )}
                                     {podcast.is_youtube_video && (
-                                      <p className="text-xs text-[var(--text-tertiary)">YouTube Video</p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">YouTube Video</p>
                                     )}
                                   </div>
                                   <div className="flex space-x-2">
@@ -1456,7 +1456,7 @@ export default function ContentUpload() {
                             </h4>
                             <div className="space-y-2">
                               {coursePDFs.filter(pdf => pdf.content_type === 'docs').map((pdf) => (
-                                <div key={pdf.id} className="flex items-center p-3 bg-[var(--background-tertiary)] rounded-lg">
+                                <div key={pdf.id} className="flex items-center p-3 bg-gray-100 rounded-lg dark:bg-gray-700">
                                   <FileText className="h-4 w-4 text-blue-500 mr-3" />
                                   <div className="flex-1 min-w-0">
                                     {editingContentId === pdf.id ? (
@@ -1464,11 +1464,11 @@ export default function ContentUpload() {
                                         type="text"
                                         value={editingContentData.title || ''}
                                         onChange={(e) => setEditingContentData({...editingContentData, title: e.target.value})}
-                                        className="w-full px-2 py-1 text-sm border border-[var(--border-color)] rounded bg-[var(--background-secondary)] text-[var(--text-primary)]"
+                                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded bg-white text-black dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                                         placeholder="Content title"
                                       />
                                     ) : (
-                                      <p className="text-sm text-[var(--text-primary)] truncate">
+                                      <p className="text-sm text-black truncate dark:text-white">
                                         {pdf?.title || 'Untitled Document'}
                                       </p>
                                     )}
@@ -1529,10 +1529,10 @@ export default function ContentUpload() {
                             </h4>
                             <div className="space-y-2">
                               {coursePDFs.filter(pdf => pdf.content_type === 'images').map((pdf) => (
-                                <div key={pdf.id} className="flex items-center p-3 bg-[var(--background-tertiary)] rounded-lg">
+                                <div key={pdf.id} className="flex items-center p-3 bg-gray-100 rounded-lg dark:bg-gray-700">
                                   <Image className="h-4 w-4 text-green-500 mr-3" />
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-[var(--text-primary)] truncate">
+                                    <p className="text-sm text-black truncate dark:text-white">
                                       {pdf?.title || 'Untitled Image'}
                                     </p>
                                   </div>
@@ -1567,10 +1567,10 @@ export default function ContentUpload() {
                             </h4>
                             <div className="space-y-2">
                               {coursePDFs.filter(pdf => pdf.content_type === 'templates').map((pdf) => (
-                                <div key={pdf.id} className="flex items-center p-3 bg-[var(--background-tertiary)] rounded-lg">
+                                <div key={pdf.id} className="flex items-center p-3 bg-gray-100 rounded-lg dark:bg-gray-700">
                                   <FileText className="h-4 w-4 text-yellow-500 mr-3" />
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-[var(--text-primary)] truncate">
+                                    <p className="text-sm text-black truncate dark:text-white">
                                       {pdf?.title || 'Untitled Template'}
                                     </p>
                                   </div>
@@ -1605,10 +1605,10 @@ export default function ContentUpload() {
                             </h4>
                             <div className="space-y-2">
                               {coursePDFs.filter(pdf => pdf.content_type === 'quizzes').map((pdf) => (
-                                <div key={pdf.id} className="flex items-center p-3 bg-[var(--background-tertiary)] rounded-lg">
+                                <div key={pdf.id} className="flex items-center p-3 bg-gray-100 rounded-lg dark:bg-gray-700">
                                   <FileText className="h-4 w-4 text-purple-500 mr-3" />
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-[var(--text-primary)] truncate">
+                                    <p className="text-sm text-black truncate dark:text-white">
                                       {pdf?.title || 'Untitled Quiz'}
                                     </p>
                                   </div>
@@ -1639,7 +1639,7 @@ export default function ContentUpload() {
                          coursePDFs.filter(pdf => pdf.content_type === 'images').length === 0 && 
                          coursePDFs.filter(pdf => pdf.content_type === 'templates').length === 0 && 
                          coursePDFs.filter(pdf => pdf.content_type === 'quizzes').length === 0 && (
-                          <div className="text-center py-4 text-[var(--text-tertiary)]">
+                          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
                             <p className="text-sm">No content uploaded yet</p>
                             <button
                               onClick={() => {
@@ -1734,7 +1734,7 @@ export default function ContentUpload() {
             <h2 className="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">
               Content Upload
             </h2>
-            <p className="mt-1 text-sm text-[var(--text-tertiary)]">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Manage and upload learning content across different categories
             </p>
           </div>
@@ -1755,7 +1755,7 @@ export default function ContentUpload() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-[var(--background-secondary)] overflow-hidden shadow rounded-lg border border-[var(--border-color)]">
+          <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -1765,15 +1765,15 @@ export default function ContentUpload() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-[var(--text-tertiary)] truncate">Total Courses</dt>
-                    <dd className="text-2xl font-semibold text-white">{totalCourses}</dd>
+                    <dt className="text-sm font-medium text-gray-500 truncate dark:text-gray-400">Total Courses</dt>
+                    <dd className="text-2xl font-semibold text-black dark:text-white">{totalCourses}</dd>
                   </dl>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-[var(--background-secondary)] overflow-hidden shadow rounded-lg border border-[var(--border-color)]">
+          <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -1783,15 +1783,15 @@ export default function ContentUpload() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-[var(--text-tertiary)] truncate">Podcasts</dt>
-                    <dd className="text-2xl font-semibold text-white">{totalPodcasts}</dd>
+                    <dt className="text-sm font-medium text-gray-500 truncate dark:text-gray-400">Podcasts</dt>
+                    <dd className="text-2xl font-semibold text-black dark:text-white">{totalPodcasts}</dd>
                   </dl>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-[var(--background-secondary)] overflow-hidden shadow rounded-lg border border-[var(--border-color)]">
+          <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -1801,8 +1801,8 @@ export default function ContentUpload() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-[var(--text-tertiary)] truncate">Documents</dt>
-                    <dd className="text-2xl font-semibold text-white">{totalDocuments}</dd>
+                    <dt className="text-sm font-medium text-gray-500 truncate dark:text-gray-400">Documents</dt>
+                    <dd className="text-2xl font-semibold text-black dark:text-white">{totalDocuments}</dd>
                   </dl>
                 </div>
               </div>
@@ -1813,7 +1813,7 @@ export default function ContentUpload() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Add New Course Form */}
           <div className="lg:col-span-1">
-            <div className="bg-[var(--background-secondary)] shadow rounded-lg p-6 mb-6 border border-[var(--border-color)]">
+            <div className="bg-white shadow rounded-lg p-6 mb-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
               <h3 className="text-lg font-medium text-white mb-4">Add New Course</h3>
               <div className="space-y-4">
                 <div>
@@ -1825,7 +1825,7 @@ export default function ContentUpload() {
                     id="course-title"
                     value={newCourseTitle}
                     onChange={(e) => setNewCourseTitle(e.target.value)}
-                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                     placeholder="Enter course title"
                   />
                 </div>
@@ -1838,13 +1838,13 @@ export default function ContentUpload() {
                     id="course-level"
                     value={newCourseLevel}
                     onChange={(e) => setNewCourseLevel(e.target.value as 'Basics' | 'Intermediate' | 'Advanced')}
-                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="Basics">Basic</option>
                     <option value="Intermediate">Intermediate</option>
                     <option value="Advanced">Advanced</option>
                   </select>
-                  <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Select the difficulty level for this course
                   </p>
                 </div>
@@ -1859,10 +1859,10 @@ export default function ContentUpload() {
                     value={newCourseDescription}
                     onChange={(e) => setNewCourseDescription(e.target.value)}
                     rows={3}
-                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                     placeholder="Enter course description"
                   />
-                  <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Provide a detailed description of this course
                   </p>
                 </div>
@@ -1874,7 +1874,7 @@ export default function ContentUpload() {
                       setNewCourseTitle('');
                       setNewCourseLevel('Basics');
                     }}
-                    className="flex-1 py-2 px-4 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-white bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
+                    className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black bg-gray-100 hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-purple-500"
                   >
                     Clear
                   </button>
@@ -1882,7 +1882,7 @@ export default function ContentUpload() {
                     type="button"
                     onClick={handleCreateCourse}
                     disabled={!newCourseTitle.trim()}
-                    className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-700 dark:hover:bg-purple-600"
                   >
                     Add Course
                   </button>
@@ -1893,7 +1893,7 @@ export default function ContentUpload() {
 
           {/* Courses List */}
           <div className="lg:col-span-2">
-            <div className="bg-[var(--background-secondary)] shadow rounded-lg p-6 border border-[var(--border-color)]">
+            <div className="bg-white shadow rounded-lg p-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
               <h3 className="text-lg font-medium text-white mb-4">Upload Content</h3>
               <form className="space-y-4">
                 <div>
@@ -1904,7 +1904,7 @@ export default function ContentUpload() {
                     id="course"
                     value={selectedCourse}
                     onChange={(e) => setSelectedCourse(e.target.value)}
-                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="">Choose a course...</option>
                     {supabaseData.courses.map((course: any) => (
@@ -1923,7 +1923,7 @@ export default function ContentUpload() {
                     id="content-type"
                     value={contentType}
                     onChange={(e) => setContentType(e.target.value as 'audio' | 'video' | 'docs' | 'images' | 'templates' | 'quizzes')}
-                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="audio">Audio</option>
                     <option value="video">Video</option>
@@ -1932,7 +1932,7 @@ export default function ContentUpload() {
                     <option value="templates">Templates</option>
                     <option value="quizzes">Quizzes</option>
                   </select>
-                  <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     {contentType === 'audio' 
                       ? 'Audio files (.mp3, .wav, .aac, .m4a)' 
                       : contentType === 'video'
@@ -1956,7 +1956,7 @@ export default function ContentUpload() {
                     id="title"
                     value={contentTitle}
                     onChange={(e) => setContentTitle(e.target.value)}
-                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                     placeholder="Enter content title"
                   />
                 </div>
@@ -1970,7 +1970,7 @@ export default function ContentUpload() {
                     rows={3}
                     value={contentDescription}
                     onChange={(e) => setContentDescription(e.target.value)}
-                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                     placeholder="Enter content description"
                   />
                 </div>
@@ -1987,7 +1987,7 @@ export default function ContentUpload() {
                       setYoutubeUrl('');
                       setSelectedCourse('');
                     }}
-                    className="flex-1 py-2 px-4 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-white bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
+                    className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black bg-gray-100 hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-purple-500"
                   >
                     Clear
                   </button>
@@ -2002,7 +2002,7 @@ export default function ContentUpload() {
                       (contentType === 'video' && !youtubeUrl) || 
                       ((contentType === 'docs' || contentType === 'images' || contentType === 'templates' || contentType === 'quizzes') && !selectedFile)
                     }
-                    className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-700 dark:hover:bg-purple-600"
                   >
                     {isUploading ? 'Uploading...' : 'Upload'}
                   </button>
@@ -2018,9 +2018,9 @@ export default function ContentUpload() {
         </div>
 
         {/* Create Assignment Section */}
-        <div className="bg-[var(--background-secondary)] shadow rounded-lg p-6 border border-[var(--border-color)]">
+        <div className="bg-white shadow rounded-lg p-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
           <h3 className="text-lg font-medium text-white mb-6">Create Assignment</h3>
-          <p className="text-sm text-[var(--text-tertiary)] mb-6">Assign Content to Organization and Set Learning Objectives</p>
+          <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">Assign Content to Organization and Set Learning Objectives</p>
           
           <div className="space-y-6">
             <div>
@@ -2032,7 +2032,7 @@ export default function ContentUpload() {
                 id="assignment-title"
                 value={assignmentTitle}
                 onChange={(e) => setAssignmentTitle(e.target.value)}
-                className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                 placeholder="Enter assignment title"
               />
             </div>
@@ -2046,7 +2046,7 @@ export default function ContentUpload() {
                 rows={3}
                 value={assignmentDescription}
                 onChange={(e) => setAssignmentDescription(e.target.value)}
-                className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                 placeholder="Enter assignment description and learning objectives"
               />
             </div>
@@ -2061,7 +2061,7 @@ export default function ContentUpload() {
                   id="company"
                   value={selectedCompanyId}
                   onChange={(e) => setSelectedCompanyId(e.target.value)}
-                  className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="">Choose a company...</option>
                   {supabaseData.companies?.map((company: any) => (
@@ -2081,7 +2081,7 @@ export default function ContentUpload() {
                   id="admin"
                   value={selectedAdminId}
                   onChange={(e) => setSelectedAdminId(e.target.value)}
-                  className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                   disabled={!selectedCompanyId}
                 >
                   <option value="">Choose an admin...</option>
@@ -2104,7 +2104,7 @@ export default function ContentUpload() {
                   id="assignment-course"
                   value={assignmentSelectedCourse}
                   onChange={(e) => setAssignmentSelectedCourse(e.target.value)}
-                  className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-white"
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                   disabled={!selectedCompanyId}
                 >
                   <option value="">Choose a course...</option>
@@ -2123,28 +2123,28 @@ export default function ContentUpload() {
                 <label className="block text-sm font-medium text-white mb-2">
                   Select Content *
                 </label>
-                <div className="border border-[var(--border-color)] rounded-md bg-[var(--background-tertiary)] max-h-64 overflow-y-auto">
+                <div className="border border-gray-300 rounded-md bg-gray-100 max-h-64 overflow-y-auto dark:border-gray-600 dark:bg-gray-700">
                   {courseHierarchy.filter(course => !assignmentSelectedCourse || course.id === assignmentSelectedCourse).length > 0 ? (
                     <div className="divide-y divide-[#333333]">
                       {courseHierarchy.map((course) => (
-                        <div key={course.id} className="border-b border-[var(--border-color)]">
+                        <div key={course.id} className="border-b border-gray-300 dark:border-gray-600">
                           {/* Course Header */}
                           <div 
-                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-[var(--background-secondary)]"
+                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-white dark:hover:bg-gray-800"
                             onClick={() => toggleCourseExpansion(course.id)}
                           >
                             <div className="flex items-center">
                               <div className="mr-2">
                                 {expandedCourses[course.id] ? (
-                                  <ChevronDown className="h-4 w-4 text-[var(--text-tertiary)]" />
+                                  <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                                 ) : (
-                                  <ChevronRight className="h-4 w-4 text-[var(--text-tertiary)]" />
+                                  <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                                 )}
                               </div>
-                              <BookOpen className="h-4 w-4 text-[var(--accent-primary)] mr-2" />
+                              <BookOpen className="h-4 w-4 text-purple-600 mr-2" />
                               <span className="text-sm font-medium text-white">{course.title}</span>
                             </div>
-                            <span className="text-xs text-[var(--text-tertiary)]">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
                               {course.totalContent} items
                             </span>
                           </div>
@@ -2155,7 +2155,7 @@ export default function ContentUpload() {
                               {/* Podcasts Section */}
                               {course.coursePodcasts.length > 0 && (
                                 <div className="mb-3">
-                                  <h5 className="text-xs font-medium text-[var(--accent-primary)] mb-2 flex items-center">
+                                  <h5 className="text-xs font-medium text-purple-400 mb-2 flex items-center">
                                     <Headphones className="h-3 w-3 mr-1" />
                                     Podcasts ({course.coursePodcasts.length})
                                   </h5>
@@ -2166,7 +2166,7 @@ export default function ContentUpload() {
                                         <div
                                           key={podcast.id}
                                           className={`flex items-center p-1 rounded cursor-pointer transition-colors ${
-                                            isSelected ? 'bg-blue-900/30' : 'hover:bg-[var(--background-tertiary)]'
+                                            isSelected ? 'bg-blue-900/30' : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                                           }`}
                                           onClick={() => {
                                             setSelectedCourses(prev => 
@@ -2182,7 +2182,7 @@ export default function ContentUpload() {
                                             onChange={() => {}}
                                             className="h-3 w-3 text-blue-600 mr-2"
                                           />
-                                          <Music className="h-3 w-3 text-[var(--accent-primary)] mr-1" />
+                                          <Music className="h-3 w-3 text-purple-600 mr-1" />
                                           <span className="text-xs text-white">{podcast.title}</span>
                                         </div>
                                       );
@@ -2205,7 +2205,7 @@ export default function ContentUpload() {
                                         <div
                                           key={pdf.id}
                                           className={`flex items-center p-1 rounded cursor-pointer transition-colors ${
-                                            isSelected ? 'bg-purple-900/30' : 'bg-[var(--background-secondary)] hover:bg-[var(--background-tertiary)]'
+                                            isSelected ? 'bg-purple-900/30' : 'bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
                                           }`}
                                           onClick={() => {
                                             setSelectedCourses(prev => 
@@ -2231,7 +2231,7 @@ export default function ContentUpload() {
                               )}
                               
                               {course.totalContent === 0 && (
-                                <p className="text-center text-[var(--text-tertiary)] py-2 text-xs">No content available</p>
+                                <p className="text-center text-gray-500 py-2 text-xs dark:text-gray-400">No content available</p>
                               )}
                             </div>
                           )}
@@ -2239,13 +2239,13 @@ export default function ContentUpload() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-4 text-[var(--text-tertiary)] text-sm">
+                    <div className="text-center py-4 text-gray-500 text-sm dark:text-gray-400">
                       {assignmentSelectedCourse ? 'No content available for selected course' : 'No content available. Upload content first.'}
                     </div>
                   )}
                 </div>
                 {selectedCourses.length > 0 && (
-                  <p className="mt-2 text-sm text-[var(--accent-primary)]">
+                  <p className="mt-2 text-sm text-purple-600">
                     {selectedCourses.length} item(s) selected
                   </p>
                 )}
@@ -2263,7 +2263,7 @@ export default function ContentUpload() {
                   setAssignmentSelectedCourse('');
                   setSelectedCourses([]);
                 }}
-                className="flex-1 px-4 py-2 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-white bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black bg-gray-100 hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-purple-500"
               >
                 Clear
               </button>
@@ -2271,7 +2271,7 @@ export default function ContentUpload() {
                 type="button"
                 onClick={handleCreateAssignment}
                 disabled={!assignmentTitle || !selectedCompanyId || selectedCourses.length === 0}
-                className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-700 dark:hover:bg-purple-600"
               >
                 Create Assignment
               </button>

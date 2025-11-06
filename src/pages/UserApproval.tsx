@@ -263,17 +263,17 @@ export default function UserApproval() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="md:flex md:items-center md:justify-between mb-6">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-[var(--text-primary)] sm:text-3xl sm:truncate">
+            <h2 className="text-2xl font-bold leading-7 text-black sm:text-3xl sm:truncate dark:text-white">
               User Approval Management
             </h2>
-            <p className="mt-1 text-sm text-[var(--text-tertiary)]">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Review and approve user registrations
             </p>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
             <button
               onClick={() => window.history.back()}
-              className="inline-flex items-center px-4 py-2 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--background-secondary)] hover:bg-[var(--background-tertiary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-purple-500"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
               Back
@@ -284,19 +284,19 @@ export default function UserApproval() {
         {/* Filters */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-[var(--text-tertiary)] pointer-events-none" />
+            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-gray-500 pointer-events-none dark:text-gray-400" />
             <input
               type="text"
               placeholder="Search registrations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-[var(--border-color)] rounded-md leading-5 bg-[var(--background-tertiary)] placeholder-[var(--text-tertiary)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)]"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-gray-100 placeholder-gray-500 text-black focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
             />
           </div>
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 border border-[var(--border-color)] rounded-md bg-[var(--background-tertiary)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)]"
+            className="px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-black focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:ring-purple-500 dark:focus:border-purple-500"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -308,12 +308,12 @@ export default function UserApproval() {
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {[
-            { title: 'Total Registrations', value: registrations.length, icon: User, color: 'bg-[var(--accent-primary)]' },
+            { title: 'Total Registrations', value: registrations.length, icon: User, color: 'bg-purple-600' },
             { title: 'Pending Approval', value: registrations.filter(r => r.status === 'pending').length, icon: Clock, color: 'bg-yellow-500' },
             { title: 'Approved', value: registrations.filter(r => r.status === 'approved').length, icon: CheckCircle, color: 'bg-green-500' },
             { title: 'Rejected', value: registrations.filter(r => r.status === 'rejected').length, icon: XCircle, color: 'bg-red-500' }
           ].map((card, index) => (
-            <div key={index} className="bg-[var(--background-secondary)] overflow-hidden shadow rounded-lg border border-[var(--border-color)]">
+            <div key={index} className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -323,8 +323,8 @@ export default function UserApproval() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-[var(--text-tertiary)] truncate">{card.title}</dt>
-                      <dd className="text-2xl font-semibold text-[var(--text-primary)]">{card.value}</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate dark:text-gray-400">{card.title}</dt>
+                      <dd className="text-2xl font-semibold text-black dark:text-white">{card.value}</dd>
                     </dl>
                   </div>
                 </div>
@@ -334,23 +334,23 @@ export default function UserApproval() {
         </div>
 
         {/* Registrations List */}
-        <div className="bg-[var(--background-secondary)] shadow overflow-hidden sm:rounded-md border border-[var(--border-color)]">
-          <div className="px-4 py-5 sm:px-6 border-b border-[var(--border-color)]">
-            <h3 className="text-lg leading-6 font-medium text-[var(--text-primary)]">User Registrations</h3>
-            <p className="mt-1 max-w-2xl text-sm text-[var(--text-tertiary)]">Review and approve user profile registrations</p>
+        <div className="bg-white shadow overflow-hidden sm:rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg leading-6 font-medium text-black dark:text-white">User Registrations</h3>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Review and approve user profile registrations</p>
           </div>
           {filteredRegistrations.length > 0 ? (
-            <ul className="divide-y divide-[var(--border-color)]">
+            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
               {filteredRegistrations.map((registration) => (
-                <li key={registration.id} className="px-4 py-4 hover:bg-[var(--background-tertiary)]">
+                <li key={registration.id} className="px-4 py-4 hover:bg-gray-100 dark:hover:bg-gray-700">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="h-12 w-12 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center">
-                        <User className="h-6 w-6 text-[var(--accent-primary)]" />
+                      <div className="h-12 w-12 rounded-full bg-purple-600/20 flex items-center justify-center">
+                        <User className="h-6 w-6 text-purple-600" />
                       </div>
                       <div className="ml-4">
                         <div className="flex items-center">
-                          <p className="text-lg font-medium text-[var(--text-primary)]">
+                          <p className="text-lg font-medium text-black dark:text-white">
                             {registration.full_name || registration.email}
                           </p>
                           <span className={`ml-2 ${getStatusBadge(registration.status)}`}>
@@ -359,18 +359,18 @@ export default function UserApproval() {
                           </span>
                         </div>
                         <div className="flex items-center mt-1 space-x-4">
-                          <div className="flex items-center text-sm text-[var(--text-tertiary)]">
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                             <Mail className="h-4 w-4 mr-1" />
                             {registration.email}
                           </div>
                           {registration.phone && (
-                            <div className="flex items-center text-sm text-[var(--text-tertiary)]">
+                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                               <Phone className="h-4 w-4 mr-1" />
                               {registration.phone}
                             </div>
                           )}
                           {registration.department && (
-                            <div className="flex items-center text-sm text-[var(--text-tertiary)]">
+                            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                               <Building2 className="h-4 w-4 mr-1" />
                               {registration.department}
                             </div>
@@ -380,8 +380,8 @@ export default function UserApproval() {
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="text-center">
-                        <p className="text-sm font-medium text-[var(--text-tertiary)]">Registered</p>
-                        <p className="text-sm text-[var(--text-primary)]">
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Registered</p>
+                        <p className="text-sm text-black dark:text-white">
                           {new Date(registration.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -405,7 +405,7 @@ export default function UserApproval() {
               ))}
             </ul>
           ) : (
-            <div className="px-6 py-8 text-center text-[var(--text-tertiary)]">
+            <div className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
               {registrations.length === 0 ? 'No registrations found.' : 'No registrations match your search.'}
             </div>
           )}
@@ -414,15 +414,15 @@ export default function UserApproval() {
         {/* Approval Modal */}
         {isApprovalModalOpen && selectedRegistration && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-[var(--background-secondary)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[var(--border-color)]">
-              <div className="flex items-center justify-between p-6 border-b border-[var(--border-color)]">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center">
-                  <UserCheck className="h-6 w-6 text-[var(--accent-primary)] mr-2" />
-                  <h2 className="text-xl font-semibold text-[var(--text-primary)]">Review Registration</h2>
+                  <UserCheck className="h-6 w-6 text-purple-600 mr-2" />
+                  <h2 className="text-xl font-semibold text-black dark:text-white">Review Registration</h2>
                 </div>
                 <button
                   onClick={() => setIsApprovalModalOpen(false)}
-                  className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] focus:outline-none"
+                  className="text-gray-500 hover:text-black focus:outline-none dark:text-gray-400 dark:hover:text-white"
                 >
                   ×
                 </button>
@@ -430,45 +430,45 @@ export default function UserApproval() {
 
               <div className="p-6 space-y-6">
                 {/* User Information */}
-                <div className="bg-[var(--background-tertiary)] rounded-lg p-4">
-                  <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">User Information</h3>
+                <div className="bg-gray-100 rounded-lg p-4 dark:bg-gray-700">
+                  <h3 className="text-lg font-medium text-black mb-4 dark:text-white">User Information</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-[var(--text-tertiary)]">Name:</span>
-                      <p className="text-[var(--text-primary)]">{selectedRegistration.full_name}</p>
+                      <span className="text-gray-500 dark:text-gray-400">Name:</span>
+                      <p className="text-black dark:text-white">{selectedRegistration.full_name}</p>
                     </div>
                     <div>
-                      <span className="text-[var(--text-tertiary)]">Email:</span>
-                      <p className="text-[var(--text-primary)]">{selectedRegistration.email}</p>
+                      <span className="text-gray-500 dark:text-gray-400">Email:</span>
+                      <p className="text-black dark:text-white">{selectedRegistration.email}</p>
                     </div>
                     <div>
-                      <span className="text-[var(--text-tertiary)]">Phone:</span>
-                      <p className="text-[var(--text-primary)]">{selectedRegistration.phone || 'Not provided'}</p>
+                      <span className="text-gray-500 dark:text-gray-400">Phone:</span>
+                      <p className="text-black dark:text-white">{selectedRegistration.phone || 'Not provided'}</p>
                     </div>
                     <div>
-                      <span className="text-[var(--text-tertiary)]">Department:</span>
-                      <p className="text-[var(--text-primary)]">{selectedRegistration.department || 'Not provided'}</p>
+                      <span className="text-gray-500 dark:text-gray-400">Department:</span>
+                      <p className="text-black dark:text-white">{selectedRegistration.department || 'Not provided'}</p>
                     </div>
                     <div>
-                      <span className="text-[var(--text-tertiary)]">Position:</span>
-                      <p className="text-[var(--text-primary)]">{selectedRegistration.position || 'Not provided'}</p>
+                      <span className="text-gray-500 dark:text-gray-400">Position:</span>
+                      <p className="text-black dark:text-white">{selectedRegistration.position || 'Not provided'}</p>
                     </div>
                     <div>
-                      <span className="text-[var(--text-tertiary)]">Employee ID:</span>
-                      <p className="text-[var(--text-primary)]">{selectedRegistration.employee_id || 'Not provided'}</p>
+                      <span className="text-gray-500 dark:text-gray-400">Employee ID:</span>
+                      <p className="text-black dark:text-white">{selectedRegistration.employee_id || 'Not provided'}</p>
                     </div>
                   </div>
                   {selectedRegistration.bio && (
                     <div className="mt-4">
-                      <span className="text-[var(--text-tertiary)]">Bio:</span>
-                      <p className="text-[var(--text-primary)] mt-1">{selectedRegistration.bio}</p>
+                      <span className="text-gray-500 dark:text-gray-400">Bio:</span>
+                      <p className="text-black mt-1 dark:text-white">{selectedRegistration.bio}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Approval Options */}
                 <div>
-                  <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">Approval Decision</h3>
+                  <h3 className="text-lg font-medium text-black mb-4 dark:text-white">Approval Decision</h3>
                   <div className="space-y-3">
                     <label className="flex items-center">
                       <input
@@ -477,9 +477,9 @@ export default function UserApproval() {
                         value="regular"
                         checked={approvalAction === 'regular'}
                         onChange={(e) => setApprovalAction(e.target.value as any)}
-                        className="h-4 w-4 text-[var(--accent-primary)] focus:ring-[var(--accent-primary)] border-[var(--border-color)]"
+                        className="h-4 w-4 text-purple-600 focus:ring-purple-600 border-gray-300 dark:border-gray-600"
                       />
-                      <span className="ml-3 text-[var(--text-primary)]">Approve as Regular User</span>
+                      <span className="ml-3 text-black dark:text-white">Approve as Regular User</span>
                     </label>
                     
                     <label className="flex items-center">
@@ -489,9 +489,9 @@ export default function UserApproval() {
                         value="company"
                         checked={approvalAction === 'company'}
                         onChange={(e) => setApprovalAction(e.target.value as any)}
-                        className="h-4 w-4 text-[var(--accent-primary)] focus:ring-[var(--accent-primary)] border-[var(--border-color)]"
+                        className="h-4 w-4 text-purple-600 focus:ring-purple-600 border-gray-300 dark:border-gray-600"
                       />
-                      <span className="ml-3 text-[var(--text-primary)]">Approve and Assign to Company</span>
+                      <span className="ml-3 text-black dark:text-white">Approve and Assign to Company</span>
                     </label>
                     
                     <label className="flex items-center">
@@ -501,9 +501,9 @@ export default function UserApproval() {
                         value="reject"
                         checked={approvalAction === 'reject'}
                         onChange={(e) => setApprovalAction(e.target.value as any)}
-                        className="h-4 w-4 text-red-500 focus:ring-red-500 border-[var(--border-color)]"
+                        className="h-4 w-4 text-red-500 focus:ring-red-500 border-gray-300 dark:border-gray-600"
                       />
-                      <span className="ml-3 text-[var(--text-primary)]">Reject Registration</span>
+                      <span className="ml-3 text-black dark:text-white">Reject Registration</span>
                     </label>
                   </div>
                 </div>
@@ -511,13 +511,13 @@ export default function UserApproval() {
                 {/* Company Selection */}
                 {approvalAction === 'company' && (
                   <div>
-                    <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                    <label className="block text-sm font-medium text-black mb-2 dark:text-white">
                       Select Company *
                     </label>
                     <select
                       value={selectedCompanyId}
                       onChange={(e) => setSelectedCompanyId(e.target.value)}
-                      className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                     >
                       <option value="">Choose a company...</option>
                       {companies.map((company) => (
@@ -531,24 +531,24 @@ export default function UserApproval() {
 
                 {/* Notes */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                  <label className="block text-sm font-medium text-black mb-2 dark:text-white">
                     Notes (Optional)
                   </label>
                   <textarea
                     rows={3}
                     value={approvalNotes}
                     onChange={(e) => setApprovalNotes(e.target.value)}
-                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
                     placeholder="Add any notes about this approval decision..."
                   />
                 </div>
 
                 {/* Form Actions */}
-                <div className="flex justify-end space-x-3 pt-6 border-t border-[var(--border-color)]">
+                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     type="button"
                     onClick={() => setIsApprovalModalOpen(false)}
-                    className="px-4 py-2 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--background-tertiary)] hover:bg-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
+                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-purple-500"
                   >
                     Cancel
                   </button>
@@ -556,10 +556,10 @@ export default function UserApproval() {
                     type="button"
                     onClick={handleApproval}
                     disabled={isProcessing || (approvalAction === 'company' && !selectedCompanyId)}
-                    className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
+                    className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-black focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 dark:text-white ${
                       approvalAction === 'reject' 
                         ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' 
-                        : 'bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] focus:ring-[var(--accent-primary)]'
+                        : 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500'
                     }`}
                   >
                     {isProcessing ? 'Processing...' : 

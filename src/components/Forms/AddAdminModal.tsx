@@ -374,15 +374,15 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-[var(--background-secondary)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[var(--border-color)]">
+        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-[var(--text-primary)]">
+              <h2 className="text-xl font-bold text-black dark:text-white">
                 Add New Admin
               </h2>
               <button
                 onClick={onClose}
-                className="text-[var(--text-primary)] hover:text-[var(--text-secondary)]"
+                className="text-black hover:text-gray-700 dark:text-white dark:hover:text-gray-300"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -390,7 +390,7 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="adminEmail" className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+                <label htmlFor="adminEmail" className="block text-sm font-medium text-black mb-1 dark:text-white">
                   Email Address
                 </label>
                 <input
@@ -398,16 +398,16 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
                   id="adminEmail"
                   value={formData.adminEmail}
                   onChange={(e) => handleInputChange('adminEmail', e.target.value)}
-                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
-                    errors.adminEmail ? 'border-red-500' : 'border-[var(--border-color)]'
-                  }`}
+                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black ${
+                    errors.adminEmail ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } dark:bg-gray-700 dark:text-white`}
                   placeholder="admin@example.com"
                 />
                 {errors.adminEmail && <p className="mt-1 text-sm text-red-400">{errors.adminEmail}</p>}
               </div>
 
               <div>
-                <label htmlFor="adminName" className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+                <label htmlFor="adminName" className="block text-sm font-medium text-black mb-1 dark:text-white">
                   Full Name
                 </label>
                 <input
@@ -415,16 +415,16 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
                   id="adminName"
                   value={formData.adminName}
                   onChange={(e) => handleInputChange('adminName', e.target.value)}
-                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
-                    errors.adminName ? 'border-red-500' : 'border-[var(--border-color)]'
-                  }`}
+                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black ${
+                    errors.adminName ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } dark:bg-gray-700 dark:text-white`}
                   placeholder="John Doe"
                 />
                 {errors.adminName && <p className="mt-1 text-sm text-red-400">{errors.adminName}</p>}
               </div>
 
               <div>
-                <label htmlFor="adminPhone" className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+                <label htmlFor="adminPhone" className="block text-sm font-medium text-black mb-1 dark:text-white">
                   Phone Number
                 </label>
                 <input
@@ -432,22 +432,22 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
                   id="adminPhone"
                   value={formData.adminPhone}
                   onChange={(e) => handleInputChange('adminPhone', e.target.value)}
-                  className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   placeholder="+1-555-0123"
                 />
               </div>
 
               <div>
-                <label htmlFor="companyId" className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+                <label htmlFor="companyId" className="block text-sm font-medium text-black mb-1 dark:text-white">
                   Company
                 </label>
                 <select
                   id="companyId"
                   value={formData.companyId}
                   onChange={(e) => handleInputChange('companyId', e.target.value)}
-                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
-                    errors.companyId ? 'border-red-500' : 'border-[var(--border-color)]'
-                  }`}
+                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black ${
+                    errors.companyId ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } dark:bg-gray-700 dark:text-white`}
                 >
                   <option value="">Select a company</option>
                   {companies.map((company) => (
@@ -460,7 +460,7 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
               </div>
 
               <div>
-                <label htmlFor="department" className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+                <label htmlFor="department" className="block text-sm font-medium text-black mb-1 dark:text-white">
                   Department
                 </label>
                 <input
@@ -468,9 +468,9 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
                   id="department"
                   value={formData.department}
                   onChange={(e) => handleInputChange('department', e.target.value)}
-                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
-                    errors.department ? 'border-red-500' : 'border-[var(--border-color)]'
-                  }`}
+                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black ${
+                    errors.department ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  } dark:bg-gray-700 dark:text-white`}
                   placeholder="e.g., IT, HR, Sales"
                 />
                 {errors.department && <p className="mt-1 text-sm text-red-400">{errors.department}</p>}
@@ -480,14 +480,14 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
+                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-600"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreatingUser}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)] disabled:opacity-50"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 dark:bg-purple-700 dark:hover:bg-purple-600"
                 >
                   {isCreatingUser ? 'Creating...' : 'Create Admin'}
                 </button>
@@ -500,16 +500,16 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
       {/* Password Display Modal */}
       {showPasswordModal && generatedPassword && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60 p-4">
-          <div className="bg-[var(--background-secondary)] rounded-lg shadow-xl max-w-md w-full border border-[var(--border-color)]">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
             <div className="p-6">
-              <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">Admin Created Successfully!</h3>
-              <div className="bg-[var(--background-tertiary)] border border-[var(--border-color)] rounded-lg p-4 mb-4">
-                <p className="text-sm text-[var(--text-tertiary)] mb-2">Temporary Password:</p>
-                <div className="flex items-center justify-between bg-[var(--background-secondary)] border border-[var(--border-color)] rounded p-3">
-                  <code className="text-[var(--text-primary)] font-mono text-lg">{generatedPassword}</code>
+              <h3 className="text-lg font-medium text-black mb-4 dark:text-white">Admin Created Successfully!</h3>
+              <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4 dark:bg-gray-700 dark:border-gray-600">
+                <p className="text-sm text-gray-500 mb-2 dark:text-gray-400">Temporary Password:</p>
+                <div className="flex items-center justify-between bg-white border border-gray-300 rounded p-3 dark:bg-gray-800 dark:border-gray-600">
+                  <code className="text-black font-mono text-lg dark:text-white">{generatedPassword}</code>
                   <button
                     onClick={() => copyToClipboard(generatedPassword)}
-                    className="ml-2 px-3 py-1 bg-[var(--accent-primary)] text-white text-xs rounded hover:bg-[var(--accent-secondary)]"
+                    className="ml-2 px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600"
                   >
                     Copy
                   </button>
@@ -543,7 +543,7 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
                     });
                     onClose();
                   }}
-                  className="px-4 py-2 bg-[var(--accent-primary)] text-white rounded hover:bg-[var(--accent-secondary)]"
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600"
                 >
                   Close
                 </button>
