@@ -135,6 +135,11 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
             throw new Error('Quiz document content is not available or is empty. Please re-upload the quiz document or contact your administrator.');
           }
           
+          // Check if content_text contains an error message
+          if (quizDocument.content_text.startsWith('Error:')) {
+            throw new Error(`Quiz document processing error: ${quizDocument.content_text}`);
+          }
+
           // Get course title
           const { data: courseData, error: courseError } = await supabase
             .from('courses')
@@ -198,7 +203,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
           )
         `)
         .eq('course_quiz_id', generatedQuizId)
-        .order('id');
+        .order('order_index'); // Changed from order('id') to order('order_index')
         
       if (error) throw error;
       

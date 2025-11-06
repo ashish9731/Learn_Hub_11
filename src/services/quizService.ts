@@ -427,7 +427,8 @@ export async function generateQuizFromDocument(
       }
 
       // Create questions and answers
-      for (const questionData of quizData) {
+      for (let index = 0; index < quizData.length; index++) {
+        const questionData = quizData[index];
         // Create question
         const { data: question, error: questionError } = await supabase
           .from('quiz_questions')
@@ -435,7 +436,8 @@ export async function generateQuizFromDocument(
             course_quiz_id: quiz.id,
             question_text: questionData.question_text,
             question_type: questionData.question_type || 'multiple_choice',
-            difficulty: questionData.difficulty || 'medium'
+            difficulty: questionData.difficulty || 'medium',
+            order_index: index // Add order index to maintain sequence
           })
           .select()
           .single();
@@ -482,7 +484,8 @@ export async function generateQuizFromDocument(
       }
 
       // Create questions and answers using admin client
-      for (const questionData of quizData) {
+      for (let index = 0; index < quizData.length; index++) {
+        const questionData = quizData[index];
         // Create question
         const { data: question, error: questionError } = await supabaseAdmin
           .from('quiz_questions')
@@ -490,7 +493,8 @@ export async function generateQuizFromDocument(
             course_quiz_id: quiz.id,
             question_text: questionData.question_text,
             question_type: questionData.question_type || 'multiple_choice',
-            difficulty: questionData.difficulty || 'medium'
+            difficulty: questionData.difficulty || 'medium',
+            order_index: index // Add order index to maintain sequence
           })
           .select()
           .single();
