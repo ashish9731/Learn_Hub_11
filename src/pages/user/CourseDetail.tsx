@@ -819,37 +819,29 @@ export default function CourseDetail() {
               {/* Content Type Navigation Buttons - Below Course Image */}
               <div className="px-8 pb-8">
                 <div className="flex flex-wrap gap-4 justify-center">
-                  {['audio', 'video', 'docs', 'images', 'templates'].map((tab) => (
+                  {['audio', 'video', 'docs', 'images', 'templates', 'quizzes'].map((tab) => (
                     <button
                       key={tab}
-                      onClick={() => setActiveTab(tab)}
+                      onClick={() => {
+                        if (tab === 'quizzes') {
+                          if (checkAllModulesCompleted()) {
+                            setActiveTab('quizzes');
+                          } else {
+                            alert('You must complete all audio and video modules before accessing quizzes.');
+                          }
+                        } else {
+                          setActiveTab(tab);
+                        }
+                      }}
                       className={`flex-1 min-w-[140px] px-6 py-4 rounded-2xl font-semibold text-lg capitalize transition-all duration-300 transform hover:scale-105 ${
                         activeTab === tab
-                          ? 'bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-xl'
+                          ? 'bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-xl'
                           : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:shadow-lg'
                       }`}
                     >
-                      {tab === 'docs' ? 'Documents' : tab === 'images' ? 'Images & Infographics' : tab === 'templates' ? 'Templates' : tab}
+                      {tab === 'docs' ? 'Documents' : tab === 'images' ? 'Images & Infographics' : tab === 'templates' ? 'Templates' : tab === 'quizzes' ? 'Quiz' : tab}
                     </button>
                   ))}
-                  {/* Quiz tab is separate and only accessible through the button below */}
-                  <button
-                    onClick={() => {
-                      if (checkAllModulesCompleted()) {
-                        setActiveTab('quizzes');
-                      } else {
-                        alert('You must complete all audio and video modules before accessing quizzes.');
-                      }
-                    }}
-                    className={`flex-1 min-w-[140px] px-6 py-4 rounded-2xl font-semibold text-lg capitalize transition-all duration-300 transform hover:scale-105 ${
-                      activeTab === 'quizzes'
-                        ? 'bg-gradient-to-r from-green-700 to-emerald-800 text-white shadow-xl'
-                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:shadow-lg'
-                    }`}
-                  >
-                    Document Quiz
-                    <span className="block text-xs mt-1">From Uploaded Document</span>
-                  </button>
                 </div>
               </div>
             </div>
