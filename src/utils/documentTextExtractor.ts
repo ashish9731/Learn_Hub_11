@@ -31,7 +31,14 @@ export async function extractTextFromPDF(file: File): Promise<string> {
       }
     }
     
-    return textContent.trim();
+    const result = textContent.trim();
+    
+    // If we extracted no text, this might be an image-only PDF
+    if (!result) {
+      throw new Error('No selectable text found in PDF. This may be an image-only PDF which cannot be processed for quiz generation. Please ensure your PDF contains selectable text.');
+    }
+    
+    return result;
   } catch (error) {
     console.error('Error extracting text from PDF:', error);
     throw new Error('Failed to extract text from PDF file. Please ensure the file is a valid PDF with selectable text.');
@@ -47,7 +54,14 @@ export async function extractTextFromDOCX(file: File): Promise<string> {
   try {
     const arrayBuffer = await file.arrayBuffer();
     const result = await mammoth.extractRawText({ arrayBuffer });
-    return result.value.trim();
+    const text = result.value.trim();
+    
+    // If we extracted no text, this might be an empty or corrupted DOCX
+    if (!text) {
+      throw new Error('No text content found in DOCX file. Please ensure your document contains text content.');
+    }
+    
+    return text;
   } catch (error) {
     console.error('Error extracting text from DOCX:', error);
     throw new Error('Failed to extract text from DOCX file. Please ensure the file is a valid DOCX document.');
@@ -62,7 +76,14 @@ export async function extractTextFromDOCX(file: File): Promise<string> {
 export async function extractTextFromTXT(file: File): Promise<string> {
   try {
     const text = await file.text();
-    return text.trim();
+    const trimmedText = text.trim();
+    
+    // If we extracted no text, this might be an empty TXT file
+    if (!trimmedText) {
+      throw new Error('No text content found in TXT file. Please ensure your file contains text content.');
+    }
+    
+    return trimmedText;
   } catch (error) {
     console.error('Error extracting text from TXT:', error);
     throw new Error('Failed to extract text from TXT file. Please ensure the file is a valid text document.');

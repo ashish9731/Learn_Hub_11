@@ -630,6 +630,11 @@ export default function ContentUpload() {
             console.error('Error extracting text from quiz document:', extractionError);
             throw new Error(`Failed to extract text from quiz document: ${extractionError instanceof Error ? extractionError.message : 'Unknown error'}. Please ensure the document is a valid PDF, DOCX, or TXT file with selectable text.`);
           }
+          
+          // Double-check that we have valid content before proceeding
+          if (!contentText || contentText.trim().length === 0) {
+            throw new Error('Document processing failed - no text content was extracted. Please ensure the document contains selectable text and is not an image-only PDF.');
+          }
         }
         
         console.log('Creating PDF with content_text:', contentText ? contentText.substring(0, 100) + '...' : 'null/empty');
