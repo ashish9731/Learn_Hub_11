@@ -369,7 +369,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
           <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4 dark:text-purple-400" />
           <h2 className="text-2xl font-semibold mb-2 text-black dark:text-white">Generating Your Quiz</h2>
           <p className="text-gray-700 dark:text-gray-300">
-            Our system is crafting your quiz from the uploaded document...
+            Generating your quiz from the uploaded document...
           </p>
         </div>
       </div>
@@ -499,9 +499,11 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                 <p className="text-black dark:text-white">
                   <span className="font-medium">
                     {feedback.isCorrect ? 'Explanation:' : 'Explanation for correct answer:'}
-                  </span> {feedback.explanation || 
+                  </span> {
+                    feedback.explanation || 
                     currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation || 
-                    'No explanation provided for this answer.'}
+                    'No explanation provided for this answer.'
+                  }
                 </p>
               )}
             </div>

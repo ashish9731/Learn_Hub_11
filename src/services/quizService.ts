@@ -127,7 +127,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
                           line.includes('*');
         
         // Extract explanation if present in the same line
-        let explanation = '';
+        let explanation = 'No explanation provided for this answer.';
         const explanationMatch = answerText.match(/Explanation[:\s]+(.+)$/i);
         if (explanationMatch) {
           explanation = explanationMatch[1].trim();
@@ -145,7 +145,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
         currentAnswers.push({
           answer_text: cleanAnswerText,
           is_correct: isCorrect,
-          explanation: explanation
+          explanation: explanation || 'No explanation provided for this answer.'
         });
         console.log('Added answer:', optionLabel, cleanAnswerText, 'Correct:', isCorrect);
         continue;
@@ -237,7 +237,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
                 answers.push({
                   answer_text: cleanText,
                   is_correct: isCorrect,
-                  explanation: ''
+                  explanation: 'No explanation provided for this answer.'
                 });
               }
             }
@@ -455,7 +455,7 @@ export async function generateQuizFromDocument(
               question_id: question.id,
               answer_text: answerData.answer_text,
               is_correct: answerData.is_correct || false,
-              explanation: answerData.explanation || ''
+              explanation: answerData.explanation || 'No explanation provided for this answer.'
             });
 
           if (answerError) {
@@ -512,7 +512,7 @@ export async function generateQuizFromDocument(
               question_id: question.id,
               answer_text: answerData.answer_text,
               is_correct: answerData.is_correct || false,
-              explanation: answerData.explanation || ''
+              explanation: answerData.explanation || 'No explanation provided for this answer.'
             });
 
           if (answerError) {
