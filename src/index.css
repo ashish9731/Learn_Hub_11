@@ -2,13 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* Dark theme variables (default) */
+:root, :root[data-theme="dark"] {
   --background-primary: #121212;
   --background-secondary: #1e1e1e;
   --background-tertiary: #252525;
   --text-primary: #ffffff; 
-  --text-secondary: #f0f0f0; /* Further improved visibility */
-  --text-tertiary: #d0d0d0; /* Additional text color for better hierarchy */
+  --text-secondary: #f0f0f0;
+  --text-tertiary: #d0d0d0;
   --accent-primary: #a855f7;
   --accent-secondary: #9333ea;
   --border-color: #333333;
@@ -78,8 +79,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px; /* Adjusted for medium size */
-  font-size: 0.875rem; /* Adjusted font size */
+  padding: 10px 20px;
+  font-size: 0.875rem;
   color: white;
   background: hsl(217, 33%, 17%);
   border-radius: 8px;
