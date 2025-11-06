@@ -608,13 +608,26 @@ export default function ContentUpload() {
           throw new Error(`Invalid content type: ${contentType}`);
         }
         
-        // Create PDF record with content_type
+        // Extract text content for quiz documents
+        let contentText = '';
+        if (contentType === 'quizzes' && selectedFile) {
+          try {
+            contentText = await extractQuizDocumentText(selectedFile);
+            console.log('Extracted quiz document text length:', contentText.length);
+          } catch (extractionError) {
+            console.error('Error extracting text from quiz document:', extractionError);
+            contentText = 'Error extracting content. Please re-upload the document.';
+          }
+        }
+        
+        // Create PDF record with content_type and content_text for quizzes
         const { data: pdfData, error: pdfError } = await supabaseHelpers.createPDF({
           title: contentTitle,
           course_id: selectedCourse,
           pdf_url: publicUrl,
           created_by: user.id,
           content_type: contentType, // Add content_type field
+          content_text: contentType === 'quizzes' ? contentText : null, // Add content_text for quizzes
           description: contentDescription || null
         });
 
