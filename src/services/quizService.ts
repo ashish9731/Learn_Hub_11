@@ -792,7 +792,8 @@ export async function generateQuizFromDocument(
     console.log('Document content length:', quizDocumentContent.length);
     console.log('Document content preview:', quizDocumentContent.substring(0, 200) + '...');
     
-    // Check if a final quiz already exists for this course
+    // Always regenerate the quiz from document content
+    // First, check if a final quiz already exists for this course
     const { data: existingQuiz, error: existingQuizError } = await supabase
       .from('course_quizzes')
       .select('id')
@@ -804,10 +805,52 @@ export async function generateQuizFromDocument(
       // Continue even if there's an error checking for existing quiz
     }
 
-    // If quiz already exists, return its ID
+    // If quiz already exists, delete it first to ensure we regenerate from document
     if (existingQuiz) {
-      console.log('Quiz already exists with ID:', existingQuiz.id);
-      return existingQuiz.id;
+      console.log('Quiz already exists with ID:', existingQuiz.id, 'Deleting it to regenerate from document');
+      
+      // First get the question IDs
+      const { data: questions, error: questionsError } = await supabase
+        .from('quiz_questions')
+        .select('id')
+        .eq('course_quiz_id', existingQuiz.id);
+      
+      if (questionsError) {
+        console.error('Error fetching quiz questions:', questionsError);
+      } else if (questions && questions.length > 0) {
+        // Delete existing quiz answers
+        const questionIds = questions.map(q => q.id);
+        const { error: deleteAnswersError } = await supabase
+          .from('quiz_answers')
+          .delete()
+          .in('question_id', questionIds);
+        
+        if (deleteAnswersError) {
+          console.error('Error deleting quiz answers:', deleteAnswersError);
+        }
+      }
+      
+      // Delete existing quiz questions
+      const { error: deleteQuestionsError } = await supabase
+        .from('quiz_questions')
+        .delete()
+        .eq('course_quiz_id', existingQuiz.id);
+      
+      if (deleteQuestionsError) {
+        console.error('Error deleting quiz questions:', deleteQuestionsError);
+      }
+      
+      // Delete the quiz itself
+      const { error: deleteQuizError } = await supabase
+        .from('course_quizzes')
+        .delete()
+        .eq('id', existingQuiz.id);
+      
+      if (deleteQuizError) {
+        console.error('Error deleting existing quiz:', deleteQuizError);
+      }
+      
+      console.log('Deleted existing quiz, will regenerate from document content');
     }
 
     // Parse quiz questions directly from document content (no AI generation)
