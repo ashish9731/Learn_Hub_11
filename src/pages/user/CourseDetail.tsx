@@ -115,7 +115,7 @@ export default function CourseDetail() {
   const [allModulesCompleted, setAllModulesCompleted] = useState(false);
   const [videoViewMode, setVideoViewMode] = useState<'list' | 'tile'>('list');
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
-  const [quizResults, setQuizResults] = useState<{ passed: boolean; score: number } | null>(null);
+  const [quizResults, setQuizResults] = useState<{ passed: boolean; score: number; totalQuestions?: number; correctAnswers?: number } | null>(null);
   const [userName, setUserName] = useState<string>('');
   const [quizAttempts, setQuizAttempts] = useState<any[]>([]); // Track quiz attempts
 
@@ -553,8 +553,8 @@ export default function CourseDetail() {
   };
 
   // Handle quiz completion
-  const handleQuizComplete = (passed: boolean, score: number) => {
-    setQuizResults({ passed, score });
+  const handleQuizComplete = (passed: boolean, score: number, totalQuestions: number, correctAnswers: number) => {
+    setQuizResults({ passed, score, totalQuestions, correctAnswers });
     setShowQuiz(false);
     setShowFinalQuiz(false);
     
@@ -1383,6 +1383,8 @@ export default function CourseDetail() {
                   <QuizResults
                     passed={quizResults.passed}
                     score={quizResults.score}
+                    totalQuestions={quizResults.totalQuestions || 0}
+                    correctAnswers={quizResults.correctAnswers || 0}
                     userName={userName}
                     courseName={course?.title || 'Course'}
                     onRetake={handleRetakeQuiz}

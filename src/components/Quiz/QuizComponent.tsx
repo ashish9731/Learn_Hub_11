@@ -19,9 +19,9 @@ interface Question {
 
 interface QuizComponentProps {
   courseId: string;
-  isFinalQuiz?: boolean;
-  isDocumentQuiz?: boolean;
-  onComplete: (passed: boolean, score: number) => void;
+  isFinalQuiz: boolean;
+  isDocumentQuiz: boolean;
+  onComplete: (passed: boolean, score: number, totalQuestions: number, correctAnswers: number) => void;
 }
 
 const QuizComponent: React.FC<QuizComponentProps> = ({
@@ -308,7 +308,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
       });
       
       const score = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
-      const passed = score >= 60;
+      const passed = score >= 50; // Changed to 50% passing rate
       
       // Submit results to the database
       if (userId && quizId) {
@@ -333,8 +333,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
         }
       }
       
-      // Call onComplete callback
-      onComplete(passed, score);
+      // Call onComplete callback with additional parameters
+      onComplete(passed, score, questions.length, correctCount);
     } catch (err) {
       console.error('Error calculating results:', err);
       alert("Failed to calculate quiz results");

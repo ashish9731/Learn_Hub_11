@@ -1,5 +1,5 @@
 import React from 'react';
-import { supabase } from '../../lib/supabase';
+import { jsPDF } from 'jspdf';
 
 interface CertificateData {
   userName: string;
@@ -14,122 +14,90 @@ const CertificateGenerator: React.FC<{
 }> = ({ certificateData, onDownload }) => {
   const generateCertificate = async () => {
     try {
-      // In a real implementation, this would generate a PDF certificate
-      // For now, we'll create a simple HTML-based certificate and convert it to PDF
-      const certificateHtml = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Certificate of Completion</title>
-          <style>
-            body {
-              font-family: 'Georgia', serif;
-              background: linear-gradient(135deg, #f5f7fa 0%, #e4edf9 100%);
-              margin: 0;
-              padding: 40px;
-              text-align: center;
-            }
-            .certificate {
-              max-width: 800px;
-              margin: 0 auto;
-              padding: 40px;
-              border: 15px solid #d4af37;
-              background: white;
-              box-shadow: 0 0 20px rgba(0,0,0,0.1);
-              position: relative;
-            }
-            .certificate::before {
-              content: "";
-              position: absolute;
-              top: 20px;
-              left: 20px;
-              right: 20px;
-              bottom: 20px;
-              border: 1px solid #d4af37;
-              pointer-events: none;
-            }
-            .header {
-              color: #d4af37;
-              font-size: 48px;
-              margin-bottom: 20px;
-              text-transform: uppercase;
-              letter-spacing: 3px;
-            }
-            .subtitle {
-              font-size: 24px;
-              color: #333;
-              margin-bottom: 40px;
-            }
-            .recipient {
-              font-size: 32px;
-              color: #333;
-              margin: 30px 0;
-              font-weight: bold;
-            }
-            .course {
-              font-size: 24px;
-              color: #666;
-              margin: 20px 0;
-            }
-            .date {
-              font-size: 20px;
-              color: #666;
-              margin: 20px 0;
-            }
-            .training-info {
-              font-size: 18px;
-              color: #555;
-              margin: 30px 0;
-              font-style: italic;
-            }
-            .signature {
-              margin-top: 60px;
-              display: flex;
-              justify-content: space-around;
-            }
-            .signature-line {
-              width: 200px;
-              border-top: 1px solid #333;
-              padding-top: 10px;
-            }
-            .certificate-id {
-              position: absolute;
-              bottom: 20px;
-              right: 20px;
-              font-size: 12px;
-              color: #999;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="certificate">
-            <h1 class="header">Certificate of Completion</h1>
-            <p class="subtitle">This certifies that</p>
-            <p class="recipient">${certificateData.userName}</p>
-            <p class="subtitle">has successfully completed the course</p>
-            <p class="course">${certificateData.courseName}</p>
-            <p class="date">Completed on: ${certificateData.completionDate}</p>
-            <p class="training-info">Training done by ColdWell Bankers<br>Training Partner: KeenEdge Technologies</p>
-            <div class="signature">
-              <div class="signature-line">Authorized Signature</div>
-              <div class="signature-line">Date</div>
-            </div>
-            <div class="certificate-id">ID: ${certificateData.certificateId}</div>
-          </div>
-        </body>
-        </html>
-      `;
+      // Create a new PDF document
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
 
-      // Create a blob and download it
-      const blob = new Blob([certificateHtml], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `certificate-${certificateData.certificateId}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Set background color
+      doc.setFillColor(245, 247, 250);
+      doc.rect(0, 0, 297, 210, 'F');
+
+      // Add border
+      doc.setDrawColor(212, 175, 55); // Gold color
+      doc.setLineWidth(2);
+      doc.rect(10, 10, 277, 190);
+
+      // Add inner border
+      doc.setLineWidth(0.5);
+      doc.rect(15, 15, 267, 180);
+
+      // Add header
+      doc.setFontSize(36);
+      doc.setTextColor(212, 175, 55); // Gold color
+      doc.setFont('helvetica', 'bold');
+      doc.text('CERTIFICATE OF COMPLETION', 148.5, 40, { align: 'center' });
+
+      // Add subtitle
+      doc.setFontSize(18);
+      doc.setTextColor(51, 51, 51); // Dark gray
+      doc.setFont('helvetica', 'normal');
+      doc.text('This certifies that', 148.5, 60, { align: 'center' });
+
+      // Add recipient name
+      doc.setFontSize(28);
+      doc.setTextColor(51, 51, 51); // Dark gray
+      doc.setFont('helvetica', 'bold');
+      doc.text(certificateData.userName, 148.5, 80, { align: 'center' });
+
+      // Add completion text
+      doc.setFontSize(18);
+      doc.setTextColor(51, 51, 51); // Dark gray
+      doc.setFont('helvetica', 'normal');
+      doc.text('has successfully completed the course', 148.5, 100, { align: 'center' });
+
+      // Add course name
+      doc.setFontSize(22);
+      doc.setTextColor(102, 102, 102); // Gray
+      doc.setFont('helvetica', 'bold');
+      // Wrap text if too long
+      const courseNameLines = doc.splitTextToSize(certificateData.courseName, 180);
+      doc.text(courseNameLines, 148.5, 115, { align: 'center' });
+
+      // Add completion date
+      doc.setFontSize(16);
+      doc.setTextColor(102, 102, 102); // Gray
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Completed on: ${certificateData.completionDate}`, 148.5, 135, { align: 'center' });
+
+      // Add training info
+      doc.setFontSize(14);
+      doc.setTextColor(85, 85, 85); // Darker gray
+      doc.setFont('helvetica', 'italic');
+      doc.text('Training done by ColdWell Bankers', 148.5, 155, { align: 'center' });
+      doc.text('Training Partner: KeenEdge Technologies', 148.5, 162, { align: 'center' });
+
+      // Add signature lines
+      doc.setDrawColor(51, 51, 51); // Black
+      doc.setLineWidth(0.5);
+      doc.line(70, 180, 130, 180); // Authorized signature line
+      doc.line(167, 180, 227, 180); // Date line
+
+      doc.setFontSize(12);
+      doc.setTextColor(51, 51, 51); // Black
+      doc.setFont('helvetica', 'normal');
+      doc.text('Authorized Signature', 100, 185, { align: 'center' });
+      doc.text('Date', 197, 185, { align: 'center' });
+
+      // Add certificate ID
+      doc.setFontSize(10);
+      doc.setTextColor(153, 153, 153); // Light gray
+      doc.text(`ID: ${certificateData.certificateId}`, 280, 200, { align: 'right' });
+
+      // Save the PDF
+      doc.save(`certificate-${certificateData.certificateId}.pdf`);
       
       onDownload();
     } catch (error) {

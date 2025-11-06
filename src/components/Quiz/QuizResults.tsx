@@ -4,6 +4,8 @@ import CertificateGenerator from '../Certificate/CertificateGenerator';
 interface QuizResultsProps {
   passed: boolean;
   score: number;
+  totalQuestions: number;
+  correctAnswers: number;
   userName: string;
   courseName: string;
   onRetake: () => void;
@@ -13,6 +15,8 @@ interface QuizResultsProps {
 const QuizResults: React.FC<QuizResultsProps> = ({ 
   passed, 
   score, 
+  totalQuestions,
+  correctAnswers,
   userName, 
   courseName, 
   onRetake, 
@@ -21,6 +25,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
   const [showCertificate, setShowCertificate] = useState(false);
   const certificateId = `CERT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const completionDate = new Date().toLocaleDateString();
+  const passingScore = Math.ceil(totalQuestions * 0.5); // 50% passing rate
 
   const handleDownload = () => {
     setShowCertificate(false);
@@ -48,11 +53,19 @@ const QuizResults: React.FC<QuizResultsProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Your Score</p>
-                  <p className="text-2xl font-bold text-green-600">{score}/25</p>
+                  <p className="text-2xl font-bold text-green-600">{correctAnswers}/{totalQuestions}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Percentage</p>
+                  <p className="text-2xl font-bold text-gray-700">{score}%</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Passing Score</p>
-                  <p className="text-2xl font-bold text-gray-700">13</p>
+                  <p className="text-2xl font-bold text-gray-700">{passingScore} ({Math.ceil(50)}%)</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="text-2xl font-bold text-green-600">PASSED</p>
                 </div>
               </div>
             </div>
@@ -92,16 +105,24 @@ const QuizResults: React.FC<QuizResultsProps> = ({
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-red-800 mb-2">Quiz Not Passed</h3>
-            <p className="text-red-700 mb-4">You need to score at least 13 to pass this quiz.</p>
+            <p className="text-red-700 mb-4">You need to score at least {passingScore} to pass this quiz.</p>
             <div className="bg-white rounded-lg p-4 shadow-sm mb-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Your Score</p>
-                  <p className="text-2xl font-bold text-red-600">{score}/25</p>
+                  <p className="text-2xl font-bold text-red-600">{correctAnswers}/{totalQuestions}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Percentage</p>
+                  <p className="text-2xl font-bold text-gray-700">{score}%</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Passing Score</p>
-                  <p className="text-2xl font-bold text-gray-700">13</p>
+                  <p className="text-2xl font-bold text-gray-700">{passingScore} ({Math.ceil(50)}%)</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="text-2xl font-bold text-red-600">FAILED</p>
                 </div>
               </div>
             </div>
