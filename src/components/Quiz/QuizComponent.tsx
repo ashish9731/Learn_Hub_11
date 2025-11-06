@@ -344,8 +344,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
   // Show start button initially
   if (showStartButton) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-12 text-center max-w-md">
+      <div className="flex items-center justify-center bg-gradient-to-br from-gray-900 to-black p-4">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-8 text-center max-w-md">
           <h2 className="text-2xl font-semibold mb-4 text-white">Document Quiz</h2>
           <p className="text-gray-300 mb-6">
             Click the button below to start the quiz generated from your uploaded document.
@@ -364,8 +364,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-12 text-center">
+      <div className="flex items-center justify-center bg-gradient-to-br from-gray-900 to-black p-4">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-8 text-center">
           <Loader2 className="w-12 h-12 animate-spin text-blue-400 mx-auto mb-4" />
           <h2 className="text-2xl font-semibold mb-2 text-white">Generating Your Quiz</h2>
           <p className="text-gray-300">
@@ -378,8 +378,8 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
 
   if (error || questions.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-12 text-center max-w-md">
+      <div className="flex items-center justify-center bg-gradient-to-br from-gray-900 to-black p-4">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-8 text-center max-w-md">
           <h2 className="text-2xl font-semibold mb-4 text-red-400">
             {error || "No questions generated"}
           </h2>
@@ -403,7 +403,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
   const feedback = answerFeedback[currentQ.id];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-4">
+    <div className="bg-gradient-to-br from-gray-900 to-black p-4">
       <div className="max-w-4xl mx-auto">
         {/* Progress Bar */}
         <div className="mb-6">
