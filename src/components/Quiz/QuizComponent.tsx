@@ -128,6 +128,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
           // Use the first quiz document for now (in future we might support multiple)
           const quizDocument = quizDocuments[0];
           console.log('Using quiz document:', quizDocument);
+          console.log('Quiz document content_text:', quizDocument.content_text ? quizDocument.content_text.substring(0, 200) + '...' : 'null/empty');
           
           // Check if content_text is available
           if (!quizDocument.content_text || quizDocument.content_text.trim() === '') {

@@ -612,13 +612,27 @@ export default function ContentUpload() {
         let contentText = '';
         if (contentType === 'quizzes' && selectedFile) {
           try {
+            console.log('Extracting text from quiz document:', selectedFile.name, selectedFile.type);
             contentText = await extractQuizDocumentText(selectedFile);
             console.log('Extracted quiz document text length:', contentText.length);
+            console.log('Extracted quiz document text preview:', contentText.substring(0, 200) + '...');
+            
+            // Validate that we actually extracted content
+            if (!contentText || contentText.trim().length === 0) {
+              throw new Error('No text content could be extracted from the document. Please ensure the document contains selectable text and is not an image-only PDF.');
+            }
+            
+            // Additional validation - check if content is meaningful
+            if (contentText.trim().length < 50) {
+              throw new Error('Extracted text content is too short. Please ensure the document contains sufficient quiz content.');
+            }
           } catch (extractionError) {
             console.error('Error extracting text from quiz document:', extractionError);
-            contentText = 'Error extracting content. Please re-upload the document.';
+            throw new Error(`Failed to extract text from quiz document: ${extractionError instanceof Error ? extractionError.message : 'Unknown error'}. Please ensure the document is a valid PDF, DOCX, or TXT file with selectable text.`);
           }
         }
+        
+        console.log('Creating PDF with content_text:', contentText ? contentText.substring(0, 100) + '...' : 'null/empty');
         
         // Create PDF record with content_type and content_text for quizzes
         const { data: pdfData, error: pdfError } = await supabaseHelpers.createPDF({
