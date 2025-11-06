@@ -347,9 +347,9 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
     return (
       <div className="flex items-center justify-center bg-gradient-to-br from-white to-gray-100 p-4 dark:from-gray-900 dark:to-gray-800">
         <div className="bg-white backdrop-blur-lg rounded-2xl border border-gray-200 shadow-xl p-8 text-center max-w-md dark:bg-gray-800 dark:border-gray-700">
-          <h2 className="text-2xl font-semibold mb-4 text-black dark:text-white">Document Quiz</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-black dark:text-white">Quiz</h2>
           <p className="text-gray-700 mb-6 dark:text-gray-300">
-            Click the button below to start the quiz generated from your uploaded document.
+            Click the button below to start the quiz.
           </p>
           <button 
             onClick={startQuiz}
