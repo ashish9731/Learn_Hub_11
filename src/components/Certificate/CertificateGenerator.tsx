@@ -107,9 +107,9 @@ const CertificateGenerator: React.FC<{
   };
 
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-6">
-      <h3 className="text-lg font-medium text-white mb-2">Congratulations!</h3>
-      <p className="text-gray-300 mb-4">You have successfully passed the quiz.</p>
+    <div className="bg-[var(--card-background)] backdrop-blur-lg rounded-xl border border-[var(--border-color)] shadow-lg p-6">
+      <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">Congratulations!</h3>
+      <p className="text-[var(--text-secondary)] mb-4">You have successfully passed the quiz.</p>
       <button
         onClick={generateCertificate}
         className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105"

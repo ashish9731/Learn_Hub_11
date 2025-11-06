@@ -699,13 +699,13 @@ export default function CourseDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--background-primary)] to-[var(--background-secondary)] text-[var(--text-primary)]">
       {/* Glassmorphism Header */}
-      <div className="bg-white/10 backdrop-blur-lg rounded-b-2xl border-b border-white/20 shadow-xl p-6 mb-8">
+      <div className="bg-[var(--card-background)] backdrop-blur-lg rounded-b-2xl border-b border-[var(--border-color)] shadow-xl p-6 mb-8">
         <div className="max-w-7xl mx-auto">
           <button
             onClick={() => navigate('/user/courses')}
-            className="flex items-center text-blue-400 hover:text-blue-300 mb-6 group"
+            className="flex items-center text-[var(--accent-primary)] hover:text-[var(--accent-secondary)] mb-6 group"
           >
             <ChevronLeft className="h-5 w-5 mr-1 transition-transform group-hover:-translate-x-1" />
             <span className="font-medium">Back to Courses</span>
@@ -739,11 +739,11 @@ export default function CourseDetail() {
         ) : course ? (
           <>
             {/* Course Header */}
-            <div className="bg-gray-900 rounded-xl shadow-lg overflow-hidden mb-8 border border-gray-800">
+            <div className="bg-[var(--background-secondary)] rounded-xl shadow-lg overflow-hidden mb-8 border border-[var(--border-color)]">
               <div className="md:flex">
                 {/* Course Image - Left Side */}
                 <div className="md:w-1/3">
-                  <div className="aspect-video bg-gray-800 relative rounded-t-xl md:rounded-tr-none md:rounded-l-xl overflow-hidden border border-gray-700">
+                  <div className="aspect-video bg-[var(--background-tertiary)] relative rounded-t-xl md:rounded-tr-none md:rounded-l-xl overflow-hidden border border-[var(--border-color)]">
                     {course?.image_url ? (
                       <img
                         src={course.image_url}
@@ -752,9 +752,8 @@ export default function CourseDetail() {
                         onError={handleImageError}
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 p-6 border border-gray-700">
-                        <BookOpen className="h-16 w-16 text-gray-400 mb-4" />
-                        <p className="text-gray-400 text-center font-medium">No course image</p>
+                      <div className="w-full h-full flex items-center justify-center">
+                        <BookOpen className="h-12 w-12 text-[var(--text-tertiary)]" />
                       </div>
                     )}
                   </div>
@@ -1309,8 +1308,8 @@ export default function CourseDetail() {
 
             {/* Templates Tab */}
             {activeTab === 'templates' && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Templates & Other Content</h2>
+              <div className="bg-[var(--card-background)] backdrop-blur-lg rounded-2xl border border-[var(--border-color)] shadow-xl p-6">
+                <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Templates & Other Content</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
                     // Filter out quiz documents - they should be invisible to users
@@ -1319,24 +1318,24 @@ export default function CourseDetail() {
                     return assignedTemplates.length > 0 ? (
                       <>
                         {assignedTemplates.map((pdf: PDF) => (
-                          <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
+                          <div key={pdf.id} className="border border-[var(--border-color)] rounded-lg p-4 hover:shadow-md transition-shadow bg-[var(--background-secondary)]">
                             <div className="flex items-start">
-                              <div className="flex-shrink-0 p-2 bg-blue-900 rounded-lg">
-                                <FileText className="h-8 w-8 text-blue-400" />
+                              <div className="flex-shrink-0 p-2 bg-[var(--accent-primary)] rounded-lg">
+                                <FileText className="h-8 w-8 text-white" />
                               </div>
                               <div className="ml-3 flex-1">
-                                <h3 className="text-sm font-medium text-white mb-1">{pdf.title}</h3>
+                                <h3 className="text-sm font-medium text-[var(--text-primary)] mb-1">{pdf.title}</h3>
                                 {pdf.description && (
-                                  <p className="text-xs text-gray-300 mb-2">{pdf.description}</p>
+                                  <p className="text-xs text-[var(--text-secondary)] mb-2">{pdf.description}</p>
                                 )}
-                                <p className="text-xs text-gray-400 mb-3">
+                                <p className="text-xs text-[var(--text-tertiary)] mb-3">
                                   {(pdf && pdf.content_type === 'templates') ? 'Template/Document' : 'PDF Document'}
                                 </p>
                                 <a 
                                   href={pdf.pdf_url} 
                                   target="_blank" 
                                   rel="noopener noreferrer" 
-                                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
+                                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)]"
                                   onClick={(e) => {
                                     // Allow download for templates
                                     // No need to prevent default, let it download normally
@@ -1351,10 +1350,10 @@ export default function CourseDetail() {
                         ))}
                       </>
                     ) : (
-                      <div className="text-center py-8 text-gray-400 col-span-full">
-                        <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                        <h3 className="text-lg font-medium text-white mb-2">No Templates</h3>
-                        <p className="text-gray-400">No templates or other content have been assigned to you for this course.</p>
+                      <div className="text-center py-8 text-[var(--text-tertiary)] col-span-full">
+                        <FileText className="h-12 w-12 mx-auto text-[var(--text-tertiary)] mb-4" />
+                        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">No Templates</h3>
+                        <p className="text-[var(--text-tertiary)]">No templates or other content have been assigned to you for this course.</p>
                       </div>
                     );
                   })()}
@@ -1364,19 +1363,19 @@ export default function CourseDetail() {
 
             {/* Quiz Tab */}
             {activeTab === 'quizzes' && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Quizzes</h2>
+              <div className="bg-[var(--card-background)] backdrop-blur-lg rounded-2xl border border-[var(--border-color)] shadow-xl p-6">
+                <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Quizzes</h2>
                 {!checkAllModulesCompleted() ? (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-6 text-center">
                     <div className="text-yellow-500 mb-4">
                       <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                       </svg>
                     </div>
-                    <h3 className="text-xl font-semibold text-yellow-800 mb-2">Modules Not Completed</h3>
-                    <p className="text-yellow-700 mb-4">You must complete all audio and video modules before accessing quizzes.</p>
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <p className="text-sm text-gray-600">Complete all audio and video content in the Audio and Video tabs to unlock quizzes.</p>
+                    <h3 className="text-xl font-semibold text-yellow-500 mb-2">Modules Not Completed</h3>
+                    <p className="text-[var(--text-secondary)] mb-4">You must complete all audio and video modules before accessing quizzes.</p>
+                    <div className="bg-[var(--background-tertiary)] rounded-lg p-4 shadow-sm">
+                      <p className="text-sm text-[var(--text-secondary)]">Complete all audio and video content in the Audio and Video tabs to unlock quizzes.</p>
                     </div>
                   </div>
                 ) : quizResults ? (
@@ -1403,16 +1402,16 @@ export default function CourseDetail() {
                     {getAssignedPDFs('quizzes').length > 0 ? (
                       <>
                         {/* Final Quiz Section - Only show final quiz from uploaded document */}
-                        <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg p-6">
-                          <h3 className="text-xl font-medium text-white mb-3">Final Quiz</h3>
-                          <p className="text-gray-300 mb-5">This quiz is generated from the uploaded quiz document. Test your knowledge of the course material.</p>
+                        <div className="bg-[var(--card-background)] backdrop-blur-lg rounded-xl border border-[var(--border-color)] shadow-lg p-6">
+                          <h3 className="text-xl font-medium text-[var(--text-primary)] mb-3">Final Quiz</h3>
+                          <p className="text-[var(--text-secondary)] mb-5">This quiz is generated from the uploaded quiz document. Test your knowledge of the course material.</p>
                           <button
                             onClick={startFinalQuiz}
-                            className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-6 py-3 rounded-lg font-medium shadow-lg transform transition hover:scale-105 duration-300"
+                            className="bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] hover:from-[var(--accent-secondary)] hover:to-[var(--accent-primary)] text-white px-6 py-3 rounded-lg font-medium shadow-lg transform transition hover:scale-105 duration-300"
                           >
                             Start Final Quiz
                           </button>
-                          <div className="mt-4 text-sm text-gray-400">
+                          <div className="mt-4 text-sm text-[var(--text-tertiary)]">
                             <p>• Questions from your uploaded quiz document</p>
                             <p>• Multiple choice with detailed explanations</p>
                             <p>• Instant feedback on answers</p>
@@ -1421,16 +1420,16 @@ export default function CourseDetail() {
                       </>
                     ) : (
                       // No quizzes uploaded message
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-6 text-center">
                         <div className="text-blue-500 mb-4">
                           <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                           </svg>
                         </div>
-                        <h3 className="text-xl font-semibold text-blue-800 mb-2">Quiz Not Available</h3>
-                        <p className="text-blue-700 mb-4">The quiz content for this course has not been uploaded yet.</p>
-                        <div className="bg-white rounded-lg p-4 shadow-sm">
-                          <p className="text-sm text-gray-600">Please contact your administrator for more information.</p>
+                        <h3 className="text-xl font-semibold text-blue-500 mb-2">Quiz Not Available</h3>
+                        <p className="text-[var(--text-secondary)] mb-4">The quiz content for this course has not been uploaded yet.</p>
+                        <div className="bg-[var(--background-tertiary)] rounded-lg p-4 shadow-sm">
+                          <p className="text-sm text-[var(--text-secondary)]">Please contact your administrator for more information.</p>
                         </div>
                       </div>
                     )}
