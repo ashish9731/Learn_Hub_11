@@ -496,9 +496,9 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                 {/* Show individual answer explanations */}
                 <div className="space-y-2">
                   {currentQ.answers.map((answer) => (
-                    answer.explanation && answer.explanation.trim() !== '' && answer.explanation !== 'No explanation provided for this answer.' && (
+                    (answer.explanation && answer.explanation.trim() !== '' && answer.explanation !== 'No explanation provided for this answer.') && (
                       <div key={answer.id} className="text-black dark:text-white ml-4">
-                        <span className="font-medium">{answer.answer_text}:</span> {answer.explanation}
+                        {answer.explanation}
                       </div>
                     )
                   ))}
@@ -514,9 +514,13 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                     <span className="font-medium">
                       {feedback.isCorrect ? 'Explanation:' : 'Explanation for correct answer:'}
                     </span> {
-                      (feedback.explanation && feedback.explanation !== 'No explanation provided for this answer.')
+                      (feedback.explanation && feedback.explanation.trim() !== '' && feedback.explanation !== 'No explanation provided for this answer.')
                         ? feedback.explanation 
-                        : currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation || ''
+                        : (currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation && 
+                           currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation.trim() !== '' && 
+                           currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation !== 'No explanation provided for this answer.')
+                        ? currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation
+                        : ''
                     }
                   </div>
                 )}
