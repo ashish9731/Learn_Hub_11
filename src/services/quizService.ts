@@ -549,6 +549,12 @@ function parseQuizFromDocument(documentContent: string): any[] {
     console.log('Parsing quiz from document content length:', documentContent.length);
     console.log('Document content preview:', documentContent.substring(0, 500) + '...');
     
+    // Handle empty or whitespace-only content
+    if (!documentContent || documentContent.trim().length === 0) {
+      console.log('Document content is empty');
+      return [];
+    }
+    
     // Try to parse as JSON first (if document contains pre-formatted JSON)
     try {
       const jsonData = JSON.parse(documentContent);
@@ -578,6 +584,12 @@ function parseQuizFromDocument(documentContent: string): any[] {
     const lines = normalizedContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
     
     console.log('Total lines to parse:', lines.length);
+    
+    // If we have very few lines, it's likely not a proper quiz document
+    if (lines.length < 5) {
+      console.log('Too few lines to parse as quiz document');
+      return [];
+    }
     
     let currentQuestion: string | null = null;
     let currentAnswers: any[] = [];
@@ -765,10 +777,17 @@ function parseQuizFromDocument(documentContent: string): any[] {
       }
     }
     
+    // If we still have no questions, return empty array rather than default questions
+    if (questions.length === 0) {
+      console.log('No questions parsed from document content');
+      return [];
+    }
+    
     console.log('Parsed', questions.length, 'questions from document text');
     return questions;
   } catch (error) {
     console.error('Error parsing quiz from document:', error);
+    // Return empty array rather than default questions
     return [];
   }
 }
