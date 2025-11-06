@@ -373,143 +373,81 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1e1e1e] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[#333333]">
-        <div className="flex items-center justify-between p-6 border-b border-[#333333]">
-          <div className="flex items-center">
-            <UserCog className="h-6 w-6 text-[#8b5cf6] mr-2" />
-            <h2 className="text-xl font-semibold text-white">Add New Admin</h2>
-          </div>
-          <button
-            onClick={handleClose}
-            className="text-[#a0a0a0] hover:text-white focus:outline-none"
-          >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* General Error Message */}
-          {errors.general && (
-            <div className="bg-red-900/20 border border-red-800 rounded-md p-3">
-              <p className="text-sm text-red-400">{errors.general}</p>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-[var(--background-secondary)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[var(--border-color)]">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-[var(--text-primary)]">
+                Add New Admin
+              </h2>
+              <button
+                onClick={onClose}
+                className="text-[var(--text-primary)] hover:text-[var(--text-secondary)]"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
-          )}
 
-          {/* Admin Information */}
-          <div>
-            <h3 className="text-lg font-medium text-white mb-4">Admin Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Admin Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.adminName}
-                  onChange={(e) => handleInputChange('adminName', e.target.value)}
-                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white ${
-                    errors.adminName ? 'border-red-700' : 'border-[#333333]'
-                  }`}
-                  placeholder="Enter admin name"
-                />
-                {errors.adminName && (
-                  <p className="mt-1 text-sm text-red-400">{errors.adminName}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Admin Email *
+                <label htmlFor="adminEmail" className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+                  Email Address
                 </label>
                 <input
                   type="email"
+                  id="adminEmail"
                   value={formData.adminEmail}
                   onChange={(e) => handleInputChange('adminEmail', e.target.value)}
-                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white ${
-                    errors.adminEmail ? 'border-red-700' : 'border-[#333333]'
+                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                    errors.adminEmail ? 'border-red-500' : 'border-[var(--border-color)]'
                   }`}
-                  placeholder="admin@company.com"
+                  placeholder="admin@example.com"
                 />
-                {errors.adminEmail && (
-                  <p className="mt-1 text-sm text-red-400">{errors.adminEmail}</p>
-                )}
+                {errors.adminEmail && <p className="mt-1 text-sm text-red-400">{errors.adminEmail}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="adminName" className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="adminName"
+                  value={formData.adminName}
+                  onChange={(e) => handleInputChange('adminName', e.target.value)}
+                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                    errors.adminName ? 'border-red-500' : 'border-[var(--border-color)]'
+                  }`}
+                  placeholder="John Doe"
+                />
+                {errors.adminName && <p className="mt-1 text-sm text-red-400">{errors.adminName}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="adminPhone" className="block text-sm font-medium text-[var(--text-primary)] mb-1">
                   Phone Number
                 </label>
                 <input
                   type="tel"
+                  id="adminPhone"
                   value={formData.adminPhone}
                   onChange={(e) => handleInputChange('adminPhone', e.target.value)}
-                  className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                  className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
                   placeholder="+1-555-0123"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Department *
-                </label>
-                <input
-                  type="text"
-                  value={formData.department}
-                  onChange={(e) => handleInputChange('department', e.target.value)}
-                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white ${
-                    errors.department ? 'border-red-700' : 'border-[#333333]'
-                  }`}
-                  placeholder="e.g., IT, HR, Training"
-                />
-                {errors.department && (
-                  <p className="mt-1 text-sm text-red-400">{errors.department}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Admin Role */}
-          <div>
-            <h3 className="text-lg font-medium text-white mb-4">Admin Role</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Role *
+                <label htmlFor="companyId" className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+                  Company
                 </label>
                 <select
-                  value={formData.adminRole}
-                  onChange={(e) => handleInputChange('adminRole', e.target.value)}
-                  className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#8b5cf6] focus:border-[#8b5cf6] bg-[#252525] text-white"
-                >
-                  <option value="admin">Admin</option>
-                  <option value="super_admin">Super Admin</option>
-                </select>
-                <p className="mt-1 text-xs text-[#a0a0a0]">
-                  {formData.adminRole === 'super_admin' 
-                    ? 'Super Admins have full system access' 
-                    : 'Admins manage users within their company'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Company Assignment */}
-          <div>
-            <h3 className="text-lg font-medium text-white mb-4">Company Assignment</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  <Building2 className="h-4 w-4 inline mr-1" />
-                  Company {formData.adminRole === 'admin' ? <span className="text-red-500">*</span> : ''}
-                </label>
-                <select
+                  id="companyId"
                   value={formData.companyId}
                   onChange={(e) => handleInputChange('companyId', e.target.value)}
-                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white ${
-                    errors.companyId ? 'border-red-700' : 'border-[#333333]'
+                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                    errors.companyId ? 'border-red-500' : 'border-[var(--border-color)]'
                   }`}
-                  disabled={formData.adminRole === 'super_admin'}
                 >
                   <option value="">Select a company</option>
                   {companies.map((company) => (
@@ -518,98 +456,60 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
                     </option>
                   ))}
                 </select>
-                {errors.companyId && (
-                  <p className="mt-1 text-sm text-red-400">{errors.companyId}</p>
-                )}
-                <p className="mt-1 text-xs text-[#a0a0a0]">
-                  {formData.adminRole === 'super_admin' 
-                    ? 'Super Admins are not assigned to any company' 
-                    : 'Select the company that this admin will manage'}
-                </p>
+                {errors.companyId && <p className="mt-1 text-sm text-red-400">{errors.companyId}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Role
+                <label htmlFor="department" className="block text-sm font-medium text-[var(--text-primary)] mb-1">
+                  Department
                 </label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => handleInputChange('role', e.target.value)}
-                  className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
-                >
-                  <option value="Admin">Admin</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Supervisor">Supervisor</option>
-                </select>
+                <input
+                  type="text"
+                  id="department"
+                  value={formData.department}
+                  onChange={(e) => handleInputChange('department', e.target.value)}
+                  className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                    errors.department ? 'border-red-500' : 'border-[var(--border-color)]'
+                  }`}
+                  placeholder="e.g., IT, HR, Sales"
+                />
+                {errors.department && <p className="mt-1 text-sm text-red-400">{errors.department}</p>}
               </div>
-            </div>
-          </div>
 
-          {/* Permissions */}
-          <div>
-            <h3 className="text-lg font-medium text-white mb-4">Permissions</h3>
-            <div className="space-y-3">
-              {Object.entries(formData.permissions).map(([permission, value]) => (
-                <div key={permission} className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-white capitalize">
-                      {permission.replace(/([A-Z])/g, ' $1').trim()}
-                    </h4>
-                    <p className="text-sm text-[#a0a0a0]">
-                      {permission === 'userManagement' && 'Manage users and their access'}
-                      {permission === 'contentManagement' && 'Upload and manage learning content'}
-                      {permission === 'analytics' && 'View analytics and reports'}
-                      {permission === 'settings' && 'Modify system settings'}
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={value}
-                      onChange={(e) => handlePermissionChange(permission, e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-[#333333] peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#8b5cf6]/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[#333333] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8b5cf6]"></div>
-                  </label>
-                </div>
-              ))}
-            </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingUser}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)] disabled:opacity-50"
+                >
+                  {isCreatingUser ? 'Creating...' : 'Create Admin'}
+                </button>
+              </div>
+            </form>
           </div>
-
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-3 pt-6 border-t border-[#333333]">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isCreatingUser}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50"
-            >
-              {isCreatingUser ? 'Creating...' : 'Create Admin'}
-            </button>
-          </div>
-        </form>
-      </div>
+        </div>
       </div>
 
       {/* Password Display Modal */}
       {showPasswordModal && generatedPassword && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60 p-4">
-          <div className="bg-[#1e1e1e] rounded-lg shadow-xl max-w-md w-full border border-[#333333]">
+          <div className="bg-[var(--background-secondary)] rounded-lg shadow-xl max-w-md w-full border border-[var(--border-color)]">
             <div className="p-6">
-              <h3 className="text-lg font-medium text-white mb-4">Admin Created Successfully!</h3>
-              <div className="bg-[#252525] border border-[#333333] rounded-lg p-4 mb-4">
-                <p className="text-sm text-[#a0a0a0] mb-2">Temporary Password:</p>
-                <div className="flex items-center justify-between bg-[#1e1e1e] border border-[#333333] rounded p-3">
-                  <code className="text-white font-mono text-lg">{generatedPassword}</code>
+              <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">Admin Created Successfully!</h3>
+              <div className="bg-[var(--background-tertiary)] border border-[var(--border-color)] rounded-lg p-4 mb-4">
+                <p className="text-sm text-[var(--text-tertiary)] mb-2">Temporary Password:</p>
+                <div className="flex items-center justify-between bg-[var(--background-secondary)] border border-[var(--border-color)] rounded p-3">
+                  <code className="text-[var(--text-primary)] font-mono text-lg">{generatedPassword}</code>
                   <button
                     onClick={() => copyToClipboard(generatedPassword)}
-                    className="ml-2 px-3 py-1 bg-[#8b5cf6] text-white text-xs rounded hover:bg-[#7c3aed]"
+                    className="ml-2 px-3 py-1 bg-[var(--accent-primary)] text-white text-xs rounded hover:bg-[var(--accent-secondary)]"
                   >
                     Copy
                   </button>
@@ -643,7 +543,7 @@ export default function AddAdminModal({ isOpen, onClose, onSubmit, companies }: 
                     });
                     onClose();
                   }}
-                  className="px-4 py-2 bg-[#8b5cf6] text-white rounded hover:bg-[#7c3aed]"
+                  className="px-4 py-2 bg-[var(--accent-primary)] text-white rounded hover:bg-[var(--accent-secondary)]"
                 >
                   Close
                 </button>

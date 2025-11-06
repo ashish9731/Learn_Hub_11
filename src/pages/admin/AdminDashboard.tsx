@@ -444,19 +444,19 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
     <div className="py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="mt-1 text-sm text-[#f0f0f0]">Overview of your learning management system.</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Dashboard</h1>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">Overview of your learning management system.</p>
         </div>
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
-            { title: 'Total Users', value: realTimeMetrics.totalUsers, icon: Users, color: 'bg-[#8b5cf6]' },
-            { title: 'Total Courses', value: realTimeMetrics.totalCourses, icon: BookOpen, color: 'bg-[#8b5cf6]' },
-            { title: 'Total Hours', value: realTimeMetrics.totalHours.toFixed(1), icon: Clock, color: 'bg-[#8b5cf6]' },
-            { title: 'Active Users', value: realTimeMetrics.activeUsers, icon: CheckCircle, color: 'bg-[#8b5cf6]' }
+            { title: 'Total Users', value: realTimeMetrics.totalUsers, icon: Users, color: 'bg-[var(--accent-primary)]' },
+            { title: 'Total Courses', value: realTimeMetrics.totalCourses, icon: BookOpen, color: 'bg-[var(--accent-primary)]' },
+            { title: 'Total Hours', value: realTimeMetrics.totalHours.toFixed(1), icon: Clock, color: 'bg-[var(--accent-primary)]' },
+            { title: 'Active Users', value: realTimeMetrics.activeUsers, icon: CheckCircle, color: 'bg-[var(--accent-primary)]' }
           ].map((card, index) => (
-            <div key={index} className="bg-[#1e1e1e] overflow-hidden shadow-sm rounded-lg border border-[#333333]">
+            <div key={index} className="bg-[var(--background-secondary)] overflow-hidden shadow-sm rounded-lg border border-[var(--border-color)]">
               <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -466,8 +466,8 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-[#f0f0f0] truncate">{card.title}</dt>
-                      <dd className="text-2xl font-semibold text-white">{card.value}</dd>
+                      <dt className="text-sm font-medium text-[var(--text-secondary)] truncate">{card.title}</dt>
+                      <dd className="text-2xl font-semibold text-[var(--text-primary)]">{card.value}</dd>
                     </dl>
                   </div>
                 </div>
@@ -477,24 +477,24 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         </div>
 
         {/* User Progress Overview */}
-        <div className="bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333] mb-8">
-          <div className="px-6 py-4 border-b border-[#333333]">
-            <h3 className="text-lg font-medium text-white">User Progress Overview</h3>
+        <div className="bg-[var(--background-secondary)] shadow-sm rounded-lg border border-[var(--border-color)] mb-8">
+          <div className="px-6 py-4 border-b border-[var(--border-color)]">
+            <h3 className="text-lg font-medium text-[var(--text-primary)]">User Progress Overview</h3>
           </div>
           <div className="p-6">
             <div className="space-y-4">
               {supabaseData.users.filter((user: any) => user.role === 'user' && (!companyId || user.company_id === companyId)).length > 0 ? (
                 supabaseData.users.filter((user: any) => user.role === 'user' && (!companyId || user.company_id === companyId)).slice(0, 5).map((user: any, index: number) => (
-                  <div key={user.id} className="flex items-center justify-between p-4 bg-[#252525] rounded-lg">
+                  <div key={user.id} className="flex items-center justify-between p-4 bg-[var(--background-tertiary)] rounded-lg">
                     <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-[#8b5cf6]/20 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-[#8b5cf6]" />
+                      <div className="h-10 w-10 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-[var(--accent-primary)]" />
                       </div>
                       <div className="ml-3">
-                        <p className="text-sm font-medium text-white">
+                        <p className="text-sm font-medium text-[var(--text-primary)]">
                           {userProfiles.find(p => p.user_id === user.id)?.full_name || user.email}
                         </p>
-                        <p className="text-xs text-[#f0f0f0]">
+                        <p className="text-xs text-[var(--text-secondary)]">
                           {supabaseData.userCourses.filter(uc => uc.user_id === user.id).length} courses enrolled
                         </p>
                       </div>
@@ -509,10 +509,10 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                         
                         return (
                           <>
-                      <div className="w-24 bg-[#333333] rounded-full h-2 mr-3">
-                              <div className="bg-[#8b5cf6] h-2 rounded-full" style={{ width: `${avgProgress}%` }}></div>
+                      <div className="w-24 bg-[var(--border-color)] rounded-full h-2 mr-3">
+                              <div className="bg-[var(--accent-primary)] h-2 rounded-full" style={{ width: `${avgProgress}%` }}></div>
                       </div>
-                            <span className="text-sm font-medium text-white">{avgProgress}%</span>
+                            <span className="text-sm font-medium text-[var(--text-primary)]">{avgProgress}%</span>
                           </>
                         );
                       })()}
@@ -527,13 +527,13 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         </div>
 
         {/* Companies Overview */}
-        <div className="bg-[#1e1e1e] shadow-sm rounded-lg border border-[#333333]">
-          <div className="px-6 py-4 border-b border-[#333333]">
-            <h3 className="text-lg font-medium text-white">Companies Overview</h3>
+        <div className="bg-[var(--background-secondary)] shadow-sm rounded-lg border border-[var(--border-color)]">
+          <div className="px-6 py-4 border-b border-[var(--border-color)]">
+            <h3 className="text-lg font-medium text-[var(--text-primary)]">Companies Overview</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-[#333333]">
-              <thead className="bg-[#252525]">
+            <table className="min-w-full divide-y divide-[var(--border-color)]">
+              <thead className="bg-[var(--background-tertiary)]">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Company Name
@@ -549,17 +549,17 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-[#1e1e1e] divide-y divide-[#333333]">
+              <tbody className="bg-[var(--background-secondary)] divide-y divide-[var(--border-color)]">
                 {supabaseData.companies.length > 0 ? (
                   supabaseData.companies.map((company: any, index: number) => (
-                    <tr key={company.id} className={index % 2 === 0 ? 'bg-[#1e1e1e]' : 'bg-[#252525]'}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                    <tr key={company.id} className={index % 2 === 0 ? 'bg-[var(--background-secondary)]' : 'bg-[var(--background-tertiary)]'}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-primary)]">
                         {company.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-primary)]">
                         {(supabaseData.users || []).filter((u: any) => u.company_id === company.id).length}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-primary)]">
                         {(() => {
                           const companyUsers = (supabaseData.users || []).filter((u: any) => u.company_id === company.id);
                           const companyUserIds = companyUsers.map(u => u.id);
@@ -570,7 +570,7 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
                           return uniqueCourses.size;
                         })()}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--text-primary)]">
                         {new Date(company.created_at).toLocaleDateString()}
                       </td>
                     </tr>

@@ -354,15 +354,15 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#1e1e1e] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[#333333]">
-          <div className="flex items-center justify-between p-6 border-b border-[#333333]">
+        <div className="bg-[var(--background-secondary)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[var(--border-color)]">
+          <div className="flex items-center justify-between p-6 border-b border-[var(--border-color)]">
             <div className="flex items-center">
-              <User className="h-6 w-6 text-[#8b5cf6] mr-2" />
-              <h2 className="text-xl font-semibold text-white">Add New User</h2>
+              <User className="h-6 w-6 text-[var(--accent-primary)] mr-2" />
+              <h2 className="text-xl font-semibold text-[var(--text-primary)]">Add New User</h2>
             </div>
             <button
               onClick={handleClose}
-              className="text-[#a0a0a0] hover:text-white focus:outline-none"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus:outline-none"
             >
               <X className="h-6 w-6" />
             </button>
@@ -378,18 +378,18 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
 
             {/* User Information */}
             <div>
-              <h3 className="text-lg font-medium text-white mb-4">User Information</h3>
+              <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">User Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     User Name *
                   </label>
                   <input
                     type="text"
                     value={formData.userName}
                     onChange={(e) => handleInputChange('userName', e.target.value)}
-                    className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white ${
-                      errors.userName ? 'border-red-700' : 'border-[#333333]'
+                    className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                      errors.userName ? 'border-red-700' : 'border-[var(--border-color)]'
                     }`}
                     placeholder="Enter user name"
                   />
@@ -399,15 +399,15 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     User Email *
                   </label>
                   <input
                     type="email"
                     value={formData.userEmail}
                     onChange={(e) => handleInputChange('userEmail', e.target.value)}
-                    className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white ${
-                      errors.userEmail ? 'border-red-700' : 'border-[#333333]'
+                    className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                      errors.userEmail ? 'border-red-700' : 'border-[var(--border-color)]'
                     }`}
                     placeholder="user@company.com"
                   />
@@ -417,41 +417,41 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     Phone Number
                   </label>
                   <input
                     type="tel"
                     value={formData.userPhone}
                     onChange={(e) => handleInputChange('userPhone', e.target.value)}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
                     placeholder="+1-555-0123"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     Employee ID
                   </label>
                   <input
                     type="text"
                     value={formData.employeeId}
                     onChange={(e) => handleInputChange('employeeId', e.target.value)}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
                     placeholder="EMP001"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     Department *
                   </label>
                   <input
                     type="text"
                     value={formData.department}
                     onChange={(e) => handleInputChange('department', e.target.value)}
-                    className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white ${
-                      errors.department ? 'border-red-700' : 'border-[#333333]'
+                    className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                      errors.department ? 'border-red-700' : 'border-[var(--border-color)]'
                     }`}
                     placeholder="e.g., IT, HR, Sales"
                   />
@@ -461,27 +461,27 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     Position
                   </label>
                   <input
                     type="text"
                     value={formData.position}
                     onChange={(e) => handleInputChange('position', e.target.value)}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
                     placeholder="e.g., Software Engineer, Manager"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     Joining Date
                   </label>
                   <input
                     type="date"
                     value={formData.joiningDate}
                     onChange={(e) => handleInputChange('joiningDate', e.target.value)}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-[#8b5cf6] focus:border-[#8b5cf6] bg-[#252525] text-white"
+                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
                   />
                 </div>
               </div>
@@ -489,10 +489,10 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
 
             {/* Company & Admin Assignment */}
             <div>
-              <h3 className="text-lg font-medium text-white mb-4">Company & Admin Assignment</h3>
+              <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">Company & Admin Assignment</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     <Building2 className="h-4 w-4 inline mr-1" />
                     Company *
                   </label>
@@ -503,8 +503,8 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
                       // Reset admin selection when company changes
                       handleInputChange('adminId', '');
                     }}
-                    className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white ${
-                      errors.companyId ? 'border-red-700' : 'border-[#333333]'
+                    className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                      errors.companyId ? 'border-red-700' : 'border-[var(--border-color)]'
                     }`}
                   >
                     <option value="">Select a company</option>
@@ -517,20 +517,20 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
                   {errors.companyId && (
                     <p className="mt-1 text-sm text-red-400">{errors.companyId}</p>
                   )}
-                  <p className="mt-1 text-xs text-[#a0a0a0]">
+                  <p className="mt-1 text-xs text-[var(--text-tertiary)]">
                     Select the company for this user
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     <UserCheck className="h-4 w-4 inline mr-1" />
                     Assign to Admin (Optional)
                   </label>
                   <select
                     value={formData.adminId}
                     onChange={(e) => handleInputChange('adminId', e.target.value)}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
                     disabled={!formData.companyId}
                   >
                     <option value="">No admin assigned</option>
@@ -542,7 +542,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
                         </option>
                       ))}
                   </select>
-                  <p className="mt-1 text-xs text-[#a0a0a0]">
+                  <p className="mt-1 text-xs text-[var(--text-tertiary)]">
                     {!formData.companyId 
                       ? "Select a company first" 
                       : admins.filter(a => a.company_id === formData.companyId).length === 0
@@ -554,18 +554,18 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
             </div>
 
             {/* Form Actions */}
-            <div className="flex justify-end space-x-3 pt-6 border-t border-[#333333]">
+            <div className="flex justify-end space-x-3 pt-6 border-t border-[var(--border-color)]">
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                className="px-4 py-2 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--background-tertiary)] hover:bg-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isCreatingUser}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6] disabled:opacity-50"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)] disabled:opacity-50"
               >
                 {isCreatingUser ? 'Creating...' : 'Create User'}
               </button>
@@ -577,20 +577,20 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
       {/* Password Display Modal */}
       {showPasswordModal && generatedPassword && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60 p-4">
-          <div className="bg-[#1e1e1e] rounded-lg shadow-xl max-w-md w-full border border-[#333333]">
+          <div className="bg-[var(--background-secondary)] rounded-lg shadow-xl max-w-md w-full border border-[var(--border-color)]">
             <div className="p-6">
-              <h3 className="text-lg font-medium text-white mb-4">User Created Successfully!</h3>
-              <div className="bg-[#252525] border border-[#333333] rounded-lg p-4 mb-4">
-                <p className="text-sm text-[#a0a0a0] mb-2">Email:</p>
-                <div className="bg-[#1e1e1e] border border-[#333333] rounded p-3 mb-3">
-                  <code className="text-white font-mono text-sm">{formData.userEmail}</code>
+              <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">User Created Successfully!</h3>
+              <div className="bg-[var(--background-tertiary)] border border-[var(--border-color)] rounded-lg p-4 mb-4">
+                <p className="text-sm text-[var(--text-tertiary)] mb-2">Email:</p>
+                <div className="bg-[var(--background-secondary)] border border-[var(--border-color)] rounded p-3 mb-3">
+                  <code className="text-[var(--text-primary)] font-mono text-sm">{formData.userEmail}</code>
                 </div>
-                <p className="text-sm text-[#a0a0a0] mb-2">Temporary Password:</p>
-                <div className="flex items-center justify-between bg-[#1e1e1e] border border-[#333333] rounded p-3">
-                  <code className="text-white font-mono text-lg">{generatedPassword}</code>
+                <p className="text-sm text-[var(--text-tertiary)] mb-2">Temporary Password:</p>
+                <div className="flex items-center justify-between bg-[var(--background-secondary)] border border-[var(--border-color)] rounded p-3">
+                  <code className="text-[var(--text-primary)] font-mono text-lg">{generatedPassword}</code>
                   <button
                     onClick={() => copyToClipboard(generatedPassword)}
-                    className="ml-2 px-3 py-1 bg-[#8b5cf6] text-white text-xs rounded hover:bg-[#7c3aed]"
+                    className="ml-2 px-3 py-1 bg-[var(--accent-primary)] text-white text-xs rounded hover:bg-[var(--accent-secondary)]"
                   >
                     Copy
                   </button>
@@ -621,7 +621,7 @@ export default function AddUserModal({ isOpen, onClose, onSubmit, companies, adm
                     });
                     onClose();
                   }}
-                  className="px-4 py-2 bg-[#8b5cf6] text-white rounded hover:bg-[#7c3aed]"
+                  className="px-4 py-2 bg-[var(--accent-primary)] text-white rounded hover:bg-[var(--accent-secondary)]"
                 >
                   Close
                 </button>

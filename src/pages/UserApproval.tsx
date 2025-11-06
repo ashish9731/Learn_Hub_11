@@ -263,17 +263,17 @@ export default function UserApproval() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="md:flex md:items-center md:justify-between mb-6">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">
+            <h2 className="text-2xl font-bold leading-7 text-[var(--text-primary)] sm:text-3xl sm:truncate">
               User Approval Management
             </h2>
-            <p className="mt-1 text-sm text-[#a0a0a0]">
+            <p className="mt-1 text-sm text-[var(--text-tertiary)]">
               Review and approve user registrations
             </p>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
             <button
               onClick={() => window.history.back()}
-              className="inline-flex items-center px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#1e1e1e] hover:bg-[#252525] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+              className="inline-flex items-center px-4 py-2 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--background-secondary)] hover:bg-[var(--background-tertiary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
               Back
@@ -284,19 +284,19 @@ export default function UserApproval() {
         {/* Filters */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-[#a0a0a0] pointer-events-none" />
+            <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-[var(--text-tertiary)] pointer-events-none" />
             <input
               type="text"
               placeholder="Search registrations..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-[#333333] rounded-md leading-5 bg-[#252525] placeholder-[#a0a0a0] text-white focus:outline-none focus:ring-1 focus:ring-[#8b5cf6] focus:border-[#8b5cf6]"
+              className="block w-full pl-10 pr-3 py-2 border border-[var(--border-color)] rounded-md leading-5 bg-[var(--background-tertiary)] placeholder-[var(--text-tertiary)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)]"
             />
           </div>
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 border border-[#333333] rounded-md bg-[#252525] text-white focus:outline-none focus:ring-1 focus:ring-[#8b5cf6] focus:border-[#8b5cf6]"
+            className="px-3 py-2 border border-[var(--border-color)] rounded-md bg-[var(--background-tertiary)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)]"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -308,12 +308,12 @@ export default function UserApproval() {
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {[
-            { title: 'Total Registrations', value: registrations.length, icon: User, color: 'bg-[#8b5cf6]' },
+            { title: 'Total Registrations', value: registrations.length, icon: User, color: 'bg-[var(--accent-primary)]' },
             { title: 'Pending Approval', value: registrations.filter(r => r.status === 'pending').length, icon: Clock, color: 'bg-yellow-500' },
             { title: 'Approved', value: registrations.filter(r => r.status === 'approved').length, icon: CheckCircle, color: 'bg-green-500' },
             { title: 'Rejected', value: registrations.filter(r => r.status === 'rejected').length, icon: XCircle, color: 'bg-red-500' }
           ].map((card, index) => (
-            <div key={index} className="bg-[#1e1e1e] overflow-hidden shadow rounded-lg border border-[#333333]">
+            <div key={index} className="bg-[var(--background-secondary)] overflow-hidden shadow rounded-lg border border-[var(--border-color)]">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -323,8 +323,8 @@ export default function UserApproval() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-[#a0a0a0] truncate">{card.title}</dt>
-                      <dd className="text-2xl font-semibold text-white">{card.value}</dd>
+                      <dt className="text-sm font-medium text-[var(--text-tertiary)] truncate">{card.title}</dt>
+                      <dd className="text-2xl font-semibold text-[var(--text-primary)]">{card.value}</dd>
                     </dl>
                   </div>
                 </div>
@@ -334,23 +334,23 @@ export default function UserApproval() {
         </div>
 
         {/* Registrations List */}
-        <div className="bg-[#1e1e1e] shadow overflow-hidden sm:rounded-md border border-[#333333]">
-          <div className="px-4 py-5 sm:px-6 border-b border-[#333333]">
-            <h3 className="text-lg leading-6 font-medium text-white">User Registrations</h3>
-            <p className="mt-1 max-w-2xl text-sm text-[#a0a0a0]">Review and approve user profile registrations</p>
+        <div className="bg-[var(--background-secondary)] shadow overflow-hidden sm:rounded-md border border-[var(--border-color)]">
+          <div className="px-4 py-5 sm:px-6 border-b border-[var(--border-color)]">
+            <h3 className="text-lg leading-6 font-medium text-[var(--text-primary)]">User Registrations</h3>
+            <p className="mt-1 max-w-2xl text-sm text-[var(--text-tertiary)]">Review and approve user profile registrations</p>
           </div>
           {filteredRegistrations.length > 0 ? (
-            <ul className="divide-y divide-[#333333]">
+            <ul className="divide-y divide-[var(--border-color)]">
               {filteredRegistrations.map((registration) => (
-                <li key={registration.id} className="px-4 py-4 hover:bg-[#252525]">
+                <li key={registration.id} className="px-4 py-4 hover:bg-[var(--background-tertiary)]">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="h-12 w-12 rounded-full bg-[#8b5cf6]/20 flex items-center justify-center">
-                        <User className="h-6 w-6 text-[#8b5cf6]" />
+                      <div className="h-12 w-12 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center">
+                        <User className="h-6 w-6 text-[var(--accent-primary)]" />
                       </div>
                       <div className="ml-4">
                         <div className="flex items-center">
-                          <p className="text-lg font-medium text-white">
+                          <p className="text-lg font-medium text-[var(--text-primary)]">
                             {registration.full_name || registration.email}
                           </p>
                           <span className={`ml-2 ${getStatusBadge(registration.status)}`}>
@@ -359,18 +359,18 @@ export default function UserApproval() {
                           </span>
                         </div>
                         <div className="flex items-center mt-1 space-x-4">
-                          <div className="flex items-center text-sm text-[#a0a0a0]">
+                          <div className="flex items-center text-sm text-[var(--text-tertiary)]">
                             <Mail className="h-4 w-4 mr-1" />
                             {registration.email}
                           </div>
                           {registration.phone && (
-                            <div className="flex items-center text-sm text-[#a0a0a0]">
+                            <div className="flex items-center text-sm text-[var(--text-tertiary)]">
                               <Phone className="h-4 w-4 mr-1" />
                               {registration.phone}
                             </div>
                           )}
                           {registration.department && (
-                            <div className="flex items-center text-sm text-[#a0a0a0]">
+                            <div className="flex items-center text-sm text-[var(--text-tertiary)]">
                               <Building2 className="h-4 w-4 mr-1" />
                               {registration.department}
                             </div>
@@ -380,8 +380,8 @@ export default function UserApproval() {
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="text-center">
-                        <p className="text-sm font-medium text-[#a0a0a0]">Registered</p>
-                        <p className="text-sm text-white">
+                        <p className="text-sm font-medium text-[var(--text-tertiary)]">Registered</p>
+                        <p className="text-sm text-[var(--text-primary)]">
                           {new Date(registration.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -405,7 +405,7 @@ export default function UserApproval() {
               ))}
             </ul>
           ) : (
-            <div className="px-6 py-8 text-center text-[#a0a0a0]">
+            <div className="px-6 py-8 text-center text-[var(--text-tertiary)]">
               {registrations.length === 0 ? 'No registrations found.' : 'No registrations match your search.'}
             </div>
           )}
@@ -414,15 +414,15 @@ export default function UserApproval() {
         {/* Approval Modal */}
         {isApprovalModalOpen && selectedRegistration && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-[#1e1e1e] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[#333333]">
-              <div className="flex items-center justify-between p-6 border-b border-[#333333]">
+            <div className="bg-[var(--background-secondary)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[var(--border-color)]">
+              <div className="flex items-center justify-between p-6 border-b border-[var(--border-color)]">
                 <div className="flex items-center">
-                  <UserCheck className="h-6 w-6 text-[#8b5cf6] mr-2" />
-                  <h2 className="text-xl font-semibold text-white">Review Registration</h2>
+                  <UserCheck className="h-6 w-6 text-[var(--accent-primary)] mr-2" />
+                  <h2 className="text-xl font-semibold text-[var(--text-primary)]">Review Registration</h2>
                 </div>
                 <button
                   onClick={() => setIsApprovalModalOpen(false)}
-                  className="text-[#a0a0a0] hover:text-white focus:outline-none"
+                  className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] focus:outline-none"
                 >
                   ×
                 </button>
@@ -430,45 +430,45 @@ export default function UserApproval() {
 
               <div className="p-6 space-y-6">
                 {/* User Information */}
-                <div className="bg-[#252525] rounded-lg p-4">
-                  <h3 className="text-lg font-medium text-white mb-4">User Information</h3>
+                <div className="bg-[var(--background-tertiary)] rounded-lg p-4">
+                  <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">User Information</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-[#a0a0a0]">Name:</span>
-                      <p className="text-white">{selectedRegistration.full_name}</p>
+                      <span className="text-[var(--text-tertiary)]">Name:</span>
+                      <p className="text-[var(--text-primary)]">{selectedRegistration.full_name}</p>
                     </div>
                     <div>
-                      <span className="text-[#a0a0a0]">Email:</span>
-                      <p className="text-white">{selectedRegistration.email}</p>
+                      <span className="text-[var(--text-tertiary)]">Email:</span>
+                      <p className="text-[var(--text-primary)]">{selectedRegistration.email}</p>
                     </div>
                     <div>
-                      <span className="text-[#a0a0a0]">Phone:</span>
-                      <p className="text-white">{selectedRegistration.phone || 'Not provided'}</p>
+                      <span className="text-[var(--text-tertiary)]">Phone:</span>
+                      <p className="text-[var(--text-primary)]">{selectedRegistration.phone || 'Not provided'}</p>
                     </div>
                     <div>
-                      <span className="text-[#a0a0a0]">Department:</span>
-                      <p className="text-white">{selectedRegistration.department || 'Not provided'}</p>
+                      <span className="text-[var(--text-tertiary)]">Department:</span>
+                      <p className="text-[var(--text-primary)]">{selectedRegistration.department || 'Not provided'}</p>
                     </div>
                     <div>
-                      <span className="text-[#a0a0a0]">Position:</span>
-                      <p className="text-white">{selectedRegistration.position || 'Not provided'}</p>
+                      <span className="text-[var(--text-tertiary)]">Position:</span>
+                      <p className="text-[var(--text-primary)]">{selectedRegistration.position || 'Not provided'}</p>
                     </div>
                     <div>
-                      <span className="text-[#a0a0a0]">Employee ID:</span>
-                      <p className="text-white">{selectedRegistration.employee_id || 'Not provided'}</p>
+                      <span className="text-[var(--text-tertiary)]">Employee ID:</span>
+                      <p className="text-[var(--text-primary)]">{selectedRegistration.employee_id || 'Not provided'}</p>
                     </div>
                   </div>
                   {selectedRegistration.bio && (
                     <div className="mt-4">
-                      <span className="text-[#a0a0a0]">Bio:</span>
-                      <p className="text-white mt-1">{selectedRegistration.bio}</p>
+                      <span className="text-[var(--text-tertiary)]">Bio:</span>
+                      <p className="text-[var(--text-primary)] mt-1">{selectedRegistration.bio}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Approval Options */}
                 <div>
-                  <h3 className="text-lg font-medium text-white mb-4">Approval Decision</h3>
+                  <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">Approval Decision</h3>
                   <div className="space-y-3">
                     <label className="flex items-center">
                       <input
@@ -477,9 +477,9 @@ export default function UserApproval() {
                         value="regular"
                         checked={approvalAction === 'regular'}
                         onChange={(e) => setApprovalAction(e.target.value as any)}
-                        className="h-4 w-4 text-[#8b5cf6] focus:ring-[#8b5cf6] border-[#333333]"
+                        className="h-4 w-4 text-[var(--accent-primary)] focus:ring-[var(--accent-primary)] border-[var(--border-color)]"
                       />
-                      <span className="ml-3 text-white">Approve as Regular User</span>
+                      <span className="ml-3 text-[var(--text-primary)]">Approve as Regular User</span>
                     </label>
                     
                     <label className="flex items-center">
@@ -489,9 +489,9 @@ export default function UserApproval() {
                         value="company"
                         checked={approvalAction === 'company'}
                         onChange={(e) => setApprovalAction(e.target.value as any)}
-                        className="h-4 w-4 text-[#8b5cf6] focus:ring-[#8b5cf6] border-[#333333]"
+                        className="h-4 w-4 text-[var(--accent-primary)] focus:ring-[var(--accent-primary)] border-[var(--border-color)]"
                       />
-                      <span className="ml-3 text-white">Approve and Assign to Company</span>
+                      <span className="ml-3 text-[var(--text-primary)]">Approve and Assign to Company</span>
                     </label>
                     
                     <label className="flex items-center">
@@ -501,9 +501,9 @@ export default function UserApproval() {
                         value="reject"
                         checked={approvalAction === 'reject'}
                         onChange={(e) => setApprovalAction(e.target.value as any)}
-                        className="h-4 w-4 text-red-500 focus:ring-red-500 border-[#333333]"
+                        className="h-4 w-4 text-red-500 focus:ring-red-500 border-[var(--border-color)]"
                       />
-                      <span className="ml-3 text-white">Reject Registration</span>
+                      <span className="ml-3 text-[var(--text-primary)]">Reject Registration</span>
                     </label>
                   </div>
                 </div>
@@ -511,13 +511,13 @@ export default function UserApproval() {
                 {/* Company Selection */}
                 {approvalAction === 'company' && (
                   <div>
-                    <label className="block text-sm font-medium text-white mb-2">
+                    <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                       Select Company *
                     </label>
                     <select
                       value={selectedCompanyId}
                       onChange={(e) => setSelectedCompanyId(e.target.value)}
-                      className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                      className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
                     >
                       <option value="">Choose a company...</option>
                       {companies.map((company) => (
@@ -531,24 +531,24 @@ export default function UserApproval() {
 
                 {/* Notes */}
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     Notes (Optional)
                   </label>
                   <textarea
                     rows={3}
                     value={approvalNotes}
                     onChange={(e) => setApprovalNotes(e.target.value)}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
+                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
                     placeholder="Add any notes about this approval decision..."
                   />
                 </div>
 
                 {/* Form Actions */}
-                <div className="flex justify-end space-x-3 pt-6 border-t border-[#333333]">
+                <div className="flex justify-end space-x-3 pt-6 border-t border-[var(--border-color)]">
                   <button
                     type="button"
                     onClick={() => setIsApprovalModalOpen(false)}
-                    className="px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                    className="px-4 py-2 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--background-tertiary)] hover:bg-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
                   >
                     Cancel
                   </button>
@@ -556,10 +556,10 @@ export default function UserApproval() {
                     type="button"
                     onClick={handleApproval}
                     disabled={isProcessing || (approvalAction === 'company' && !selectedCompanyId)}
-                    className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
+                    className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
                       approvalAction === 'reject' 
                         ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' 
-                        : 'bg-[#8b5cf6] hover:bg-[#7c3aed] focus:ring-[#8b5cf6]'
+                        : 'bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] focus:ring-[var(--accent-primary)]'
                     }`}
                   >
                     {isProcessing ? 'Processing...' : 

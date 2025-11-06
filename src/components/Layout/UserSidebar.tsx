@@ -20,14 +20,14 @@ export default function UserSidebar() {
 
   return (
     <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
-      <div className="flex flex-col flex-grow bg-[#1e1e1e] border-r border-[#333333] pt-5 pb-4 overflow-y-auto">
+      <div className="flex flex-col flex-grow bg-[var(--background-secondary)] border-r border-[var(--border-color)] pt-5 pb-4 overflow-y-auto">
         <div className="flex items-center flex-shrink-0 px-4">
           <button
             onClick={handleBrandClick}
-            className="flex items-center hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] focus:ring-offset-2 rounded-md"
+            className="flex items-center hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 rounded-md"
           >
-            <GraduationCap className="h-8 w-8 text-[#8b5cf6]" />
-            <span className="ml-2 text-xl font-bold text-white">LearnHub</span>
+            <GraduationCap className="h-8 w-8 text-[var(--accent-primary)]" />
+            <span className="ml-2 text-xl font-bold text-[var(--text-primary)]">LearnHub</span>
           </button>
         </div>
         <div className="mt-8 flex-grow flex flex-col">
@@ -36,10 +36,10 @@ export default function UserSidebar() {
               <button
                 key={item.name}
                 onClick={() => navigate(item.href)} 
-                className="w-full flex items-center px-4 py-2 text-sm font-medium text-white rounded-md hover:bg-[#252525] mb-1"
+                className="w-full flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] rounded-md hover:bg-[var(--background-tertiary)] mb-1"
               >
                 <item.icon
-                  className="mr-3 flex-shrink-0 h-5 w-5 text-[#a0a0a0]"
+                  className="mr-3 flex-shrink-0 h-5 w-5 text-[var(--text-tertiary)]"
                   aria-hidden="true"
                 />
                 {item.name}

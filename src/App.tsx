@@ -307,23 +307,23 @@ function AppContent() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#121212]">
+      <div className="flex items-center justify-center h-screen bg-[var(--background-primary)]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8b5cf6] mx-auto"></div>
-          <p className="mt-4 text-white">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-primary)] mx-auto"></div>
+          <p className="mt-4 text-[var(--text-primary)]">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#121212]">
+    <div className="min-h-screen bg-[var(--background-primary)]">
       {isAuthenticated ? (
         <>
           {userRole === 'super_admin' && (
             <>
               <Header onLogout={handleLogout} userEmail={userEmail} userRole={userRole} />
-              <main className="min-h-screen bg-[#121212]">
+              <main className="min-h-screen bg-[var(--background-primary)]">
                 <div className="py-6">
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
@@ -346,7 +346,7 @@ function AppContent() {
             <>
               <AdminSidebar />
               <AdminHeader onLogout={handleLogout} userEmail={userEmail} userRole={userRole} />
-              <main className="lg:pl-64 min-h-screen bg-[#121212]">
+              <main className="lg:pl-64 min-h-screen bg-[var(--background-primary)]">
                 <div className="py-6">
                   <Routes>
                     <Route path="/admin" element={<AdminDashboard userEmail={userEmail} />} />
@@ -365,7 +365,7 @@ function AppContent() {
             <>
               <UserSidebar />
               <UserHeader onLogout={handleLogout} userEmail={userEmail} userRole={userRole} />
-              <main className="lg:pl-64 min-h-screen bg-[#121212]">
+              <main className="lg:pl-64 min-h-screen bg-[var(--background-primary)]">
                 <div className="py-6">
                   <Routes>
                     <Route path="/" element={<Navigate to="/user" replace />} />

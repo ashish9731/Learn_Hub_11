@@ -11,15 +11,22 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.j
  */
 export async function extractTextFromPDF(file: File): Promise<string> {
   try {
+    console.log('Extracting text from PDF file:', file.name, 'Size:', file.size, 'bytes');
     const arrayBuffer = await file.arrayBuffer();
+    console.log('PDF file loaded into array buffer, size:', arrayBuffer.byteLength);
+    
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    console.log('PDF document loaded, pages:', pdf.numPages);
     
     let textContent = '';
     const maxPages = Math.min(pdf.numPages, 50); // Limit to 50 pages for performance
     
     for (let i = 1; i <= maxPages; i++) {
+      console.log('Processing page', i);
       const page = await pdf.getPage(i);
       const text = await page.getTextContent();
+      console.log('Page', i, 'text items:', text.items.length);
+      
       const pageText = text.items
         .map((item: any) => item.str)
         .join(' ')
@@ -28,10 +35,14 @@ export async function extractTextFromPDF(file: File): Promise<string> {
       
       if (pageText) {
         textContent += pageText + '\n\n';
+        console.log('Page', i, 'extracted text length:', pageText.length);
+      } else {
+        console.log('Page', i, 'has no selectable text');
       }
     }
     
     const result = textContent.trim();
+    console.log('Total extracted text length:', result.length);
     
     // If we extracted no text, this might be an image-only PDF
     if (!result) {
@@ -52,9 +63,13 @@ export async function extractTextFromPDF(file: File): Promise<string> {
  */
 export async function extractTextFromDOCX(file: File): Promise<string> {
   try {
+    console.log('Extracting text from DOCX file:', file.name, 'Size:', file.size, 'bytes');
     const arrayBuffer = await file.arrayBuffer();
+    console.log('DOCX file loaded into array buffer, size:', arrayBuffer.byteLength);
+    
     const result = await mammoth.extractRawText({ arrayBuffer });
     const text = result.value.trim();
+    console.log('Extracted DOCX text length:', text.length);
     
     // If we extracted no text, this might be an empty or corrupted DOCX
     if (!text) {
@@ -75,8 +90,10 @@ export async function extractTextFromDOCX(file: File): Promise<string> {
  */
 export async function extractTextFromTXT(file: File): Promise<string> {
   try {
+    console.log('Extracting text from TXT file:', file.name, 'Size:', file.size, 'bytes');
     const text = await file.text();
     const trimmedText = text.trim();
+    console.log('Extracted TXT text length:', trimmedText.length);
     
     // If we extracted no text, this might be an empty TXT file
     if (!trimmedText) {
@@ -96,7 +113,9 @@ export async function extractTextFromTXT(file: File): Promise<string> {
  * @returns Promise<string> The extracted text content
  */
 export async function extractQuizDocumentText(file: File): Promise<string> {
+  console.log('Extracting quiz document text from file:', file.name, 'Type:', file.type);
   const fileExtension = file.name.split('.').pop()?.toLowerCase();
+  console.log('File extension:', fileExtension);
   
   switch (fileExtension) {
     case 'pdf':

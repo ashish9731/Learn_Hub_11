@@ -107,7 +107,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
           if (userError) {
             console.error('Error fetching user role:', userError);
             // Default to user role if there's an error
-            onLogin(email, 'user');
+            onLogin(email);
           } else if (userData) {
             // User exists in database, proceed with login
             onLogin(email);
@@ -146,19 +146,19 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--background-secondary)] to-[var(--background-primary)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <div className="flex justify-center">
             <div className="flex items-center">
               <GraduationCap className="h-12 w-12 text-blue-600" />
-              <span className="ml-2 text-3xl font-bold text-gray-900">LearnHub</span>
+              <span className="ml-2 text-3xl font-bold text-[var(--text-primary)]">LearnHub</span>
             </div>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-[var(--text-primary)]">
             {isSignUp ? 'Create your account' : 'Sign in to your account'}
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-[var(--text-secondary)]">
             Professional Learning Management System
           </p>
         </div>
@@ -168,7 +168,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
             {isSignUp && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="firstName" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     First Name
                   </label>
                   <div className="relative">
@@ -181,18 +181,18 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
                       type="text"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.firstName ? 'border-red-300' : 'border-gray-300'
-                      }`}
+                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] ${
+                        errors.firstName ? 'border-red-300' : 'border-[var(--border-color)]'
+                      } bg-[var(--background-tertiary)] text-[var(--text-primary)]`}
                       placeholder="First name"
                       disabled={isLoading}
                     />
                   </div>
-                  {errors.firstName && <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>}
+                  {errors.firstName && <p className="mt-1 text-sm text-red-200">{errors.firstName}</p>}
                 </div>
 
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="lastName" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     Last Name
                   </label>
                   <div className="relative">
@@ -205,20 +205,20 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
                       type="text"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.lastName ? 'border-red-300' : 'border-gray-300'
-                      }`}
+                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] ${
+                        errors.lastName ? 'border-red-300' : 'border-[var(--border-color)]'
+                      } bg-[var(--background-tertiary)] text-[var(--text-primary)]`}
                       placeholder="Last name"
                       disabled={isLoading}
                     />
                   </div>
-                  {errors.lastName && <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>}
+                  {errors.lastName && <p className="mt-1 text-sm text-red-200">{errors.lastName}</p>}
                 </div>
               </div>
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                 Email Address
               </label>
               <div className="relative">
@@ -231,18 +231,18 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.email ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] ${
+                    errors.email ? 'border-red-300' : 'border-[var(--border-color)]'
+                  } bg-[var(--background-tertiary)] text-[var(--text-primary)]`}
                   placeholder="Enter your email"
                   disabled={isLoading}
                 />
               </div>
-              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+              {errors.email && <p className="mt-1 text-sm text-red-200">{errors.email}</p>}
             </div>
             
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                 Password
               </label>
               <div className="relative">
@@ -255,9 +255,9 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`block w-full pl-10 pr-10 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.password ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`block w-full pl-10 pr-10 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] ${
+                    errors.password ? 'border-red-300' : 'border-[var(--border-color)]'
+                  } bg-[var(--background-tertiary)] text-[var(--text-primary)]`}
                   placeholder="Enter your password"
                   disabled={isLoading}
                 />
@@ -273,12 +273,12 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
                   )}
                 </button>
               </div>
-              {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+              {errors.password && <p className="mt-1 text-sm text-red-200">{errors.password}</p>}
             </div>
 
             {isSignUp && (
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -291,9 +291,9 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={`block w-full pl-10 pr-10 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                    }`}
+                    className={`block w-full pl-10 pr-10 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] ${
+                      errors.confirmPassword ? 'border-red-300' : 'border-[var(--border-color)]'
+                    } bg-[var(--background-tertiary)] text-[var(--text-primary)]`}
                     placeholder="Confirm your password"
                     disabled={isLoading}
                   />
@@ -308,14 +308,14 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
                     )}
                   </div>
                 </div>
-                {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
+                {errors.confirmPassword && <p className="mt-1 text-sm text-red-200">{errors.confirmPassword}</p>}
               </div>
             )}
           </div>
 
           {errors.general && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
-              <p className="text-sm text-red-600">{errors.general}</p>
+            <div className="bg-red-500/20 border border-red-400/30 rounded-md p-3">
+              <p className="text-sm text-red-200">{errors.general}</p>
             </div>
           )}
 
@@ -323,7 +323,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-[var(--text-primary)] bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <div className="flex items-center">
@@ -350,7 +350,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
               type="button"
               onClick={toggleMode}
               disabled={isLoading}
-              className="text-sm text-blue-600 hover:text-blue-500 font-medium disabled:opacity-50"
+              className="text-sm text-[var(--accent-primary)] hover:text-[var(--accent-secondary)] font-medium disabled:opacity-50"
             >
               {isSignUp 
                 ? 'Already have an account? Sign in' 
@@ -362,8 +362,8 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
           {!isSignUp && (
             <div className="mt-6">
               <div className="bg-blue-50 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-blue-900 mb-2">Getting Started:</h3>
-                <div className="space-y-1 text-xs text-blue-700">
+                <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">Getting Started:</h3>
+                <div className="space-y-1 text-xs text-[var(--text-secondary)]">
                   <p>• <strong>New users:</strong> Click "Sign up" to create an account</p>
                   <p>• <strong>Existing users:</strong> Sign in with your credentials</p>
                   <p>• <strong>Super Admin:</strong> Contact system administrator for access</p>

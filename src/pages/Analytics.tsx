@@ -654,7 +654,7 @@ export default function Analytics() {
             <h2 className="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">
               Analytics Dashboard
             </h2>
-            <p className="mt-1 text-sm text-[#a0a0a0]">
+            <p className="mt-1 text-sm text-[var(--text-tertiary)]">
               Real-time insights from Supabase database
             </p>
           </div>

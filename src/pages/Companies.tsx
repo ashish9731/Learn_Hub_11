@@ -237,8 +237,8 @@ export default function Companies() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8b5cf6] mx-auto"></div>
-              <p className="mt-4 text-[#a0a0a0]">Loading companies...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-primary)] mx-auto"></div>
+              <p className="mt-4 text-[var(--text-tertiary)]">Loading companies...</p>
             </div>
           </div>
         </div>
@@ -270,17 +270,17 @@ export default function Companies() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">
+              <h2 className="text-2xl font-bold leading-7 text-[var(--text-primary)] sm:text-3xl sm:truncate">
                 All Companies
               </h2>
-              <p className="mt-1 text-sm text-[#a0a0a0]">
+              <p className="mt-1 text-sm text-[var(--text-tertiary)]">
                 Manage all companies and their access
               </p>
             </div>
             <div className="flex space-x-2">
               <button
                 onClick={() => window.history.back()}
-                className="flex items-center px-4 py-2 bg-[#1e1e1e] text-white rounded-lg hover:bg-[#252525] border border-[#333333] transition-colors"
+                className="flex items-center px-4 py-2 bg-[var(--background-secondary)] text-[var(--text-primary)] rounded-lg hover:bg-[var(--background-tertiary)] border border-[var(--border-color)] transition-colors"
               >
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Back
@@ -288,7 +288,7 @@ export default function Companies() {
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
               >
                 <Plus className="-ml-1 mr-2 h-5 w-5" />
                 Add Company
@@ -299,12 +299,12 @@ export default function Companies() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
-            { title: 'Total Companies', value: totalCompanies, icon: Building2, color: 'bg-[#8b5cf6]' },
-            { title: 'Total Admins', value: totalAdmins, icon: Users, color: 'bg-[#8b5cf6]' },
-            { title: 'Total Users', value: totalUsers, icon: Users, color: 'bg-[#8b5cf6]' },
-            { title: 'Total Courses', value: totalCourses, icon: BookOpen, color: 'bg-[#8b5cf6]' }
+            { title: 'Total Companies', value: totalCompanies, icon: Building2, color: 'bg-[var(--accent-primary)]' },
+            { title: 'Total Admins', value: totalAdmins, icon: Users, color: 'bg-[var(--accent-primary)]' },
+            { title: 'Total Users', value: totalUsers, icon: Users, color: 'bg-[var(--accent-primary)]' },
+            { title: 'Total Courses', value: totalCourses, icon: BookOpen, color: 'bg-[var(--accent-primary)]' }
           ].map((card, index) => (
-            <div key={index} className="bg-[#1e1e1e] overflow-hidden shadow rounded-lg border border-[#333333]">
+            <div key={index} className="bg-[var(--background-secondary)] overflow-hidden shadow rounded-lg border border-[var(--border-color)]">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -314,8 +314,8 @@ export default function Companies() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-[#a0a0a0] truncate">{card.title}</dt>
-                      <dd className="text-lg font-medium text-white">{card.value}</dd>
+                      <dt className="text-sm font-medium text-[var(--text-tertiary)] truncate">{card.title}</dt>
+                      <dd className="text-lg font-medium text-[var(--text-primary)]">{card.value}</dd>
                     </dl>
                   </div>
                 </div>
@@ -324,10 +324,10 @@ export default function Companies() {
           ))}
         </div>
 
-        <div className="bg-[#1e1e1e] shadow overflow-hidden sm:rounded-md border border-[#333333]">
-          <div className="px-4 py-5 sm:px-6 border-b border-[#333333]">
-            <h3 className="text-lg leading-6 font-medium text-white">Company Details</h3>
-            <p className="mt-1 max-w-2xl text-sm text-[#a0a0a0]">Company Name • Admins • Users • Courses</p>
+        <div className="bg-[var(--background-secondary)] shadow overflow-hidden sm:rounded-md border border-[var(--border-color)]">
+          <div className="px-4 py-5 sm:px-6 border-b border-[var(--border-color)]">
+            <h3 className="text-lg leading-6 font-medium text-[var(--text-primary)]">Company Details</h3>
+            <p className="mt-1 max-w-2xl text-sm text-[var(--text-tertiary)]">Company Name • Admins • Users • Courses</p>
           </div>
           {filteredCompanies.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -337,7 +337,7 @@ export default function Companies() {
                 const companyCourses = getCompanyCourses(company.id);
                 
                 return (
-                  <div key={company.id} className="bg-[#252525] rounded-lg border border-[#333333] overflow-hidden hover:shadow-lg transition-shadow duration-200">
+                  <div key={company.id} className="bg-[var(--background-tertiary)] rounded-lg border border-[var(--border-color)] overflow-hidden hover:shadow-lg transition-shadow duration-200">
                     <div className="p-5">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center">
@@ -345,7 +345,7 @@ export default function Companies() {
                             <CompanyLogo companyId={company.id} size="md" />
                           </div>
                           <div className="ml-4">
-                            <h3 className="text-lg font-medium text-white truncate">
+                            <h3 className="text-lg font-medium text-[var(--text-primary)] truncate">
                               {company.name}
                             </h3>
                             <div className="mt-1">
@@ -382,21 +382,21 @@ export default function Companies() {
                       </div>
                       
                       <div className="mt-4 grid grid-cols-3 gap-2">
-                        <div className="text-center p-2 bg-[#1e1e1e] rounded">
-                          <p className="text-xs text-[#a0a0a0]">Admins</p>
-                          <p className="text-sm font-medium text-white">{companyAdmins.length}</p>
+                        <div className="text-center p-2 bg-[var(--background-secondary)] rounded">
+                          <p className="text-xs text-[var(--text-tertiary)]">Admins</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{companyAdmins.length}</p>
                         </div>
-                        <div className="text-center p-2 bg-[#1e1e1e] rounded">
-                          <p className="text-xs text-[#a0a0a0]">Users</p>
-                          <p className="text-sm font-medium text-white">{companyUsers.length}</p>
+                        <div className="text-center p-2 bg-[var(--background-secondary)] rounded">
+                          <p className="text-xs text-[var(--text-tertiary)]">Users</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{companyUsers.length}</p>
                         </div>
-                        <div className="text-center p-2 bg-[#1e1e1e] rounded">
-                          <p className="text-xs text-[#a0a0a0]">Courses</p>
-                          <p className="text-sm font-medium text-white">{companyCourses.length}</p>
+                        <div className="text-center p-2 bg-[var(--background-secondary)] rounded">
+                          <p className="text-xs text-[var(--text-tertiary)]">Courses</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{companyCourses.length}</p>
                         </div>
                       </div>
                       
-                      <div className="mt-3 text-xs text-[#a0a0a0]">
+                      <div className="mt-3 text-xs text-[var(--text-tertiary)]">
                         Created: {new Date(company.created_at).toLocaleDateString()}
                       </div>
                     </div>
@@ -405,16 +405,16 @@ export default function Companies() {
               })}
             </div>
           ) : (
-            <div className="px-6 py-12 text-center text-[#a0a0a0]">
+            <div className="px-6 py-12 text-center text-[var(--text-tertiary)]">
               <div>
-                <Building2 className="mx-auto h-12 w-12 text-[#333333]" />
-                <h3 className="mt-2 text-sm font-medium text-white">No companies</h3>
-                <p className="mt-1 text-sm text-[#a0a0a0]">Get started by adding a new company.</p>
+                <Building2 className="mx-auto h-12 w-12 text-[var(--border-color)]" />
+                <h3 className="mt-2 text-sm font-medium text-[var(--text-primary)]">No companies</h3>
+                <p className="mt-1 text-sm text-[var(--text-tertiary)]">Get started by adding a new company.</p>
                 <div className="mt-6">
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(true)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
                   >
                     <Plus className="-ml-1 mr-2 h-5 w-5" />
                     Add Company
@@ -428,16 +428,16 @@ export default function Companies() {
         {/* Delete Confirmation Modal */}
         {isDeleteModalOpen && selectedCompany && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-[#1e1e1e] rounded-lg shadow-xl max-w-md w-full border border-[#333333]">
+            <div className="bg-[var(--background-secondary)] rounded-lg shadow-xl max-w-md w-full border border-[var(--border-color)]">
               <div className="p-6">
-                <h3 className="text-lg font-medium text-white mb-4">Confirm Delete</h3>
-                <p className="text-sm text-[#a0a0a0] mb-6">
-                  Are you sure you want to delete the company <span className="font-semibold text-white">{selectedCompany.name}</span>? This action cannot be undone.
+                <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">Confirm Delete</h3>
+                <p className="text-sm text-[var(--text-tertiary)] mb-6">
+                  Are you sure you want to delete the company <span className="font-semibold text-[var(--text-primary)]">{selectedCompany.name}</span>? This action cannot be undone.
                 </p>
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => setIsDeleteModalOpen(false)}
-                    className="px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                    className="px-4 py-2 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
                   >
                     Cancel
                   </button>
@@ -453,126 +453,25 @@ export default function Companies() {
           </div>
         )}
 
-        {/* Logo Upload Modal */}
-        {isLogoModalOpen && selectedCompany && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-[#1e1e1e] rounded-lg shadow-xl max-w-md w-full border border-[#333333]">
-              <div className="flex items-center justify-between p-6 border-b border-[#333333]">
-                <div className="flex items-center">
-                  <Building2 className="h-6 w-6 text-[#8b5cf6] mr-2" />
-                  <h2 className="text-xl font-semibold text-white">Company Logo: {selectedCompany.name}</h2>
-                </div>
-                <button
-                  onClick={() => setIsLogoModalOpen(false)}
-                  className="text-[#a0a0a0] hover:text-white focus:outline-none"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-              
-              <div className="p-6">
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="flex-shrink-0">
-                    <LogoUpload 
-                      companyId={selectedCompany.id}
-                      currentLogoUrl={getCompanyLogo(selectedCompany.id)}
-                      onUploadComplete={(logoUrl) => {
-                        handleLogoUpload(selectedCompany.id, logoUrl);
-                        setIsLogoModalOpen(false);
-                      }}
-                      onDelete={() => {
-                        handleLogoDelete(selectedCompany.id);
-                        setIsLogoModalOpen(false);
-                      }}
-                      size="lg"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-[#a0a0a0]">
-                      {getCompanyLogo(selectedCompany.id) 
-                        ? 'Company logo uploaded. Click to change.' 
-                        : 'No logo uploaded. Click to add.'}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end mt-6">
-                  <button
-                    onClick={() => setIsLogoModalOpen(false)}
-                    className="px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Add Company Modal */}
         <AddCompanyModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddCompany}
         />
 
-        {/* Edit Company Modal */}
-        {selectedCompany && (
-          <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 ${isEditModalOpen ? '' : 'hidden'}`}>
-            <div className="bg-[#1e1e1e] rounded-lg shadow-xl max-w-md w-full border border-[#333333]">
-              <div className="flex items-center justify-between p-6 border-b border-[#333333]">
-                <div className="flex items-center">
-                  <Building2 className="h-6 w-6 text-[#8b5cf6] mr-2" />
-                  <h2 className="text-xl font-semibold text-white">Edit Company</h2>
-                </div>
-                <button
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="text-[#a0a0a0] hover:text-white focus:outline-none"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
+        <EditCompanyModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={handleUpdateCompany}
+          company={editingCompany}
+        />
 
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                handleUpdateCompany({
-                  id: selectedCompany.id,
-                  companyName: (e.target as any).companyName.value
-                });
-              }} className="p-6">
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Company Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="companyName"
-                    defaultValue={selectedCompany.name}
-                    className="block w-full px-3 py-2 border border-[#333333] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#8b5cf6] bg-[#252525] text-white"
-                    placeholder="Enter company name"
-                    required
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsEditModalOpen(false)}
-                    className="px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        <EditLogoModal
+          isOpen={isEditLogoModalOpen}
+          onClose={() => setIsEditLogoModalOpen(false)}
+          companyId={editingCompany?.id}
+          companyName={editingCompany?.name}
+        />
       </div>
     </div>
   );

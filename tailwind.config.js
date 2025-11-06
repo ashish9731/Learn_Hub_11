@@ -28,7 +28,7 @@ export default {
           '@apply text-gray-900 dark:text-white': {}
         },
         '.dark input, .dark textarea, .dark select': {
-          '@apply text-white bg-[#252525] border-[#333333]': {}
+          '@apply text-[var(--text-primary)] bg-[var(--background-tertiary)] border-[var(--border-color)]': {}
         }
       })
     }

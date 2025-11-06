@@ -309,10 +309,10 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
               <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-white/10 backdrop-blur-sm mb-6 border border-white/20">
                 <Lock className="h-12 w-12 text-white" />
               </div>
-              <h2 className="text-3xl font-extrabold text-white">
+              <h2 className="text-3xl font-extrabold text-[var(--text-primary)]">
                 {forgotPasswordSent ? 'Check Your Email' : 'Reset Password'}
               </h2>
-              <p className="mt-2 text-sm text-white/80">
+              <p className="mt-2 text-sm text-[var(--text-tertiary)]">
                 {forgotPasswordSent 
                   ? 'We\'ve sent a password reset link to your email'
                   : 'Enter your email to receive a password reset link'
@@ -345,7 +345,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                       type="email"
                       value={forgotPasswordEmail}
                       onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
+                      className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-[var(--text-primary)] placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
                       placeholder="Enter your email address"
                       required
                     />
@@ -360,7 +360,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-[var(--text-primary)] font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <div className="flex items-center justify-center">
@@ -376,7 +376,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                     <button
                       type="button"
                       onClick={handleBackToLogin}
-                      className="text-white/80 hover:text-white text-sm font-medium transition-colors duration-300"
+                      className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors duration-300"
                     >
                       Back to Login
                     </button>
@@ -417,34 +417,34 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                   </svg>
                 </div>
                 <div className="ml-6">
-                  <h1 className="text-4xl font-bold text-white">LearnHub</h1>
-                  <p className="text-white/70 text-base">Professional Learning Management</p>
+                  <h1 className="text-4xl font-bold text-[var(--text-primary)]">LearnHub</h1>
+                  <p className="text-[var(--text-tertiary)] text-base">Professional Learning Management</p>
                 </div>
               </div>
             </div>
 
-            <h1 className="text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-5xl lg:text-6xl font-bold text-[var(--text-primary)] mb-6 leading-tight">
               Welcome
               <br />
               Back
             </h1>
             
-            <p className="text-lg text-white/90 mb-8 leading-relaxed">
+            <p className="text-lg text-[var(--text-secondary)] mb-8 leading-relaxed">
               Your learning journey awaits. Access premium content and track your progress with our comprehensive learning management platform.
             </p>
 
             {/* Social Media Icons */}
             <div className="flex space-x-4">
-              <button className="p-3 rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-all duration-300 border border-white/20">
+              <button className="p-3 rounded-full bg-white/10 backdrop-blur-sm text-[var(--text-primary)] hover:bg-white/20 transition-all duration-300 border border-white/20">
                 <Facebook className="h-5 w-5" />
               </button>
-              <button className="p-3 rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-all duration-300 border border-white/20">
+              <button className="p-3 rounded-full bg-white/10 backdrop-blur-sm text-[var(--text-primary)] hover:bg-white/20 transition-all duration-300 border border-white/20">
                 <Twitter className="h-5 w-5" />
               </button>
-              <button className="p-3 rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-all duration-300 border border-white/20">
+              <button className="p-3 rounded-full bg-white/10 backdrop-blur-sm text-[var(--text-primary)] hover:bg-white/20 transition-all duration-300 border border-white/20">
                 <Instagram className="h-5 w-5" />
               </button>
-              <button className="p-3 rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-all duration-300 border border-white/20">
+              <button className="p-3 rounded-full bg-white/10 backdrop-blur-sm text-[var(--text-primary)] hover:bg-white/20 transition-all duration-300 border border-white/20">
                 <Youtube className="h-5 w-5" />
               </button>
             </div>
@@ -456,7 +456,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
           <div className="w-full max-w-sm">
             {/* Sign In Header */}
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">
+              <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
                 {isSignUp ? 'Create Account' : 'Sign in'}
               </h2>
             </div>
@@ -470,7 +470,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                       type="text"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
+                      className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-[var(--text-primary)] placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
                       placeholder="First Name"
                       required
                     />
@@ -481,7 +481,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                       type="text"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
+                      className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-[var(--text-primary)] placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
                       placeholder="Last Name"
                       required
                     />
@@ -492,14 +492,14 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
 
               {/* Email Address */}
               <div>
-                <label className="block text-white/90 text-sm font-medium mb-2">
+                <label className="block text-[var(--text-secondary)] text-sm font-medium mb-2">
                   Email Address
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-[var(--text-primary)] placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
                   placeholder="Enter your email"
                   required
                 />
@@ -508,7 +508,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
 
               {/* Password */}
               <div>
-                <label className="block text-white/90 text-sm font-medium mb-2">
+                <label className="block text-[var(--text-secondary)] text-sm font-medium mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -516,13 +516,13 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 pr-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
+                    className="w-full px-4 py-3 pr-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-[var(--text-primary)] placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
                     placeholder="Enter your password"
                     required
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-white/70 hover:text-white transition-colors"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
@@ -537,7 +537,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
 
               {isSignUp && (
                 <div>
-                  <label className="block text-white/90 text-sm font-medium mb-2">
+                  <label className="block text-[var(--text-secondary)] text-sm font-medium mb-2">
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -545,13 +545,13 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-3 pr-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
+                      className="w-full px-4 py-3 pr-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-[var(--text-primary)] placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
                       placeholder="Confirm your password"
                       required
                     />
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-white/70 hover:text-white transition-colors"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       {showConfirmPassword ? (
@@ -575,7 +575,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                     onChange={(e) => setRememberMe(e.target.checked)}
                     className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-white/30 rounded bg-white/10 backdrop-blur-sm"
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-white/90">
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-[var(--text-secondary)]">
                     Remember Me
                   </label>
                 </div>
@@ -609,7 +609,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                   <button
                     type="button"
                     onClick={() => setShowForgotPassword(true)}
-                    className="text-white/80 hover:text-white text-sm transition-colors duration-300"
+                    className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-sm transition-colors duration-300"
                   >
                     Lost your password?
                   </button>
@@ -622,7 +622,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                   type="button"
                   onClick={toggleMode}
                   disabled={isLoading}
-                  className="text-white/80 hover:text-white text-sm font-medium transition-colors duration-300 disabled:opacity-50"
+                  className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors duration-300 disabled:opacity-50"
                 >
                   {isSignUp 
                     ? 'Already have an account? Sign in' 
@@ -638,7 +638,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                     type="button"
                     onClick={handleShowRegistration}
                     disabled={isLoading}
-                    className="text-white/80 hover:text-white text-sm font-medium transition-colors duration-300 disabled:opacity-50 underline"
+                    className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors duration-300 disabled:opacity-50 underline"
                   >
                     Register independently for approval
                   </button>
@@ -647,13 +647,13 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
 
               {/* Terms and Privacy */}
               {isSignUp && (
-                <div className="text-center text-xs text-white/70 leading-relaxed">
+                <div className="text-center text-xs text-[var(--text-tertiary)] leading-relaxed">
                   By clicking on "Create Account" you agree to our{' '}
-                  <button className="text-white/90 hover:text-white underline transition-colors">
+                  <button className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline transition-colors">
                     Terms of Service
                   </button>
                   {' '}|{' '}
-                  <button className="text-white/90 hover:text-white underline transition-colors">
+                  <button className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline transition-colors">
                     Privacy Policy
                   </button>
                 </div>
@@ -664,8 +664,8 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
             {!isSignUp && (
               <div className="mt-8">
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                  <h3 className="text-sm font-medium text-white mb-2">Getting Started:</h3>
-                  <div className="space-y-1 text-xs text-white/80">
+                  <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">Getting Started:</h3>
+                  <div className="space-y-1 text-xs text-[var(--text-tertiary)]">
                     <p>• <strong>New users:</strong> Click "Sign up" to create an account</p>
                     <p>• <strong>Existing users:</strong> Sign in with your credentials</p>
                     <p>• <strong>Super Admin:</strong> Contact system administrator for access</p>
@@ -682,23 +682,23 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
       {/* Password Change Modal */}
       {showPasswordChangeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-[var(--background-secondary)] rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Change Your Password</h3>
-              <p className="text-sm text-gray-600 mb-6">
+              <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">Change Your Password</h3>
+              <p className="text-sm text-[var(--text-secondary)] mb-6">
                 For security reasons, you must change your password before accessing the system.
               </p>
               
               <form onSubmit={handlePasswordChange} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     New Password
                   </label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
                     placeholder="Enter new password"
                     required
                     minLength={6}
@@ -706,14 +706,14 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     Confirm New Password
                   </label>
                   <input
                     type="password"
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="block w-full px-3 py-2 border border-[var(--border-color)] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)]"
                     placeholder="Confirm new password"
                     required
                     minLength={6}
@@ -721,8 +721,8 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                 </div>
                 
                 {errors.passwordChange && (
-                  <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                    <p className="text-sm text-red-600">{errors.passwordChange}</p>
+                  <div className="bg-red-500/20 border border-red-400/30 rounded-md p-3">
+                    <p className="text-sm text-red-200">{errors.passwordChange}</p>
                   </div>
                 )}
                 
@@ -730,7 +730,7 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-[var(--accent-primary)] text-[var(--text-primary)] rounded-md hover:bg-[var(--accent-secondary)] disabled:opacity-50"
                   >
                     {isLoading ? 'Changing...' : 'Change Password'}
                   </button>

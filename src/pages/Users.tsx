@@ -303,17 +303,17 @@ export default function Users() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">
+              <h2 className="text-2xl font-bold leading-7 text-[var(--text-primary)] sm:text-3xl sm:truncate">
                 All Users
               </h2>
-              <p className="mt-1 text-sm text-[#a0a0a0]">
+              <p className="mt-1 text-sm text-[var(--text-tertiary)]">
                 Manage all system users and their access
               </p>
             </div>
             <div className="flex space-x-2">
               <button
                 onClick={() => window.history.back()}
-                className="flex items-center px-4 py-2 bg-[#1e1e1e] text-white rounded-lg hover:bg-[#252525] border border-[#333333] transition-colors"
+                className="flex items-center px-4 py-2 bg-[var(--background-secondary)] text-[var(--text-primary)] rounded-lg hover:bg-[var(--background-tertiary)] border border-[var(--border-color)] transition-colors"
               >
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 Back
@@ -321,7 +321,7 @@ export default function Users() {
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
               >
                 <Plus className="-ml-1 mr-2 h-5 w-5" />
                 Add User
@@ -332,11 +332,11 @@ export default function Users() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
-            { title: 'Total Users', value: users.length, icon: UsersIcon, color: 'bg-[#8b5cf6]' },
-            { title: 'Active Users', value: activeUsers, icon: CheckCircle, color: 'bg-[#8b5cf6]' },
-            { title: 'Total Companies', value: uniqueCompanies, icon: Building2, color: 'bg-[#8b5cf6]' }
+            { title: 'Total Users', value: users.length, icon: UsersIcon, color: 'bg-[var(--accent-primary)]' },
+            { title: 'Active Users', value: activeUsers, icon: CheckCircle, color: 'bg-[var(--accent-primary)]' },
+            { title: 'Total Companies', value: uniqueCompanies, icon: Building2, color: 'bg-[var(--accent-primary)]' }
           ].map((card, index) => (
-            <div key={index} className="bg-[#1e1e1e] overflow-hidden shadow rounded-lg border border-[#333333]">
+            <div key={index} className="bg-[var(--background-secondary)] overflow-hidden shadow rounded-lg border border-[var(--border-color)]">
               <div className="p-5">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -346,8 +346,8 @@ export default function Users() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-[#a0a0a0] truncate">{card.title}</dt>
-                      <dd className="text-2xl font-semibold text-white">{card.value}</dd>
+                      <dt className="text-sm font-medium text-[var(--text-tertiary)] truncate">{card.title}</dt>
+                      <dd className="text-2xl font-semibold text-[var(--text-primary)]">{card.value}</dd>
                     </dl>
                   </div>
                 </div>
@@ -356,23 +356,23 @@ export default function Users() {
           ))}
         </div>
 
-        <div className="bg-[#1e1e1e] shadow overflow-hidden sm:rounded-md border border-[#333333]">
-          <div className="px-4 py-5 sm:px-6 border-b border-[#333333]">
-            <h3 className="text-lg leading-6 font-medium text-white">User Details</h3>
-            <p className="mt-1 max-w-2xl text-sm text-[#a0a0a0]">User Email • Company • Department • Contact • Actions</p>
+        <div className="bg-[var(--background-secondary)] shadow overflow-hidden sm:rounded-md border border-[var(--border-color)]">
+          <div className="px-4 py-5 sm:px-6 border-b border-[var(--border-color)]">
+            <h3 className="text-lg leading-6 font-medium text-[var(--text-primary)]">User Details</h3>
+            <p className="mt-1 max-w-2xl text-sm text-[var(--text-tertiary)]">User Email • Company • Department • Contact • Actions</p>
           </div>
           {filteredUsers.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
               {filteredUsers.map((user: any) => (
-                <div key={user.id} className="bg-[#252525] rounded-lg border border-[#333333] overflow-hidden hover:shadow-lg transition-shadow duration-200">
+                <div key={user.id} className="bg-[var(--background-tertiary)] rounded-lg border border-[var(--border-color)] overflow-hidden hover:shadow-lg transition-shadow duration-200">
                   <div className="p-5">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center">
-                        <div className="h-12 w-12 rounded-full bg-[#8b5cf6]/20 flex items-center justify-center">
-                          <User className="h-6 w-6 text-[#8b5cf6]" />
+                        <div className="h-12 w-12 rounded-full bg-[var(--accent-primary)]/20 flex items-center justify-center">
+                          <User className="h-6 w-6 text-[var(--accent-primary)]" />
                         </div>
                         <div className="ml-4">
-                          <h3 className="text-lg font-medium text-white truncate">
+                          <h3 className="text-lg font-medium text-[var(--text-primary)] truncate">
                             {getUserProfile(user.id)?.full_name || user.email}
                           </h3>
                           <div className="mt-1 flex flex-wrap gap-1">
@@ -405,22 +405,22 @@ export default function Users() {
                     </div>
                     
                     <div className="mt-4 space-y-2">
-                      <div className="flex items-center text-sm text-[#a0a0a0]">
+                      <div className="flex items-center text-sm text-[var(--text-tertiary)]">
                         <Building2 className="h-4 w-4 mr-2" />
                         <span className="truncate">{user.company_id ? getCompanyName(user.company_id) : 'No Company Assigned'}</span>
                       </div>
-                      <div className="flex items-center text-sm text-[#a0a0a0]">
+                      <div className="flex items-center text-sm text-[var(--text-tertiary)]">
                         <Mail className="h-4 w-4 mr-2" />
                         <span className="truncate">{user.email}</span>
                       </div>
                       {getUserProfile(user.id)?.phone && (
-                        <div className="flex items-center text-sm text-[#a0a0a0]">
+                        <div className="flex items-center text-sm text-[var(--text-tertiary)]">
                           <Phone className="h-4 w-4 mr-2" />
                           <span>{getUserProfile(user.id)?.phone}</span>
                         </div>
                       )}
                       {getUserProfile(user.id)?.department && (
-                        <div className="flex items-center text-sm text-[#a0a0a0]">
+                        <div className="flex items-center text-sm text-[var(--text-tertiary)]">
                           <Building2 className="h-4 w-4 mr-2" />
                           <span>{getUserProfile(user.id)?.department}</span>
                         </div>
@@ -428,19 +428,19 @@ export default function Users() {
                     </div>
                     
                     <div className="mt-4 grid grid-cols-2 gap-2">
-                      <div className="text-center p-2 bg-[#1e1e1e] rounded">
-                        <p className="text-xs text-[#a0a0a0]">Admin</p>
-                        <p className="text-sm font-medium text-white truncate">{getAdminName(user.company_id) || 'No Admin'}</p>
+                      <div className="text-center p-2 bg-[var(--background-secondary)] rounded">
+                        <p className="text-xs text-[var(--text-tertiary)]">Admin</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)] truncate">{getAdminName(user.company_id) || 'No Admin'}</p>
                       </div>
-                      <div className="text-center p-2 bg-[#1e1e1e] rounded">
-                        <p className="text-xs text-[#a0a0a0]">Courses</p>
-                        <p className="text-sm font-medium text-white">
+                      <div className="text-center p-2 bg-[var(--background-secondary)] rounded">
+                        <p className="text-xs text-[var(--text-tertiary)]">Courses</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">
                           {supabaseData.userCourses.filter((uc: any) => uc.user_id === user.id).length}
                         </p>
                       </div>
-                      <div className="text-center p-2 bg-[#1e1e1e] rounded">
-                        <p className="text-xs text-[#a0a0a0]">Joined</p>
-                        <p className="text-sm font-medium text-white">
+                      <div className="text-center p-2 bg-[var(--background-secondary)] rounded">
+                        <p className="text-xs text-[var(--text-tertiary)]">Joined</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">
                           {new Date(user.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -450,16 +450,16 @@ export default function Users() {
               ))}
             </div>
           ) : (
-            <div className="px-6 py-12 text-center text-[#a0a0a0]">
+            <div className="px-6 py-12 text-center text-[var(--text-tertiary)]">
               <div>
-                <User className="mx-auto h-12 w-12 text-[#333333]" />
-                <h3 className="mt-2 text-sm font-medium text-white">No users</h3>
-                <p className="mt-1 text-sm text-[#a0a0a0]">Get started by adding a new user.</p>
+                <User className="mx-auto h-12 w-12 text-[var(--border-color)]" />
+                <h3 className="mt-2 text-sm font-medium text-[var(--text-primary)]">No users</h3>
+                <p className="mt-1 text-sm text-[var(--text-tertiary)]">Get started by adding a new user.</p>
                 <div className="mt-6">
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(true)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#8b5cf6] hover:bg-[#7c3aed] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
                   >
                     <Plus className="-ml-1 mr-2 h-5 w-5" />
                     Add User
@@ -473,16 +473,16 @@ export default function Users() {
         {/* Delete Confirmation Modal */}
         {isDeleteModalOpen && selectedUser && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-[#1e1e1e] rounded-lg shadow-xl max-w-md w-full border border-[#333333]">
+            <div className="bg-[var(--background-secondary)] rounded-lg shadow-xl max-w-md w-full border border-[var(--border-color)]">
               <div className="p-6">
-                <h3 className="text-lg font-medium text-white mb-4">Confirm Delete</h3>
-                <p className="text-sm text-[#a0a0a0] mb-6">
-                  Are you sure you want to delete the user <span className="font-semibold text-white">{selectedUser.email}</span>? This action cannot be undone.
+                <h3 className="text-lg font-medium text-[var(--text-primary)] mb-4">Confirm Delete</h3>
+                <p className="text-sm text-[var(--text-tertiary)] mb-6">
+                  Are you sure you want to delete the user <span className="font-semibold text-[var(--text-primary)]">{selectedUser.email}</span>? This action cannot be undone.
                 </p>
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => setIsDeleteModalOpen(false)}
-                    className="px-4 py-2 border border-[#333333] rounded-md shadow-sm text-sm font-medium text-white bg-[#252525] hover:bg-[#333333] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8b5cf6]"
+                    className="px-4 py-2 border border-[var(--border-color)] rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)]"
                   >
                     Cancel
                   </button>
@@ -498,26 +498,22 @@ export default function Users() {
           </div>
         )}
 
-        {/* Add User Modal would go here */}
         <AddUserModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddUser}
           companies={supabaseData.companies}
-          admins={supabaseData.users.filter(user => user.role === 'admin')}
+          admins={supabaseData.users.filter((user: any) => user.role === 'admin')}
         />
-        
-        {/* Edit User Modal */}
-        {selectedUser && (
-          <EditUserModal
-            isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            onSubmit={handleUpdateUser}
-            user={selectedUser}
-            admins={supabaseData.users.filter(user => user.role === 'admin')}
-            companies={supabaseData.companies}
-          />
-        )}
+
+        <EditUserModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={handleUpdateUser}
+          user={selectedUser}
+          companies={supabaseData.companies}
+          admins={supabaseData.users.filter((user: any) => user.role === 'admin')}
+        />
       </div>
     </div>
   );

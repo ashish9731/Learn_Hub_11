@@ -61,7 +61,7 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
     if (validateForm()) {
       onSubmit({
         ...formData,
-        interestedTech: formData.learningGoals.split(',').map(item => item.trim())
+        interestedTech: formData.learningGoals.split(',').map((item: string) => item.trim())
       });
     }
   };
@@ -84,8 +84,8 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
                 step < activeStep 
                   ? 'bg-green-500 text-white' 
                   : step === activeStep 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-500'
+                    ? 'bg-[var(--accent-primary)] text-white' 
+                    : 'bg-[var(--background-tertiary)] text-[var(--text-secondary)]'
               }`}
             >
               {step < activeStep ? (
@@ -97,15 +97,15 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
               )}
             </div>
             <span className={`text-xs mt-2 ${
-              step === activeStep ? 'text-blue-600 font-medium' : 'text-gray-500'
+              step === activeStep ? 'text-[var(--accent-primary)] font-medium' : 'text-[var(--text-secondary)]'
             }`}>
               {step === 1 ? 'Basic Info' : step === 2 ? 'Professional' : 'Learning Goals'}
             </span>
           </div>
         ))}
-        <div className="absolute left-0 right-0 h-0.5 bg-gray-200 -z-10" style={{ top: '1.25rem' }}>
+        <div className="absolute left-0 right-0 h-0.5 bg-[var(--border-color)] -z-10" style={{ top: '1.25rem' }}>
           <div 
-            className="h-full bg-blue-600 transition-all duration-300" 
+            className="h-full bg-[var(--accent-primary)] transition-all duration-300" 
             style={{ width: `${((activeStep - 1) / (totalSteps - 1)) * 100}%` }}
           ></div>
         </div>
@@ -115,48 +115,48 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl shadow-xl overflow-hidden mb-8">
-        <div className="p-8 text-white">
+      <div className="bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] rounded-xl shadow-xl overflow-hidden mb-8">
+        <div className="p-8 text-[var(--text-primary)]">
           <div className="flex items-center mb-6">
-            <div className="bg-white/20 p-4 rounded-lg backdrop-blur-sm">
-              <Brain className="h-10 w-10 text-white" />
+            <div className="bg-[var(--text-primary)]/20 p-4 rounded-lg backdrop-blur-sm">
+              <Brain className="h-10 w-10 text-[var(--text-primary)]" />
             </div>
             <div className="ml-6">
               <h1 className="text-3xl font-bold">Welcome to Kaaya</h1>
-              <p className="text-xl text-blue-100">Your AI Learning Assistant</p>
+              <p className="text-xl text-[var(--text-secondary)]">Your AI Learning Assistant</p>
             </div>
           </div>
           
-          <p className="text-lg text-blue-100 mb-8">
+          <p className="text-lg text-[var(--text-secondary)] mb-8">
             Kaaya provides personalized learning recommendations tailored to your career goals and interests.
             Let's get to know you better to create your perfect learning journey.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur-sm transform transition-all duration-300 hover:scale-105 hover:bg-white/15">
-              <Rocket className="h-8 w-8 text-blue-200 mb-3" />
+            <div className="bg-[var(--text-primary)]/10 rounded-xl p-5 backdrop-blur-sm transform transition-all duration-300 hover:scale-105 hover:bg-[var(--text-primary)]/15">
+              <Rocket className="h-8 w-8 text-[var(--text-secondary)] mb-3" />
               <h3 className="text-lg font-semibold mb-2">Career Growth</h3>
-              <p className="text-blue-100">Get personalized career advancement strategies based on your goals</p>
+              <p className="text-[var(--text-secondary)]">Get personalized career advancement strategies based on your goals</p>
             </div>
             
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur-sm transform transition-all duration-300 hover:scale-105 hover:bg-white/15">
-              <Sparkles className="h-8 w-8 text-blue-200 mb-3" />
+            <div className="bg-[var(--text-primary)]/10 rounded-xl p-5 backdrop-blur-sm transform transition-all duration-300 hover:scale-105 hover:bg-[var(--text-primary)]/15">
+              <Sparkles className="h-8 w-8 text-[var(--text-secondary)] mb-3" />
               <h3 className="text-lg font-semibold mb-2">Skill Development</h3>
-              <p className="text-blue-100">Focus on the skills that matter most for your specific role</p>
+              <p className="text-[var(--text-secondary)]">Focus on the skills that matter most for your specific role</p>
             </div>
             
-            <div className="bg-white/10 rounded-xl p-5 backdrop-blur-sm transform transition-all duration-300 hover:scale-105 hover:bg-white/15">
-              <MessageSquare className="h-8 w-8 text-blue-200 mb-3" />
+            <div className="bg-[var(--text-primary)]/10 rounded-xl p-5 backdrop-blur-sm transform transition-all duration-300 hover:scale-105 hover:bg-[var(--text-primary)]/15">
+              <MessageSquare className="h-8 w-8 text-[var(--text-secondary)] mb-3" />
               <h3 className="text-lg font-semibold mb-2">AI Guidance</h3>
-              <p className="text-blue-100">Chat with Kaaya anytime for personalized learning advice</p>
+              <p className="text-[var(--text-secondary)]">Chat with Kaaya anytime for personalized learning advice</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-xl p-8 relative">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Complete Your Learning Profile</h2>
-        <p className="text-gray-600 mb-6">
+      <div className="bg-[var(--card-background)] rounded-xl shadow-xl p-8 relative">
+        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Complete Your Learning Profile</h2>
+        <p className="text-[var(--text-secondary)] mb-6">
           Tell us about yourself so we can personalize your learning experience
         </p>
         
@@ -166,7 +166,7 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
           {activeStep === 1 && (
             <div className="space-y-6 animate-fadeIn">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                   <User className="h-4 w-4 inline mr-2" />
                   Full Name <span className="text-red-500">*</span>
                 </label>
@@ -174,8 +174,8 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.name ? 'border-red-300' : 'border-gray-300'
+                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                    errors.name ? 'border-red-300' : 'border-[var(--border-color)]'
                   }`}
                   placeholder="Enter your full name"
                 />
@@ -185,7 +185,7 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                   <Building2 className="h-4 w-4 inline mr-2" />
                   Company Name <span className="text-red-500">*</span>
                 </label>
@@ -193,8 +193,8 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
                   type="text"
                   value={formData.companyName}
                   onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.companyName ? 'border-red-300' : 'border-gray-300'
+                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                    errors.companyName ? 'border-red-300' : 'border-[var(--border-color)]'
                   }`}
                   placeholder="Enter your company name"
                 />
@@ -208,7 +208,7 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
           {activeStep === 2 && (
             <div className="space-y-6 animate-fadeIn">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                   <Briefcase className="h-4 w-4 inline mr-2" />
                   Current Designation <span className="text-red-500">*</span>
                 </label>
@@ -216,8 +216,8 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
                   type="text"
                   value={formData.designation}
                   onChange={(e) => handleInputChange('designation', e.target.value)}
-                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.designation ? 'border-red-300' : 'border-gray-300'
+                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                    errors.designation ? 'border-red-300' : 'border-[var(--border-color)]'
                   }`}
                   placeholder="e.g., Software Engineer, Product Manager, Data Analyst"
                 />
@@ -227,7 +227,7 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                   <FileText className="h-4 w-4 inline mr-2" />
                   Profile Description <span className="text-red-500">*</span>
                 </label>
@@ -235,8 +235,8 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
                   rows={4}
                   value={formData.profileDescription}
                   onChange={(e) => handleInputChange('profileDescription', e.target.value)}
-                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.profileDescription ? 'border-red-300' : 'border-gray-300'
+                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                    errors.profileDescription ? 'border-red-300' : 'border-[var(--border-color)]'
                   }`}
                   placeholder="Describe your current role, experience, and career goals..."
                 />
@@ -250,7 +250,7 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
           {activeStep === 3 && (
             <div className="space-y-6 animate-fadeIn">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                   <Rocket className="h-4 w-4 inline mr-2" />
                   Learning Goals <span className="text-red-500">*</span>
                 </label>
@@ -258,15 +258,15 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
                   rows={6}
                   value={formData.learningGoals}
                   onChange={(e) => handleInputChange('learningGoals', e.target.value)}
-                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.learningGoals ? 'border-red-300' : 'border-gray-300'
+                  className={`block w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] bg-[var(--background-tertiary)] text-[var(--text-primary)] ${
+                    errors.learningGoals ? 'border-red-300' : 'border-[var(--border-color)]'
                   }`}
                   placeholder="Tell us what you want to learn, your interests, technologies you're curious about, or skills you want to develop. Separate multiple items with commas."
                 />
                 {errors.learningGoals && (
                   <p className="mt-1 text-sm text-red-600">{errors.learningGoals}</p>
                 )}
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-[var(--text-tertiary)]">
                   Examples: "I want to learn React and improve my frontend skills", "I'm interested in machine learning and data science", 
                   "I need to prepare for a cloud certification"
                 </p>
@@ -279,7 +279,7 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
               <button
                 type="button"
                 onClick={prevStep}
-                className="px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="px-6 py-3 border border-[var(--border-color)] rounded-lg shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--background-secondary)] hover:bg-[var(--background-tertiary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)] transition-colors"
               >
                 Back
               </button>
@@ -288,16 +288,16 @@ export default function UserProfileForm({ onSubmit, initialData }: UserProfileFo
               <button
                 type="button"
                 onClick={nextStep}
-                className="ml-auto px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="ml-auto px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[var(--accent-primary)] hover:bg-[var(--accent-secondary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)] transition-colors"
               >
                 Next
               </button>
             ) : (
               <div className="relative group ml-auto">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
                 <button
                   type="submit"
-                  className="relative px-8 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-md"
+                  className="relative px-8 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] hover:from-[var(--accent-secondary)] hover:to-[var(--accent-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-primary)] transition-colors shadow-md"
                 >
                   <Sparkles className="h-4 w-4 inline mr-2" />
                   Start Learning Journey

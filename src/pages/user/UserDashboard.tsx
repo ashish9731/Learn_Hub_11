@@ -604,28 +604,28 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
               title: 'Assigned Courses', 
               value: assignedCourses, 
               icon: BookOpen, 
-              color: 'bg-[#8b5cf6]',
+              color: 'bg-[var(--accent-primary)]',
               subtitle: 'Total courses assigned to you'
             },
             { 
               title: 'Completed Courses', 
               value: completedCourses, 
               icon: CheckCircle, 
-              color: 'bg-[#10b981]',
+              color: 'bg-green-500',
               subtitle: 'Courses finished successfully'
             },
             { 
               title: 'Total Hours', 
               value: totalHours, 
               icon: Clock, 
-              color: 'bg-[#f59e0b]',
+              color: 'bg-yellow-500',
               subtitle: `${totalMinutes} minutes played`
             },
             { 
               title: 'Avg. Progress', 
               value: `${averageProgress}%`, 
               icon: TrendingUp, 
-              color: 'bg-[#3b82f6]',
+              color: 'bg-blue-500',
               subtitle: 'Across all courses'
             }
           ].map((card, index) => (
@@ -838,18 +838,15 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                         <span className="text-white font-medium">{progressPercent}%</span>
                       </div>
                       
-                      <div className="w-full bg-white/20 rounded-full h-2">
-                        <div
-                          className="bg-[#8b5cf6] h-2 rounded-full transition-all duration-300"
+                      <div className="w-full bg-gray-700 rounded-full h-2">
+                        <div 
+                          className="bg-[var(--accent-primary)] h-2 rounded-full transition-all duration-300" 
                           style={{ width: `${progressPercent}%` }}
                         ></div>
                       </div>
-                      
-                      <div className="flex justify-between text-xs text-gray-400">
-                        <span>{coursePodcasts.length} modules</span>
-                        {lastAccessed && (
-                          <span>Last accessed: {lastAccessed.toLocaleDateString()}</span>
-                        )}
+                      <div className="flex justify-between text-xs text-gray-400 mt-1">
+                        <span>{progressPercent}% complete</span>
+                        <span>{courseProgressItems.length} items</span>
                       </div>
                     </div>
                   </div>

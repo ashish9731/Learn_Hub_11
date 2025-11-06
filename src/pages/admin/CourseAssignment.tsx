@@ -622,8 +622,8 @@ export default function CourseAssignment() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="md:flex md:items-center md:justify-between mb-8">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-white">Course Assignment</h1>
-            <p className="mt-1 text-sm text-[#a0a0a0]">
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Course Assignment</h1>
+            <p className="mt-1 text-sm text-[var(--text-tertiary)]">
               Assign courses to users and send email notifications
             </p>
           </div>
@@ -650,22 +650,22 @@ export default function CourseAssignment() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Users Selection */}
-          <div className="bg-[#1e1e1e] shadow rounded-lg border border-[#333333]">
-            <div className="px-6 py-4 border-b border-[#333333]">
-              <h3 className="text-lg font-medium text-white">Select Users</h3>
-              <p className="text-sm text-[#a0a0a0]">Choose users to assign courses to</p>
+          <div className="bg-[var(--background-secondary)] shadow rounded-lg border border-[var(--border-color)]">
+            <div className="px-6 py-4 border-b border-[var(--border-color)]">
+              <h3 className="text-lg font-medium text-[var(--text-primary)]">Select Users</h3>
+              <p className="text-sm text-[var(--text-tertiary)]">Choose users to assign courses to</p>
             </div>
             
             <div className="p-6">
               <div className="mb-4">
                 <div className="relative">
-                  <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-[#a0a0a0] pointer-events-none" />
+                  <Search className="absolute inset-y-0 left-0 pl-3 h-full w-5 text-[var(--text-tertiary)] pointer-events-none" />
                   <input
                     type="text"
                     placeholder="Search users..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2 border border-[#333333] rounded-md leading-5 bg-[#252525] placeholder-[#a0a0a0] text-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="block w-full pl-10 pr-3 py-2 border border-[var(--border-color)] rounded-md leading-5 bg-[var(--background-tertiary)] placeholder-[var(--text-tertiary)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -683,7 +683,7 @@ export default function CourseAssignment() {
                         className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${
                           isSelected 
                             ? 'bg-blue-900/30 border border-blue-600' 
-                            : 'bg-[#252525] hover:bg-[#333333] border border-[#333333]'
+                            : 'bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)] border border-[var(--border-color)]'
                         }`}
                         onClick={() => handleUserSelection(user.id)}
                       >
@@ -691,16 +691,16 @@ export default function CourseAssignment() {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleUserSelection(user.id)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-[#333333] rounded"
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-[var(--border-color)] rounded"
                         />
                         <div className="ml-3 flex-1">
                           <div className="flex items-center">
-                            <User className="h-4 w-4 text-[#8b5cf6] mr-2" />
-                            <span className="text-sm font-medium text-white">{userName}</span>
+                            <User className="h-4 w-4 text-[var(--accent-primary)] mr-2" />
+                            <span className="text-sm font-medium text-[var(--text-primary)]">{userName}</span>
                           </div>
-                          <p className="text-xs text-[#a0a0a0]">{user.email}</p>
+                          <p className="text-xs text-[var(--text-tertiary)]">{user.email}</p>
                           {profile?.department && (
-                            <p className="text-xs text-[#a0a0a0]">{profile.department}</p>
+                            <p className="text-xs text-[var(--text-tertiary)]">{profile.department}</p>
                           )}
                         </div>
                         {isSelected && (
@@ -710,7 +710,7 @@ export default function CourseAssignment() {
                     );
                   })
                 ) : (
-                  <div className="text-center py-8 text-[#a0a0a0]">
+                  <div className="text-center py-8 text-[var(--text-tertiary)]">
                     {availableUsers.length === 0 ? 'No users available' : 'No users match your search'}
                   </div>
                 )}
@@ -719,10 +719,10 @@ export default function CourseAssignment() {
           </div>
 
           {/* Content Selection */}
-          <div className="bg-[#1e1e1e] shadow rounded-lg border border-[#333333]">
-            <div className="px-6 py-4 border-b border-[#333333]">
-              <h3 className="text-lg font-medium text-white">Select Content</h3>
-              <p className="text-sm text-[#a0a0a0]">Choose specific content to assign</p>
+          <div className="bg-[var(--background-secondary)] shadow rounded-lg border border-[var(--border-color)]">
+            <div className="px-6 py-4 border-b border-[var(--border-color)]">
+              <h3 className="text-lg font-medium text-[var(--text-primary)]">Select Content</h3>
+              <p className="text-sm text-[var(--text-tertiary)]">Choose specific content to assign</p>
             </div>
             
             <div className="p-6">
@@ -744,23 +744,23 @@ export default function CourseAssignment() {
                 {courseHierarchy.length > 0 ? (
                   <div className="space-y-2">
                     {courseHierarchy.map((course) => (
-                      <div key={course.id} className="border border-[#333333] rounded-lg">
+                      <div key={course.id} className="border border-[var(--border-color)] rounded-lg">
                         {/* Course Header */}
                         <div 
-                          className="flex items-center justify-between p-3 cursor-pointer hover:bg-[#252525]"
+                          className="flex items-center justify-between p-3 cursor-pointer hover:bg-[var(--background-tertiary)]"
                           onClick={() => toggleCourseExpansion(course.id)}
                         >
                           <div className="flex items-center">
                             <div className="mr-2">
                               {expandedCourses[course.id] ? (
-                                <ChevronDown className="h-4 w-4 text-[#a0a0a0]" />
+                                <ChevronDown className="h-4 w-4 text-[var(--text-tertiary)]" />
                               ) : (
-                                <ChevronRight className="h-4 w-4 text-[#a0a0a0]" />
+                                <ChevronRight className="h-4 w-4 text-[var(--text-tertiary)]" />
                               )}
                             </div>
-                            <BookOpen className="h-4 w-4 text-[#8b5cf6] mr-2" />
+                            <BookOpen className="h-4 w-4 text-[var(--accent-primary)] mr-2" />
                             <div className="flex items-center">
-                              <span className="text-sm font-medium text-white">{course.title}</span>
+                              <span className="text-sm font-medium text-[var(--text-primary)]">{course.title}</span>
                               {course.level && (
                                 <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                                   course.level === 'Basics' 
@@ -774,7 +774,7 @@ export default function CourseAssignment() {
                               )}
                             </div>
                           </div>
-                          <span className="text-xs text-[#a0a0a0]">
+                          <span className="text-xs text-[var(--text-tertiary)]">
                             {course.totalContent} items
                           </span>
                         </div>
@@ -785,27 +785,27 @@ export default function CourseAssignment() {
                             {/* Podcasts Section */}
                             {(course.podcastCategories.length > 0 || course.uncategorizedPodcasts.length > 0) && (
                               <div className="mb-4">
-                                <h5 className="text-sm font-medium text-[#8b5cf6] mb-2 flex items-center">
+                                <h5 className="text-sm font-medium text-[var(--accent-primary)] mb-2 flex items-center">
                                   <Headphones className="h-4 w-4 mr-1" />
                                   Podcasts ({course.totalPodcasts})
                                 </h5>
                                 <div className="space-y-2 ml-4">
                                   {/* Podcasts by predefined categories */}
                                   {course.podcastCategories.map((category) => (
-                                    <div key={category.id} className="bg-[#252525] rounded-lg p-2">
+                                    <div key={category.id} className="bg-[var(--background-tertiary)] rounded-lg p-2">
                                       <div 
                                         className="flex items-center cursor-pointer mb-1"
                                         onClick={() => toggleCategoryExpansion(category.id)}
                                       >
                                         <div className="mr-1">
                                           {expandedCategories[category.id] ? (
-                                            <ChevronDown className="h-3 w-3 text-[#a0a0a0]" />
+                                            <ChevronDown className="h-3 w-3 text-[var(--text-tertiary)]" />
                                           ) : (
-                                            <ChevronRight className="h-3 w-3 text-[#a0a0a0]" />
+                                            <ChevronRight className="h-3 w-3 text-[var(--text-tertiary)]" />
                                           )}
                                         </div>
-                                        <span className="text-xs font-medium text-white">{category.name}</span>
-                                        <span className="ml-2 text-xs text-[#a0a0a0]">({category.podcasts.length})</span>
+                                        <span className="text-xs font-medium text-[var(--text-primary)]">{category.name}</span>
+                                        <span className="ml-2 text-xs text-[var(--text-tertiary)]">({category.podcasts.length})</span>
                                       </div>
                                       {expandedCategories[category.id] && (
                                         <div className="space-y-1 ml-4">
@@ -815,7 +815,7 @@ export default function CourseAssignment() {
                                               <div
                                                 key={podcast.id}
                                                 className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
-                                                  isSelected ? 'bg-blue-900/30 border border-blue-600' : 'bg-[#1e1e1e] hover:bg-[#333333]'
+                                                  isSelected ? 'bg-blue-900/30 border border-blue-600' : 'bg-[var(--background-secondary)] hover:bg-[var(--background-secondary)]'
                                                 }`}
                                                 onClick={() => handleContentSelection('podcasts', podcast.id)}
                                               >
@@ -823,9 +823,9 @@ export default function CourseAssignment() {
                                                   type="checkbox"
                                                   checked={isSelected}
                                                   onChange={() => handleContentSelection('podcasts', podcast.id)}
-                                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-[#333333] rounded mr-2"
+                                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-[var(--border-color)] rounded mr-2"
                                                 />
-                                                <Music className="h-3 w-3 text-[#8b5cf6] mr-1" />
+                                                <Music className="h-3 w-3 text-[var(--accent-primary)] mr-1" />
                                                 <span className="text-xs text-white">{podcast.title}</span>
                                               </div>
                                             );
@@ -837,10 +837,10 @@ export default function CourseAssignment() {
                                   
                                   {/* Uncategorized podcasts */}
                                   {course.uncategorizedPodcasts.length > 0 && (
-                                    <div className="bg-[#252525] rounded-lg p-2">
+                                    <div className="bg-[var(--background-tertiary)] rounded-lg p-2">
                                       <div className="flex items-center mb-1">
-                                        <span className="text-xs font-medium text-white">Other Podcasts</span>
-                                        <span className="ml-2 text-xs text-[#a0a0a0]">({course.uncategorizedPodcasts.length})</span>
+                                        <span className="text-xs font-medium text-[var(--text-primary)]">Other Podcasts</span>
+                                        <span className="ml-2 text-xs text-[var(--text-tertiary)]">({course.uncategorizedPodcasts.length})</span>
                                       </div>
                                       <div className="space-y-1 ml-2">
                                         {course.uncategorizedPodcasts.map((podcast) => {
@@ -849,7 +849,7 @@ export default function CourseAssignment() {
                                             <div
                                               key={podcast.id}
                                               className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
-                                                isSelected ? 'bg-blue-900/30 border border-blue-600' : 'bg-[#1e1e1e] hover:bg-[#333333]'
+                                                isSelected ? 'bg-blue-900/30 border border-blue-600' : 'bg-[var(--background-secondary)] hover:bg-[var(--background-secondary)]'
                                               }`}
                                               onClick={() => handleContentSelection('podcasts', podcast.id)}
                                             >
@@ -857,9 +857,9 @@ export default function CourseAssignment() {
                                                 type="checkbox"
                                                 checked={isSelected}
                                                 onChange={() => handleContentSelection('podcasts', podcast.id)}
-                                                className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-[#333333] rounded mr-2"
+                                                className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-[var(--border-color)] rounded mr-2"
                                               />
-                                              <Music className="h-3 w-3 text-[#8b5cf6] mr-1" />
+                                              <Music className="h-3 w-3 text-[var(--accent-primary)] mr-1" />
                                               <span className="text-xs text-white">{podcast.title}</span>
                                             </div>
                                           );
@@ -886,7 +886,7 @@ export default function CourseAssignment() {
                                       <div
                                         key={pdf.id}
                                         className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
-                                          isSelected ? 'bg-blue-900/30 border border-blue-600' : 'bg-[#252525] hover:bg-[#333333]'
+                                          isSelected ? 'bg-blue-900/30 border border-blue-600' : 'bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)]'
                                         }`}
                                         onClick={() => handleContentSelection('pdfs', pdf.id)}
                                       >
@@ -894,7 +894,7 @@ export default function CourseAssignment() {
                                           type="checkbox"
                                           checked={isSelected}
                                           onChange={() => handleContentSelection('pdfs', pdf.id)}
-                                          className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-[#333333] rounded mr-2"
+                                          className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-[var(--border-color)] rounded mr-2"
                                         />
                                         <FileText className="h-3 w-3 text-blue-500 mr-1" />
                                         <span className="text-xs text-white">{pdf.title}</span>
@@ -909,7 +909,7 @@ export default function CourseAssignment() {
                                       <div
                                         key={pdf.id}
                                         className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
-                                          isSelected ? 'bg-green-900/30 border border-green-600' : 'bg-[#252525] hover:bg-[#333333]'
+                                          isSelected ? 'bg-green-900/30 border border-green-600' : 'bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)]'
                                         }`}
                                         onClick={() => handleContentSelection('pdfs', pdf.id)}
                                       >
@@ -917,7 +917,7 @@ export default function CourseAssignment() {
                                           type="checkbox"
                                           checked={isSelected}
                                           onChange={() => handleContentSelection('pdfs', pdf.id)}
-                                          className="h-3 w-3 text-green-600 focus:ring-green-500 border-[#333333] rounded mr-2"
+                                          className="h-3 w-3 text-green-600 focus:ring-green-500 border-[var(--border-color)] rounded mr-2"
                                         />
                                         <Image className="h-3 w-3 text-green-500 mr-1" />
                                         <span className="text-xs text-white">{pdf.title}</span>
@@ -932,7 +932,7 @@ export default function CourseAssignment() {
                                       <div
                                         key={pdf.id}
                                         className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
-                                          isSelected ? 'bg-purple-900/30 border border-purple-600' : 'bg-[#252525] hover:bg-[#333333]'
+                                          isSelected ? 'bg-purple-900/30 border border-purple-600' : 'bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)]'
                                         }`}
                                         onClick={() => handleContentSelection('pdfs', pdf.id)}
                                       >
@@ -940,7 +940,7 @@ export default function CourseAssignment() {
                                           type="checkbox"
                                           checked={isSelected}
                                           onChange={() => handleContentSelection('pdfs', pdf.id)}
-                                          className="h-3 w-3 text-purple-600 focus:ring-purple-500 border-[#333333] rounded mr-2"
+                                          className="h-3 w-3 text-purple-600 focus:ring-purple-500 border-[var(--border-color)] rounded mr-2"
                                         />
                                         <FileText className="h-3 w-3 text-purple-500 mr-1" />
                                         <span className="text-xs text-white">{pdf.title}</span>
@@ -955,7 +955,7 @@ export default function CourseAssignment() {
                                       <div
                                         key={pdf.id}
                                         className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
-                                          isSelected ? 'bg-yellow-900/30 border border-yellow-600' : 'bg-[#252525] hover:bg-[#333333]'
+                                          isSelected ? 'bg-yellow-900/30 border border-yellow-600' : 'bg-[var(--background-tertiary)] hover:bg-[var(--background-secondary)]'
                                         }`}
                                         onClick={() => handleContentSelection('pdfs', pdf.id)}
                                       >
@@ -963,7 +963,7 @@ export default function CourseAssignment() {
                                           type="checkbox"
                                           checked={isSelected}
                                           onChange={() => handleContentSelection('pdfs', pdf.id)}
-                                          className="h-3 w-3 text-yellow-600 focus:ring-yellow-500 border-[#333333] rounded mr-2"
+                                          className="h-3 w-3 text-yellow-600 focus:ring-yellow-500 border-[var(--border-color)] rounded mr-2"
                                         />
                                         <FileText className="h-3 w-3 text-yellow-500 mr-1" />
                                         <span className="text-xs text-white">{pdf.title} (Quiz)</span>
@@ -975,7 +975,7 @@ export default function CourseAssignment() {
                             )}
 
                             {course.totalContent === 0 && (
-                              <p className="text-center text-[#a0a0a0] py-4 text-xs">No content available</p>
+                              <p className="text-center text-[var(--text-tertiary)] py-4 text-xs">No content available</p>
                             )}
                           </div>
                         )}
@@ -983,7 +983,7 @@ export default function CourseAssignment() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-[#a0a0a0]">
+                  <div className="text-center py-8 text-[var(--text-tertiary)]">
                     No courses assigned to your users yet. Contact Super Admin to assign courses.
                   </div>
                 )}
