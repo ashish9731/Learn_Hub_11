@@ -581,6 +581,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
     
     let currentQuestion: string | null = null;
     let currentAnswers: any[] = [];
+    let currentExplanation = '';
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -610,6 +611,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
         // Start new question
         currentQuestion = questionMatch[2].trim();
         currentAnswers = [];
+        currentExplanation = '';
         console.log('Found new question:', currentQuestion);
         continue;
       }
@@ -628,7 +630,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
                           line.toLowerCase().includes('(correct)') || 
                           line.includes('*');
         
-        // Extract explanation if present
+        // Extract explanation if present in the same line
         let explanation = '';
         const explanationMatch = answerText.match(/Explanation[:\s]+(.+)$/i);
         if (explanationMatch) {
@@ -660,13 +662,32 @@ function parseQuizFromDocument(documentContent: string): any[] {
           currentQuestion && currentAnswers.length > 0) {
         const explanationMatch = line.match(/[:\s]+(.+)$/);
         if (explanationMatch) {
-          const explanation = explanationMatch[1].trim();
+          currentExplanation = explanationMatch[1].trim();
           // Add explanation to the last answer
           if (currentAnswers.length > 0) {
             if (currentAnswers[currentAnswers.length - 1].explanation) {
-              currentAnswers[currentAnswers.length - 1].explanation += ' ' + explanation;
+              currentAnswers[currentAnswers.length - 1].explanation += ' ' + currentExplanation;
             } else {
-              currentAnswers[currentAnswers.length - 1].explanation = explanation;
+              currentAnswers[currentAnswers.length - 1].explanation = currentExplanation;
+            }
+          }
+        }
+        continue;
+      }
+      
+      // Alternative format: "Answer: [correct answer text]" or "Correct Answer: [text]"
+      if ((line.toLowerCase().startsWith('answer:') || 
+           line.toLowerCase().startsWith('correct answer:')) && 
+          currentQuestion) {
+        const answerMatch = line.match(/[:\s]+(.+)$/);
+        if (answerMatch) {
+          const correctAnswerText = answerMatch[1].trim();
+          // Mark the matching answer as correct
+          for (let j = 0; j < currentAnswers.length; j++) {
+            if (currentAnswers[j].answer_text.toLowerCase().includes(correctAnswerText.toLowerCase()) ||
+                correctAnswerText.toLowerCase().includes(currentAnswers[j].answer_text.toLowerCase())) {
+              currentAnswers[j].is_correct = true;
+              console.log('Marked answer as correct based on answer line:', currentAnswers[j].answer_text);
             }
           }
         }
@@ -690,6 +711,58 @@ function parseQuizFromDocument(documentContent: string): any[] {
         answers: currentAnswers
       });
       console.log('Added final question with', currentAnswers.length, 'answers');
+    }
+    
+    // If no questions were parsed with the above method, try a simpler approach
+    if (questions.length === 0 && lines.length > 0) {
+      console.log('Trying simpler parsing approach...');
+      
+      // Split content by double newlines to separate questions
+      const questionBlocks = normalizedContent.split('\n\n').filter(block => block.trim().length > 0);
+      
+      for (const block of questionBlocks) {
+        const blockLines = block.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        if (blockLines.length >= 3) { // At least question + 2 answers
+          const questionText = blockLines[0];
+          const answers: any[] = [];
+          
+          for (let i = 1; i < blockLines.length; i++) {
+            const line = blockLines[i];
+            // Simple pattern matching for answers
+            if (line.match(/^([a-dA-D])[\.\)]\s*(.+)$/)) {
+              const match = line.match(/^([a-dA-D])[\.\)]\s*(.+)$/);
+              if (match) {
+                const isCorrect = line.includes('*') || line.toLowerCase().includes('[correct]');
+                const cleanText = match[2]
+                  .replace(/\[correct\]/gi, '')
+                  .replace(/\*/g, '')
+                  .trim();
+                
+                answers.push({
+                  answer_text: cleanText,
+                  is_correct: isCorrect,
+                  explanation: ''
+                });
+              }
+            }
+          }
+          
+          if (answers.length >= 2) {
+            // Mark first answer as correct if none marked
+            const hasCorrect = answers.some(a => a.is_correct);
+            if (!hasCorrect && answers.length > 0) {
+              answers[0].is_correct = true;
+            }
+            
+            questions.push({
+              question_text: questionText,
+              question_type: 'multiple_choice',
+              difficulty: 'medium',
+              answers: answers
+            });
+          }
+        }
+      }
     }
     
     console.log('Parsed', questions.length, 'questions from document text');
