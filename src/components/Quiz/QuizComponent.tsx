@@ -495,9 +495,13 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                   </p>
                 </div>
               )}
-              {feedback.explanation && (
+              {(feedback.explanation || !feedback.isCorrect) && (
                 <p className="text-gray-200">
-                  <span className="font-medium">Explanation:</span> {feedback.explanation}
+                  <span className="font-medium">
+                    {feedback.isCorrect ? 'Explanation:' : 'Explanation for correct answer:'}
+                  </span> {feedback.explanation || 
+                    currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation || 
+                    'No explanation provided for this answer.'}
                 </p>
               )}
             </div>
