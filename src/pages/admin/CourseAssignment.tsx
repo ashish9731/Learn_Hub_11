@@ -311,24 +311,26 @@ export default function CourseAssignment() {
     const courseCategories = supabaseData.categories.filter((cat: Category) => cat.course_id === course.id);
     console.log('Course categories:', courseCategories.length);
     
-    // For Admins, show ALL content within courses assigned to them by SuperAdmin
-    // Filter podcasts to show ALL podcasts for assigned courses
+    // For Admins, show ONLY content specifically assigned to them by SuperAdmin
+    // Filter podcasts to show only those assigned to this admin
     console.log(`Looking for podcasts for course ${course.id}`);
     console.log(`All podcasts:`, supabaseData.podcasts.map(p => ({id: p.id, course_id: p.course_id})));
+    console.log(`Assigned podcast IDs:`, Array.from(assignedPodcastIds));
     
-    const coursePodcasts = supabaseData.podcasts.filter(
+    const assignedPodcasts = supabaseData.podcasts.filter(
       (podcast: Podcast) => {
         const matchesCourse = podcast.course_id === course.id;
-        console.log(`Podcast ${podcast.id} - course match: ${matchesCourse}`);
-        return matchesCourse;
+        const isAssigned = assignedPodcastIds.has(podcast.id);
+        console.log(`Podcast ${podcast.id} - course match: ${matchesCourse}, assigned: ${isAssigned}`);
+        return matchesCourse && isAssigned;
       }
     );
     
-    console.log(`Course ${course.id} - Total podcasts count: ${coursePodcasts.length}`);
+    console.log(`Course ${course.id} - Assigned podcasts count: ${assignedPodcasts.length}`);
     
-    // Get content for each category - show ALL content for assigned courses
+    // Get content for each category - show ONLY assigned content
     const categoriesWithContent = courseCategories.map((category: Category) => {
-      const categoryPodcasts = coursePodcasts.filter(
+      const categoryPodcasts = assignedPodcasts.filter(
         (podcast: Podcast) => podcast.category_id === category.id
       );
       console.log(`Category ${category.id} (${category.name}) - Podcasts: ${categoryPodcasts.length}`);
@@ -339,16 +341,16 @@ export default function CourseAssignment() {
       };
     });
     
-    // Get uncategorized content (directly assigned to course) - show ALL content for assigned courses
-    const uncategorizedPodcasts = coursePodcasts.filter(
+    // Get uncategorized content (directly assigned to course) - show ONLY assigned content
+    const uncategorizedPodcasts = assignedPodcasts.filter(
       (podcast: Podcast) => podcast.course_id === course.id && !podcast.category_id
     );
     console.log('Uncategorized podcasts:', uncategorizedPodcasts.length);
     
-    // Get podcasts by predefined categories (Books, HBR, TED Talks, Concept) - show ALL content for assigned courses
+    // Get podcasts by predefined categories (Books, HBR, TED Talks, Concept) - show ONLY assigned content
     const predefinedCategories = ['Books', 'HBR', 'TED Talks', 'Concept'];
     const podcastsByCategory = predefinedCategories.map(categoryName => {
-      const categoryPodcasts = coursePodcasts.filter(
+      const categoryPodcasts = assignedPodcasts.filter(
         (podcast: Podcast) => podcast.course_id === course.id && podcast.category === categoryName
       );
       console.log(`Predefined category ${categoryName} - Podcasts: ${categoryPodcasts.length}`);
@@ -361,33 +363,35 @@ export default function CourseAssignment() {
       };
     }).filter(cat => cat.podcasts.length > 0);
     
-    // Get ALL PDFs for this course (not just assigned ones) - this is the fix
+    // Get ONLY PDFs specifically assigned to this admin and separate by content type
     console.log(`Looking for PDFs for course ${course.id}`);
     console.log(`All PDFs:`, supabaseData.pdfs.map(p => ({id: p.id, course_id: p.course_id})));
+    console.log(`Assigned PDF IDs:`, Array.from(assignedPdfIds));
     
-    const coursePdfs = supabaseData.pdfs.filter(
+    const assignedPdfs = supabaseData.pdfs.filter(
       (pdf: PDF) => {
         const matchesCourse = pdf.course_id === course.id;
-        console.log(`PDF ${pdf.id} - course match: ${matchesCourse}`);
-        return matchesCourse;
+        const isAssigned = assignedPdfIds.has(pdf.id);
+        console.log(`PDF ${pdf.id} - course match: ${matchesCourse}, assigned: ${isAssigned}`);
+        return matchesCourse && isAssigned;
       }
     );
     
-    console.log(`Course ${course.id} - Total PDFs count: ${coursePdfs.length}`);
+    console.log(`Course ${course.id} - Assigned PDFs count: ${assignedPdfs.length}`);
     
-    const docs = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'docs');
-    const images = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'images');
-    const templates = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'templates');
-    const quizzes = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'quizzes');
+    const docs = assignedPdfs.filter((pdf: PDF) => pdf.content_type === 'docs');
+    const images = assignedPdfs.filter((pdf: PDF) => pdf.content_type === 'images');
+    const templates = assignedPdfs.filter((pdf: PDF) => pdf.content_type === 'templates');
+    const quizzes = assignedPdfs.filter((pdf: PDF) => pdf.content_type === 'quizzes');
     
-    console.log(`Course ${course.id} PDF counts - Total: ${coursePdfs.length}, Docs: ${docs.length}, Images: ${images.length}, Templates: ${templates.length}, Quizzes: ${quizzes.length}`);
+    console.log(`Course ${course.id} PDF counts - Total: ${assignedPdfs.length}, Docs: ${docs.length}, Images: ${images.length}, Templates: ${templates.length}, Quizzes: ${quizzes.length}`);
     
-    // Calculate total content - show ALL content for assigned courses
-    const totalPodcasts = coursePodcasts.length;
+    // Calculate total content - show ONLY assigned content
+    const totalPodcasts = assignedPodcasts.length;
     
-    console.log(`Course ${course.id} content counts - Podcasts: ${totalPodcasts}, PDFs: ${coursePdfs.length}`);
+    console.log(`Course ${course.id} content counts - Podcasts: ${totalPodcasts}, PDFs: ${assignedPdfs.length}`);
     
-    const totalContent = totalPodcasts + coursePdfs.length;
+    const totalContent = totalPodcasts + assignedPdfs.length;
     console.log(`Course ${course.id} total content: ${totalContent}`);
     
     return {
@@ -395,7 +399,7 @@ export default function CourseAssignment() {
       categories: categoriesWithContent,
       podcastCategories: podcastsByCategory,
       uncategorizedPodcasts,
-      coursePdfs,
+      coursePdfs: assignedPdfs,
       docs,
       images,
       templates,
@@ -866,7 +870,7 @@ export default function CourseAssignment() {
                                                   className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                                 />
                                                 <Music className="h-3 w-3 text-purple-600 mr-1" />
-                                                <span className="text-xs text-black dark:text-white">{podcast.title}</span>
+                                                <span className="text-xs text-white">{podcast.title}</span>
                                               </div>
                                             );
                                           })}
@@ -900,7 +904,7 @@ export default function CourseAssignment() {
                                                 className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                               />
                                               <Music className="h-3 w-3 text-purple-600 mr-1" />
-                                              <span className="text-xs text-black dark:text-white">{podcast.title}</span>
+                                              <span className="text-xs text-white">{podcast.title}</span>
                                             </div>
                                           );
                                         })}
@@ -937,7 +941,7 @@ export default function CourseAssignment() {
                                           className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                         />
                                         <FileText className="h-3 w-3 text-blue-500 mr-1" />
-                                        <span className="text-xs text-black dark:text-white">{pdf.title}</span>
+                                        <span className="text-xs text-white">{pdf.title}</span>
                                       </div>
                                     );
                                   })}
@@ -960,7 +964,7 @@ export default function CourseAssignment() {
                                           className="h-3 w-3 text-green-600 focus:ring-green-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                         />
                                         <Image className="h-3 w-3 text-green-500 mr-1" />
-                                        <span className="text-xs text-black dark:text-white">{pdf.title}</span>
+                                        <span className="text-xs text-white">{pdf.title}</span>
                                       </div>
                                     );
                                   })}
@@ -983,7 +987,7 @@ export default function CourseAssignment() {
                                           className="h-3 w-3 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                         />
                                         <FileText className="h-3 w-3 text-purple-500 mr-1" />
-                                        <span className="text-xs text-black dark:text-white">{pdf.title}</span>
+                                        <span className="text-xs text-white">{pdf.title}</span>
                                       </div>
                                     );
                                   })}
@@ -1006,7 +1010,7 @@ export default function CourseAssignment() {
                                           className="h-3 w-3 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                         />
                                         <FileText className="h-3 w-3 text-yellow-500 mr-1" />
-                                        <span className="text-xs text-black dark:text-white">{pdf.title} (Quiz)</span>
+                                        <span className="text-xs text-white">{pdf.title} (Quiz)</span>
                                       </div>
                                     );
                                   })}
