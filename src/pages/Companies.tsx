@@ -4,6 +4,7 @@ import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
 import { supabase } from '../lib/supabase';
 import AddCompanyModal from '../components/Forms/AddCompanyModal';
+import EditCompanyModal from '../components/Forms/EditCompanyModal';
 import CompanyLogo from '../components/Logo/CompanyLogo';
 import LogoUpload from '../components/Logo/LogoUpload';
 
@@ -200,9 +201,43 @@ export default function Companies() {
 
   const handleUpdateCompany = async (companyData: any) => {
     try {
+      // Update the company name
       await supabaseHelpers.updateCompany(companyData.id, {
         name: companyData.companyName
       });
+      
+      // If a logo was provided, upload it
+      if (companyData.logoFile && companyData.id) {
+        try {
+          // Check if company already has a logo
+          const existingLogo = supabaseData.logos.find(logo => logo.company_id === companyData.id);
+          
+          // Create a unique filename
+          const fileExt = companyData.logoFile.name.split('.').pop();
+          const fileName = `${companyData.id}/${Date.now()}_logo.${fileExt}`;
+          
+          // Upload to logo-pictures bucket
+          const uploadResult = await supabaseHelpers.uploadFile('logo-pictures', fileName, companyData.logoFile);
+          
+          if (existingLogo) {
+            // Update existing logo record
+            await supabaseHelpers.updateLogo(existingLogo.id, {
+              name: `${companyData.companyName} Logo`,
+              logo_url: uploadResult.publicUrl
+            });
+          } else {
+            // Create new logo record
+            await supabaseHelpers.createLogo({
+              name: `${companyData.companyName} Logo`,
+              company_id: companyData.id,
+              logo_url: uploadResult.publicUrl
+            });
+          }
+        } catch (logoError) {
+          console.error('Failed to upload logo:', logoError);
+          alert('Company updated successfully, but logo upload failed.');
+        }
+      }
       
       setIsEditModalOpen(false);
       await loadCompaniesData();
@@ -482,6 +517,15 @@ export default function Companies() {
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddCompany}
         />
+
+        {selectedCompany && (
+          <EditCompanyModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onSubmit={handleUpdateCompany}
+            company={selectedCompany}
+          />
+        )}
 
       </div>
     </div>
