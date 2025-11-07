@@ -501,7 +501,7 @@ export default function Companies() {
                           </button>
                           <button
                             onClick={() => handleDeleteClick(company)}
-                            className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-800"
+                            className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-800 bg-red-50 dark:bg-red-900/20"
                             title="Delete Company"
                           >
                             <Trash2 className="h-5 w-5" />
