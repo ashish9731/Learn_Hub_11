@@ -222,21 +222,17 @@ export default function AdminDashboard({ userEmail = '' }: { userEmail?: string 
         adminAssignedCourseIds.has(course.id)
       );
       
-      // Calculate total hours from actual podcast durations
+      // Calculate total hours from actual podcast durations - only for assigned content
       let totalHours = 0;
-      if (podcastsData && podcastsData.length > 0) {
-        // Sum up durations of all podcasts in courses assigned to this admin's company
-        const adminPodcasts = podcastsData.filter(podcast => {
-          const course = coursesData.find(c => c.id === podcast.course_id);
-          return course && (course.company_id === companyId || course.company_id === null);
-        });
+      if (podcastAssignmentsData && podcastAssignmentsData.length > 0) {
+        // Sum up durations of only assigned podcasts
+        const assignedPodcastIds = new Set(podcastAssignmentsData.map((assignment: any) => assignment.podcast_id));
+        const assignedPodcasts = podcastsData.filter((podcast: any) => 
+          assignedPodcastIds.has(podcast.id) && podcast.duration && podcast.duration > 0
+        );
         
-        const totalPodcastSeconds = adminPodcasts.reduce((total: number, podcast: any) => {
-          // Only count podcasts with actual duration data
-          if (podcast.duration && podcast.duration > 0) {
-            return total + podcast.duration;
-          }
-          return total;
+        const totalPodcastSeconds = assignedPodcasts.reduce((total: number, podcast: any) => {
+          return total + podcast.duration;
         }, 0);
         
         // Convert to hours

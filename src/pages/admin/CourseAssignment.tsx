@@ -271,7 +271,7 @@ export default function CourseAssignment() {
   };
 
   // Build course hierarchy for content selection
-  // Show all courses assigned to this admin (not just those with content)
+  // Show only courses and content specifically assigned to this admin by SuperAdmin
   const assignedCourseIds = new Set(
     supabaseData.courseAssignments.map((assignment: any) => assignment.course_id)
   );
@@ -280,6 +280,13 @@ export default function CourseAssignment() {
   console.log('Total courses in system:', supabaseData.courses.length);
   console.log('Assigned course IDs:', Array.from(assignedCourseIds));
   console.log('Course assignments:', supabaseData.courseAssignments);
+  
+  // Get content specifically assigned to this admin
+  const assignedPodcastIds = new Set(supabaseData.podcastAssignments.map((assignment: any) => assignment.podcast_id));
+  const assignedPdfIds = new Set(supabaseData.pdfAssignments.map((assignment: any) => assignment.pdf_id));
+  
+  console.log('Assigned podcast IDs:', Array.from(assignedPodcastIds));
+  console.log('Assigned PDF IDs:', Array.from(assignedPdfIds));
   
   const courseHierarchy = supabaseData.courses
     .filter((course: Course) => {
@@ -294,14 +301,15 @@ export default function CourseAssignment() {
     const courseCategories = supabaseData.categories.filter((cat: Category) => cat.course_id === course.id);
     console.log('Course categories:', courseCategories.length);
     
-    // For Admins, show ALL content within assigned courses, not just pre-assigned content
-    // Get ALL podcasts for this course (no filtering by assignment)
-    const assignedPodcastIds = new Set(supabaseData.podcastAssignments.map((assignment: any) => assignment.podcast_id));
-    console.log('Assigned podcast IDs:', Array.from(assignedPodcastIds));
+    // For Admins, show ONLY content specifically assigned to them by SuperAdmin
+    // Filter podcasts to show only those assigned to this admin
+    const assignedPodcasts = supabaseData.podcasts.filter(
+      (podcast: Podcast) => podcast.course_id === course.id && assignedPodcastIds.has(podcast.id)
+    );
     
-    // Get content for each category - show ALL content for assigned courses
+    // Get content for each category - show ONLY assigned content
     const categoriesWithContent = courseCategories.map((category: Category) => {
-      const categoryPodcasts = supabaseData.podcasts.filter(
+      const categoryPodcasts = assignedPodcasts.filter(
         (podcast: Podcast) => podcast.category_id === category.id
       );
       console.log(`Category ${category.id} (${category.name}) - Podcasts: ${categoryPodcasts.length}`);
@@ -312,16 +320,16 @@ export default function CourseAssignment() {
       };
     });
     
-    // Get uncategorized content (directly assigned to course) - show ALL content for assigned courses
-    const uncategorizedPodcasts = supabaseData.podcasts.filter(
+    // Get uncategorized content (directly assigned to course) - show ONLY assigned content
+    const uncategorizedPodcasts = assignedPodcasts.filter(
       (podcast: Podcast) => podcast.course_id === course.id && !podcast.category_id
     );
     console.log('Uncategorized podcasts:', uncategorizedPodcasts.length);
     
-    // Get podcasts by predefined categories (Books, HBR, TED Talks, Concept) - show ALL content for assigned courses
+    // Get podcasts by predefined categories (Books, HBR, TED Talks, Concept) - show ONLY assigned content
     const predefinedCategories = ['Books', 'HBR', 'TED Talks', 'Concept'];
     const podcastsByCategory = predefinedCategories.map(categoryName => {
-      const categoryPodcasts = supabaseData.podcasts.filter(
+      const categoryPodcasts = assignedPodcasts.filter(
         (podcast: Podcast) => podcast.course_id === course.id && podcast.category === categoryName
       );
       console.log(`Predefined category ${categoryName} - Podcasts: ${categoryPodcasts.length}`);
@@ -334,38 +342,35 @@ export default function CourseAssignment() {
       };
     }).filter(cat => cat.podcasts.length > 0);
     
-    // Get ALL PDFs for this course and separate by content type - show ALL content for assigned courses
-    const assignedPdfIds = new Set(supabaseData.pdfAssignments.map((assignment: any) => assignment.pdf_id));
-    console.log('Assigned PDF IDs:', Array.from(assignedPdfIds));
+    // Get ONLY PDFs specifically assigned to this admin and separate by content type
+    const assignedPdfs = supabaseData.pdfs.filter(
+      (pdf: PDF) => pdf.course_id === course.id && assignedPdfIds.has(pdf.id)
+    );
     
-    // Get all PDFs for this course and separate by content type - NO filtering by assignment for Admins
-    const coursePdfs = supabaseData.pdfs.filter((pdf: PDF) => pdf.course_id === course.id);
-    const docs = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'docs');
-    const images = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'images');
-    const templates = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'templates');
-    const quizzes = coursePdfs.filter((pdf: PDF) => pdf.content_type === 'quizzes');
+    const docs = assignedPdfs.filter((pdf: PDF) => pdf.content_type === 'docs');
+    const images = assignedPdfs.filter((pdf: PDF) => pdf.content_type === 'images');
+    const templates = assignedPdfs.filter((pdf: PDF) => pdf.content_type === 'templates');
+    const quizzes = assignedPdfs.filter((pdf: PDF) => pdf.content_type === 'quizzes');
     
-    console.log(`Course ${course.id} PDF counts - Total: ${coursePdfs.length}, Docs: ${docs.length}, Images: ${images.length}, Templates: ${templates.length}, Quizzes: ${quizzes.length}`);
+    console.log(`Course ${course.id} PDF counts - Total: ${assignedPdfs.length}, Docs: ${docs.length}, Images: ${images.length}, Templates: ${templates.length}, Quizzes: ${quizzes.length}`);
     
-    // Calculate total content - show ALL content for assigned courses
-    const totalPodcasts = supabaseData.podcasts.filter(
-      (podcast: Podcast) => podcast.course_id === course.id
-    ).length;
+    // Calculate total content - show ONLY assigned content
+    const totalPodcasts = assignedPodcasts.length;
     
-    console.log(`Course ${course.id} content counts - Podcasts: ${totalPodcasts}, PDFs: ${coursePdfs.length}`);
+    console.log(`Course ${course.id} content counts - Podcasts: ${totalPodcasts}, PDFs: ${assignedPdfs.length}`);
     
     return {
       ...course,
       categories: categoriesWithContent,
       podcastCategories: podcastsByCategory,
       uncategorizedPodcasts,
-      coursePdfs,
+      coursePdfs: assignedPdfs,
       docs,
       images,
       templates,
       quizzes,
       totalPodcasts,
-      totalContent: totalPodcasts + coursePdfs.length
+      totalContent: totalPodcasts + assignedPdfs.length
     };
   });
   
