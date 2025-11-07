@@ -370,48 +370,46 @@ export default function Users() {
               {filteredUsers.map((user: any) => (
                 <div key={user.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
                   <div className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center">
-                        <div className="h-12 w-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                          <User className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                    <div className="flex justify-end space-x-2 mb-4">
+                      <button
+                        onClick={() => handleEditUser(user)}
+                        className="p-2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        title="Edit User"
+                      >
+                        <Edit className="h-5 w-5" />
+                      </button>
+                      <div className="relative">
+                        <div className="absolute -top-6 left-0 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
+                          DELETE BUTTON
                         </div>
-                        <div className="ml-4">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                            {getUserProfile(user.id)?.full_name || user.email}
-                          </h3>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleEditUser(user)}
-                          className="p-2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                          title="Edit User"
-                        >
-                          <Edit className="h-5 w-5" />
-                        </button>
-                        <div className="relative">
-                          <div className="absolute -top-6 left-0 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
-                            DELETE BUTTON
-                          </div>
-                          <div className="border-2 border-dashed border-red-500 rounded-lg p-1 bg-red-50 min-w-[100px]">
-                            <div className="relative">
-                              <button
-                                onClick={() => {
-                                  console.log('Delete button clicked for user:', user);
-                                  handleDeleteClick(user);
-                                }}
-                                className="p-3 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border-2 border-red-300 hover:border-red-400 dark:border-red-700 dark:hover:border-red-600 bg-yellow-300 dark:bg-yellow-400 flex items-center justify-center shadow-md hover:shadow-lg w-full"
-                                title="Delete User"
-                              >
-                                <Trash2 className="h-5 w-5" />
-                                <span className="ml-1 text-xs font-bold text-black">DEL</span>
-                              </button>
-                              <div className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold animate-pulse">
-                                3
-                              </div>
+                        <div className="border-2 border-dashed border-red-500 rounded-lg p-1 bg-red-50 min-w-[100px]">
+                          <div className="relative">
+                            <button
+                              onClick={() => {
+                                console.log('Delete button clicked for user:', user);
+                                handleDeleteClick(user);
+                              }}
+                              className="p-3 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border-2 border-red-300 hover:border-red-400 dark:border-red-700 dark:hover:border-red-600 bg-yellow-300 dark:bg-yellow-400 flex items-center justify-center shadow-md hover:shadow-lg w-full"
+                              title="Delete User"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                              <span className="ml-1 text-xs font-bold text-black">DEL</span>
+                            </button>
+                            <div className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold animate-pulse">
+                              3
                             </div>
                           </div>
                         </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="h-12 w-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                        <User className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div className="ml-4">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                          {getUserProfile(user.id)?.full_name || user.email}
+                        </h3>
                       </div>
                     </div>
                     

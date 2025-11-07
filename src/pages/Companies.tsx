@@ -473,56 +473,53 @@ export default function Companies() {
                 return (
                   <div key={company.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
                     <div className="p-6">
-                      {(() => { console.log('Rendering company card:', company); return null; })()}
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-16 w-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                            <CompanyLogo companyId={company.id} size="md" />
+                      <div className="flex justify-end space-x-2 mb-4">
+                        <button
+                          onClick={() => handleEditCompany(company)}
+                          className="p-2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                          title="Edit Company"
+                        >
+                          <Edit className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDirectLogoUpload(company)}
+                          className="p-2 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+                          title="Upload Logo"
+                        >
+                          <Image className="h-5 w-5" />
+                        </button>
+                        <div className="relative">
+                          <div className="absolute -top-6 left-0 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
+                            DELETE BUTTON
                           </div>
-                          <div className="ml-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                              {company.name}
-                            </h3>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEditCompany(company)}
-                            className="p-2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                            title="Edit Company"
-                          >
-                            <Edit className="h-5 w-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDirectLogoUpload(company)}
-                            className="p-2 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-                            title="Upload Logo"
-                          >
-                            <Image className="h-5 w-5" />
-                          </button>
-                          <div className="relative">
-                            <div className="absolute -top-6 left-0 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
-                              DELETE BUTTON
-                            </div>
-                            <div className="border-2 border-dashed border-red-500 rounded-lg p-1 bg-red-50 min-w-[100px]">
-                              <div className="relative">
-                                <button
-                                  onClick={() => {
-                                    console.log('Delete button clicked for company:', company);
-                                    handleDeleteClick(company);
-                                  }}
-                                  className="p-3 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border-2 border-red-300 hover:border-red-400 dark:border-red-700 dark:hover:border-red-600 bg-yellow-300 dark:bg-yellow-400 flex items-center justify-center shadow-md hover:shadow-lg w-full"
-                                  title="Delete Company"
-                                >
-                                  <Trash2 className="h-5 w-5" />
-                                  <span className="ml-1 text-xs font-bold text-black">DEL</span>
-                                </button>
-                                <div className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold animate-pulse">
-                                  3
-                                </div>
+                          <div className="border-2 border-dashed border-red-500 rounded-lg p-1 bg-red-50 min-w-[100px]">
+                            <div className="relative">
+                              <button
+                                onClick={() => {
+                                  console.log('Delete button clicked for company:', company);
+                                  handleDeleteClick(company);
+                                }}
+                                className="p-3 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border-2 border-red-300 hover:border-red-400 dark:border-red-700 dark:hover:border-red-600 bg-yellow-300 dark:bg-yellow-400 flex items-center justify-center shadow-md hover:shadow-lg w-full"
+                                title="Delete Company"
+                              >
+                                <Trash2 className="h-5 w-5" />
+                                <span className="ml-1 text-xs font-bold text-black">DEL</span>
+                              </button>
+                              <div className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold animate-pulse">
+                                3
                               </div>
                             </div>
                           </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-16 w-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                          <CompanyLogo companyId={company.id} size="md" />
+                        </div>
+                        <div className="ml-4">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                            {company.name}
+                          </h3>
                         </div>
                       </div>
                       
