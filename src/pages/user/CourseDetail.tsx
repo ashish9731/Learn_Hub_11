@@ -728,11 +728,11 @@ export default function CourseDetail() {
                 </div>
 
                 {/* Course Details - Right Side */}
-                <div className="md:w-2/3 p-8">
+                <div className="md:w-2/3 p-8 flex flex-col">
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <div className="flex items-center">
-                        <h1 className="text-3xl font-bold text-white mb-3">{course.title}</h1>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-3 dark:text-white">{course.title}</h1>
                         {checkFinalQuizPassed() && (
                           <span className="ml-3 px-3 py-1 bg-green-500 text-white text-sm rounded-full flex items-center">
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -756,12 +756,12 @@ export default function CourseDetail() {
                     </div>
                   </div>
 
-                  <p className="text-gray-300 text-lg mb-8 leading-relaxed">
+                  <p className="text-gray-700 text-lg mb-8 leading-relaxed dark:text-gray-300">
                     {course.description ? course.description : 'No description provided for this course.'}
                   </p>
 
                   {/* Course Metadata - This will now have consistent height with image */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-auto">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
                       <div className="text-2xl font-bold text-green-400 mb-1">
                         {getAssignedPodcasts().filter(p => !p.is_youtube_video).length}
