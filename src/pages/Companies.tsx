@@ -488,28 +488,16 @@ export default function Companies() {
                         >
                           <Image className="h-5 w-5" />
                         </button>
-                        <div className="relative">
-                          <div className="absolute -top-6 left-0 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
-                            DELETE BUTTON
-                          </div>
-                          <div className="border-2 border-dashed border-red-500 rounded-lg p-1 bg-red-50 min-w-[100px]">
-                            <div className="relative">
-                              <button
-                                onClick={() => {
-                                  console.log('Delete button clicked for company:', company);
-                                  handleDeleteClick(company);
-                                }}
-                                className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                title="Delete Company"
-                              >
-                                <Trash2 className="h-5 w-5" />
-                              </button>
-                              <div className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold animate-pulse">
-                                3
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        <button
+                          onClick={() => {
+                            console.log('Delete button clicked for company:', company);
+                            handleDeleteClick(company);
+                          }}
+                          className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          title="Delete Company"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
                       </div>
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-16 w-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
