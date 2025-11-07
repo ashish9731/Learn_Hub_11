@@ -464,46 +464,48 @@ export default function Companies() {
                 const companyCourses = getCompanyCourses(company.id);
                 
                 return (
-                  <div key={company.id} className="bg-gray-100 rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 dark:bg-gray-700 dark:border-gray-600">
-                    <div className="p-5">
+                  <div key={company.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+                    <div className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-16 w-16 rounded-lg overflow-hidden">
+                          <div className="flex-shrink-0 h-16 w-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                             <CompanyLogo companyId={company.id} size="md" />
                           </div>
                           <div className="ml-4">
-                            <h3 className="text-lg font-medium text-black truncate dark:text-white">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                               {company.name}
                             </h3>
                           </div>
                         </div>
-                        <div className="flex space-x-1">
+                        <div className="flex space-x-2">
                           <button
                             onClick={() => handleEditCompany(company)}
-                            className="p-2 text-blue-400 hover:text-blue-300 rounded-full hover:bg-blue-900/20"
+                            className="p-2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                             title="Edit Company"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-5 w-5" />
                           </button>
                           <button
                             onClick={() => handleDirectLogoUpload(company)}
-                            className="p-2 text-green-400 hover:text-green-300 rounded-full hover:bg-green-900/20"
+                            className="p-2 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
                             title="Upload Logo"
                           >
-                            <Image className="h-4 w-4" />
+                            <Image className="h-5 w-5" />
                           </button>
                           <button
                             onClick={() => handleDeleteClick(company)}
-                            className="p-2 text-red-400 hover:text-red-300 rounded-full hover:bg-red-900/20"
+                            className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             title="Delete Company"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </button>
                         </div>
                       </div>
                       
-                      <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                        Created: {new Date(company.created_at).toLocaleDateString()}
+                      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Created: {new Date(company.created_at).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
                   </div>
