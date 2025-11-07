@@ -253,7 +253,12 @@ export default function Users() {
       // Finally delete the user
       await supabaseHelpers.deleteUser(selectedUser.id);
       setIsDeleteModalOpen(false);
-      await loadUsersData(); // Refresh data
+      
+      // Update state directly instead of reloading all data to prevent flickering
+      setSupabaseData(prevData => ({
+        ...prevData,
+        users: prevData.users.filter(user => user.id !== selectedUser.id)
+      }));
     } catch (error) {
       console.error('Failed to delete user:', error);
       alert('Failed to delete user. Please try again.');

@@ -251,7 +251,12 @@ export default function Admins() {
       // Finally delete the user
       await supabaseHelpers.deleteUser(selectedAdmin.id);
       setIsDeleteModalOpen(false);
-      await loadAdminsData(); // Refresh data
+      
+      // Update state directly instead of reloading all data to prevent flickering
+      setSupabaseData(prevData => ({
+        ...prevData,
+        users: prevData.users.filter(user => user.id !== selectedAdmin.id)
+      }));
     } catch (error) {
       console.error('Failed to delete admin:', error);
       alert('Failed to delete admin. Please try again.');

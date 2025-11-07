@@ -200,7 +200,15 @@ export default function Companies() {
       // Use the improved deleteCompany function that handles all dependent records
       await supabaseHelpers.deleteCompany(selectedCompany.id);
       setIsDeleteModalOpen(false);
-      await loadCompaniesData();
+      
+      // Update state directly instead of reloading all data to prevent flickering
+      setSupabaseData(prevData => ({
+        ...prevData,
+        companies: prevData.companies.filter(company => company.id !== selectedCompany.id),
+        users: prevData.users.filter(user => user.company_id !== selectedCompany.id),
+        courses: prevData.courses.filter(course => course.company_id !== selectedCompany.id),
+        logos: prevData.logos.filter(logo => logo.company_id !== selectedCompany.id)
+      }));
     } catch (error) {
       console.error('Failed to delete company:', error);
       alert('Failed to delete company. Please try again.');

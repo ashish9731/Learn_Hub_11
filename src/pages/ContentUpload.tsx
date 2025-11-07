@@ -682,7 +682,13 @@ export default function ContentUpload() {
     
     try {
       await supabaseHelpers.deletePodcast(podcastId);
-      await loadSupabaseData();
+      
+      // Update state directly instead of reloading all data to prevent flickering
+      setSupabaseData(prevData => ({
+        ...prevData,
+        podcasts: prevData.podcasts.filter(podcast => podcast.id !== podcastId)
+      }));
+      
       alert('Podcast deleted successfully!');
     } catch (error) {
       console.error('Failed to delete podcast:', error);
@@ -697,11 +703,111 @@ export default function ContentUpload() {
     
     try {
       await supabaseHelpers.deletePDF(pdfId);
-      await loadSupabaseData();
+      
+      // Update state directly instead of reloading all data to prevent flickering
+      setSupabaseData(prevData => ({
+        ...prevData,
+        pdfs: prevData.pdfs.filter(pdf => pdf.id !== pdfId)
+      }));
+      
       alert('Document deleted successfully!');
     } catch (error) {
       console.error('Failed to delete document:', error);
       alert('Failed to delete document. Please try again.');
+    }
+  };
+
+
+
+  // Edit course functions
+  const handleEditCourse = (courseId: string) => {
+    const course = supabaseData.courses.find(c => c.id === courseId);
+    if (course) {
+      setEditingCourseId(courseId);
+      setEditingCourseData(course);
+    }
+  };
+
+  const handleSaveCourse = async () => {
+    if (!editingCourseData.title || !editingCourseData.title.trim()) {
+      alert('Please enter a course title');
+      return;
+    }
+
+    // Check if a course with the same title already exists (case insensitive)
+    const existingCourse = supabaseData.courses.find(
+      course => editingCourseData.title && course.title.toLowerCase() === editingCourseData.title.trim().toLowerCase() && course.id !== editingCourseId
+    );
+    
+    if (existingCourse) {
+      alert(`A course with the name "${editingCourseData.title || ''}" already exists. Please choose a different name.`);
+      return;
+    }
+
+    try {
+      console.log('Updating course:', {
+        id: editingCourseId,
+        title: editingCourseData.title,
+        level: editingCourseData.level,
+        description: editingCourseData.description // Add this line
+      });
+
+      // Update the course (without created_by since it's not in the schema)
+      const courseData = {
+        id: editingCourseId,
+        title: editingCourseData.title,
+        level: editingCourseData.level,
+        description: editingCourseData.description // Add this line
+        // Note: courses table doesn't have created_by column, so we don't include it
+      };
+      
+      console.log('Course data to update:', courseData);
+      
+      const { data, error } = await supabaseHelpers.updateCourse(editingCourseId, courseData);
+
+      if (error) {
+        console.error('Course update error:', error);
+        // Log detailed error information
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        throw new Error(`Database error: ${error.message || 'Unknown database error'}`);
+      }
+
+      console.log('Course updated successfully:', data);
+
+      // Reset form
+      setEditingCourseId(null);
+      setEditingCourseData({});
+
+      // Reload data to show the updated course
+      await loadSupabaseData();
+
+      alert('Course updated successfully!');
+
+    } catch (error) {
+      console.error('Failed to update course:', error);
+      // Log the full error object for debugging
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+      
+      // Handle different types of errors
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        if ('message' in error) {
+          errorMessage = (error as any).message;
+        } else {
+          errorMessage = JSON.stringify(error);
+        }
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      alert(`Failed to update course: ${errorMessage}`);
     }
   };
 
@@ -732,6 +838,7 @@ export default function ContentUpload() {
       }
       
       console.log('Current user (Super Admin):', currentUser.id, currentUser.email);
+
       
       // Get the admin user - using a more permissive query for Super Admin
       let adminUser = null;
@@ -931,6 +1038,8 @@ export default function ContentUpload() {
     );
   };
 
+
+
   const handleDeleteCourse = async (courseId: string) => {
     if (!window.confirm('Are you sure you want to delete this course? This will also delete all associated content (podcasts, documents, etc.).')) {
       return;
@@ -940,8 +1049,13 @@ export default function ContentUpload() {
       // Delete the course (this will cascade delete associated content)
       await supabaseHelpers.deleteCourse(courseId);
       
-      // Reload data to reflect changes
-      await loadSupabaseData();
+      // Update state directly instead of reloading all data to prevent flickering
+      setSupabaseData(prevData => ({
+        ...prevData,
+        courses: prevData.courses.filter(course => course.id !== courseId),
+        podcasts: prevData.podcasts.filter(podcast => podcast.course_id !== courseId),
+        pdfs: prevData.pdfs.filter(pdf => pdf.course_id !== courseId)
+      }));
       
       // Clear form if the deleted course was selected
       if (selectedCourse === courseId) {
