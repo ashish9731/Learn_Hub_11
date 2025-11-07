@@ -267,8 +267,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
         [currentQ.id]: {
           isCorrect,
           correctAnswerId: correctAnswer.id,
-          explanation: correctAnswer.explanation || '',
-          selectedAnswerExplanation: selectedAnswer.explanation || ''
+          explanation: correctAnswer.explanation || 'No explanation found.'
         }
       }));
       
@@ -492,35 +491,26 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                   </p>
                 </div>
               )}
-              <div className="space-y-3">
-                {/* Show explanations only when they exist and are not the default placeholder */}
-                {currentQ.answers
-                  .filter(answer => answer.explanation && answer.explanation.trim() !== '' && answer.explanation !== 'No explanation provided for this answer.')
-                  .map((answer) => (
-                    <div key={answer.id} className="text-black dark:text-white ml-4">
-                      {answer.explanation}
+              <div className="space-y-2">
+                {/* Always show explanation for the correct answer */}
+                {feedback.correctAnswerId && (
+                  <div className="text-black dark:text-white">
+                    <span className="font-medium">
+                      {feedback.isCorrect ? 'Explanation:' : 'Explanation for correct answer:'}
+                    </span>
+                    <div className="ml-2">
+                      {currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation || 'No explanation found.'}
                     </div>
-                  ))
-                }
-                
-                {/* Show explanation for selected answer if it has one and wasn't already shown above */}
-                {selectedAnswers[currentQ.id] && 
-                 !currentQ.answers.some(a => a.id === selectedAnswers[currentQ.id] && a.explanation && a.explanation.trim() !== '' && a.explanation !== 'No explanation provided for this answer.') &&
-                 currentQ.answers.find(a => a.id === selectedAnswers[currentQ.id])?.explanation && 
-                 currentQ.answers.find(a => a.id === selectedAnswers[currentQ.id])?.explanation.trim() !== '' && 
-                 currentQ.answers.find(a => a.id === selectedAnswers[currentQ.id])?.explanation !== 'No explanation provided for this answer.' && (
-                  <div className="text-black dark:text-white ml-4">
-                    <span className="font-medium">Explanation for your answer:</span> {currentQ.answers.find(a => a.id === selectedAnswers[currentQ.id])?.explanation}
                   </div>
                 )}
                 
-                {/* Show explanation for correct answer if it has one and wasn't already shown above */}
-                {!currentQ.answers.some(a => a.id === feedback.correctAnswerId && a.explanation && a.explanation.trim() !== '' && a.explanation !== 'No explanation provided for this answer.') &&
-                 currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation && 
-                 currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation.trim() !== '' && 
-                 currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation !== 'No explanation provided for this answer.' && (
-                  <div className="text-black dark:text-white ml-4">
-                    <span className="font-medium">{feedback.isCorrect ? 'Explanation:' : 'Explanation for correct answer:'}</span> {currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation}
+                {/* For incorrect answers, also show explanation for the selected answer if it exists and is different */}
+                {!feedback.isCorrect && selectedAnswers[currentQ.id] && selectedAnswers[currentQ.id] !== feedback.correctAnswerId && (
+                  <div className="text-black dark:text-white">
+                    <span className="font-medium">Explanation for your answer:</span>
+                    <div className="ml-2">
+                      {currentQ.answers.find(a => a.id === selectedAnswers[currentQ.id])?.explanation || 'No explanation found.'}
+                    </div>
                   </div>
                 )}
               </div>

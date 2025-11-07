@@ -83,12 +83,13 @@ function parseQuizFromDocument(documentContent: string): any[] {
     let correctAnswerLetter = '';
     let collectingExplanation = false;
     let explanationBuffer = '';
+    let inAnswerSection = false;
     
     while (i < lines.length) {
       const line = lines[i];
       const trimmedLine = line.trim();
       
-      // Look for question pattern
+      // Look for question pattern (e.g., "1. What is the capital of France?")
       const questionMatch = trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/);
       if (questionMatch) {
         // Save previous question if exists
@@ -105,9 +106,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
             }
           } else if (currentAnswers.length > 0) {
             // If no correct answer was explicitly specified, don't default to first answer
-            // This was causing incorrect answers to be marked as correct
             console.log('No correct answer specified in document for question:', currentQuestion);
-            // Return empty array to indicate parsing failure
             return [];
           }
           
@@ -127,64 +126,26 @@ function parseQuizFromDocument(documentContent: string): any[] {
         correctAnswerLetter = '';
         collectingExplanation = false;
         explanationBuffer = '';
+        inAnswerSection = false;
         console.log('Found question:', questionNumber, currentQuestion);
       } 
-      // Look for answer options with letter prefix (more flexible patterns)
-      else if (currentQuestion && trimmedLine.match(/^([a-dA-D])[\.\)\-]?\s*(.+)$/)) {
-        const answerMatch = trimmedLine.match(/^([a-dA-D])[\.\)\-]?\s*(.+)$/);
+      // Look for answer options with various formats (e.g., "a) Paris", "(b) London", "c. Berlin")
+      else if (currentQuestion && trimmedLine.match(/^[\(\[]?[a-dA-D][\.\)\]]?\s*(.+)$/)) {
+        const answerMatch = trimmedLine.match(/^[\(\[]?([a-dA-D])[\.\)\]]?\s*(.+)$/);
         if (answerMatch) {
           const letter = answerMatch[1].toUpperCase();
           const answerText = answerMatch[2].trim();
-          console.log('Found answer with letter prefix:', letter, answerText);
+          console.log('Found answer option:', letter, answerText);
           currentAnswers.push({
             answer_text: answerText,
             is_correct: false,
             explanation: ''
           });
+          inAnswerSection = true;
         }
       }
-      // Look for answer options with numbered prefix for answers (e.g., "1. Answer text")
-      else if (currentQuestion && currentAnswers.length < 4 && trimmedLine.match(/^(\d+)[\.\)]\s*(.+)$/)) {
-        // Only treat as answer if we're not already in a question pattern and it's likely an answer
-        const answerMatch = trimmedLine.match(/^(\d+)[\.\)]\s*(.+)$/);
-        if (answerMatch) {
-          const answerNumber = parseInt(answerMatch[1]);
-          const answerText = answerMatch[2].trim();
-          // Only treat as answer option if it's a small number (1-4) and we don't have many answers yet
-          if (answerNumber >= 1 && answerNumber <= 4 && currentAnswers.length < answerNumber) {
-            // Convert number to letter (1->A, 2->B, etc.)
-            const letter = String.fromCharCode('A'.charCodeAt(0) + answerNumber - 1);
-            console.log('Found answer with number prefix (converted to letter):', letter, answerText);
-            currentAnswers.push({
-              answer_text: answerText,
-              is_correct: false,
-              explanation: ''
-            });
-          }
-        }
-      }
-      // Look for answer options without letter prefix (just the text)
-      // This handles the case where options are listed without "a)", "b)", etc.
-      else if (currentQuestion && currentAnswers.length < 4 && trimmedLine !== '' && 
-               !trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/) &&  // Not a new question
-               !trimmedLine.toLowerCase().startsWith('answer:') &&
-               !trimmedLine.toLowerCase().startsWith('explanation:') &&
-               !trimmedLine.toLowerCase().startsWith('correct answer:') &&
-               !trimmedLine.toLowerCase().startsWith('solution:') &&
-               !trimmedLine.toLowerCase().match(/^answer\s*[a-d][\.\)]?/i) &&
-               !trimmedLine.toLowerCase().match(/^correct\s+answer\s*[a-d][\.\)]?/i)) {
-        // If we haven't found any answers yet and this line looks like an answer option
-        if (currentAnswers.length < 4 && currentAnswers.length > 0) { // Only if we already have at least one answer
-          console.log('Found answer without letter prefix:', trimmedLine);
-          currentAnswers.push({
-            answer_text: trimmedLine,
-            is_correct: false,
-            explanation: ''
-          });
-        }
-      }
-      // Look for various answer line formats
-      else if (currentQuestion && 
+      // Look for various answer line formats (e.g., "Answer: a", "Correct Answer: B")
+      else if (currentQuestion && inAnswerSection && 
                (trimmedLine.toLowerCase().startsWith('answer:') || 
                 trimmedLine.toLowerCase().startsWith('correct answer:') ||
                 trimmedLine.toLowerCase().startsWith('solution:') ||
@@ -199,50 +160,43 @@ function parseQuizFromDocument(documentContent: string): any[] {
         } else if (trimmedLine.toLowerCase().startsWith('solution:')) {
           answerValue = trimmedLine.substring(9).trim();
         } else if (trimmedLine.toLowerCase().match(/^answer\s*[a-d][\.\)]?/i)) {
-          // Handle formats like "Answer A" or "Answer B."
           const match = trimmedLine.toLowerCase().match(/^answer\s*([a-d])[\.\)]?/i);
           if (match) {
             answerValue = match[1];
           }
         } else if (trimmedLine.toLowerCase().match(/^correct\s+answer\s*[a-d][\.\)]?/i)) {
-          // Handle formats like "Correct Answer C" or "Correct Answer D."
           const match = trimmedLine.toLowerCase().match(/^correct\s+answer\s*([a-d])[\.\)]?/i);
           if (match) {
             answerValue = match[1];
           }
         }
         
-        console.log('Found answer line:', answerValue);
+        console.log('Found answer indicator:', answerValue);
         
         // Handle different answer formats
         if (answerValue.length === 1 && /^[A-Da-d]$/.test(answerValue)) {
           correctAnswerLetter = answerValue.toUpperCase();
           console.log('Set correct answer letter:', correctAnswerLetter);
         } else if (answerValue.match(/^([A-Da-d])[\.\)]/)) {
-          // Handle formats like "A)" or "a."
           const letterMatch = answerValue.match(/^([A-Da-d])[\.\)]/);
           if (letterMatch) {
             correctAnswerLetter = letterMatch[1].toUpperCase();
             console.log('Set correct answer letter from format:', correctAnswerLetter);
           }
         }
+        inAnswerSection = false;
       }
-      // Look for explanation
-      else if (currentQuestion && currentAnswers.length > 0 && trimmedLine.toLowerCase().startsWith('explanation:')) {
-        // Start collecting explanation
+      // Look for explanation (e.g., "Explanation: Paris is the capital of France.")
+      else if (currentQuestion && trimmedLine.toLowerCase().startsWith('explanation:')) {
         collectingExplanation = true;
         const explanationText = trimmedLine.substring(12).trim();
         explanationBuffer = explanationText;
         console.log('Found explanation start:', explanationText);
+        inAnswerSection = false;
       }
       // Continue explanation text
       else if (collectingExplanation && trimmedLine !== '' && 
-               !trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/) &&
-               !trimmedLine.toLowerCase().startsWith('answer:') &&
-               !trimmedLine.toLowerCase().startsWith('correct answer:') &&
-               !trimmedLine.toLowerCase().startsWith('solution:') &&
-               !trimmedLine.toLowerCase().match(/^answer\s*[a-d][\.\)]?/i) &&
-               !trimmedLine.toLowerCase().match(/^correct\s+answer\s*[a-d][\.\)]?/i)) {
+               !trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/)) {
         // Append to the explanation buffer
         if (explanationBuffer) {
           explanationBuffer += ' ' + trimmedLine;
@@ -251,8 +205,13 @@ function parseQuizFromDocument(documentContent: string): any[] {
         }
         console.log('Continued explanation:', trimmedLine);
       }
-      // Stop collecting explanation when we hit a new question
-      else if (collectingExplanation && trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/)) {
+      // Stop collecting explanation when we hit a new question or answer section
+      else if (collectingExplanation && 
+               (trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/) || 
+                trimmedLine.toLowerCase().startsWith('answer:') ||
+                trimmedLine.toLowerCase().startsWith('correct answer:') ||
+                trimmedLine.toLowerCase().startsWith('solution:') ||
+                trimmedLine.match(/^[\(\[]?[a-dA-D][\.\)\]]?\s*(.+)$/))) {
         collectingExplanation = false;
       }
       
@@ -273,9 +232,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
         }
       } else if (currentAnswers.length > 0) {
         // If no correct answer was explicitly specified, don't default to first answer
-        // This was causing incorrect answers to be marked as correct
         console.log('No correct answer specified in document for question:', currentQuestion);
-        // Return empty array to indicate parsing failure
         return [];
       }
       
@@ -298,7 +255,6 @@ function parseQuizFromDocument(documentContent: string): any[] {
     return questions;
   } catch (error) {
     console.error('Error parsing quiz from document:', error);
-    // Return empty array rather than default questions
     return [];
   }
 }
@@ -434,7 +390,21 @@ export async function generateQuizFromDocument(
     
     // Use the valid questions
     quizData = validQuestions;
-
+    
+    // Additional validation: Ensure each question has explanations or placeholder
+    quizData = quizData.map(question => {
+      // Ensure each answer has an explanation (even if empty)
+      const answersWithExplanations = question.answers.map((answer: any) => ({
+        ...answer,
+        explanation: answer.explanation || ''
+      }));
+      
+      return {
+        ...question,
+        answers: answersWithExplanations
+      };
+    });
+    
     // Since we're having RLS issues with direct inserts, let's try a different approach
     // We'll use the admin client to create the quiz, which bypasses RLS
     // First get the admin client
