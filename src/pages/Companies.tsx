@@ -153,9 +153,33 @@ export default function Companies() {
 
   const handleAddCompany = async (companyData: any) => {
     try {
-      await supabaseHelpers.createCompany({
+      // Create the company first
+      const newCompany = await supabaseHelpers.createCompany({
         name: companyData.companyName
       });
+      
+      // If a logo was provided, upload it
+      if (companyData.logoFile && newCompany.id) {
+        try {
+          // Create a unique filename
+          const fileExt = companyData.logoFile.name.split('.').pop();
+          const fileName = `${newCompany.id}/${Date.now()}_logo.${fileExt}`;
+          
+          // Upload to logo-pictures bucket
+          const uploadResult = await supabaseHelpers.uploadFile('logo-pictures', fileName, companyData.logoFile);
+          
+          // Create logo record in database
+          await supabaseHelpers.createLogo({
+            name: `${companyData.companyName} Logo`,
+            company_id: newCompany.id,
+            logo_url: uploadResult.publicUrl
+          });
+        } catch (logoError) {
+          console.error('Failed to upload logo:', logoError);
+          // Don't fail the company creation if logo upload fails
+          alert('Company created successfully, but logo upload failed. You can add a logo later.');
+        }
+      }
       
       await loadCompaniesData();
     } catch (error) {
