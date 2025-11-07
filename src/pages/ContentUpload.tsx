@@ -1997,15 +1997,20 @@ export default function ContentUpload() {
     );
   };
 
+  console.log('Rendering ContentUpload component', { loading, error, supabaseData });
+  
   if (loading) {
+    console.log('Showing loading spinner');
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+        <div className="ml-4 text-white">Loading content...</div>
       </div>
     );
   }
 
   if (error) {
+    console.log('Showing error state:', error);
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
@@ -2025,6 +2030,7 @@ export default function ContentUpload() {
     );
   }
 
+  console.log('Rendering main content');
   return (
     <div className="py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
