@@ -894,14 +894,7 @@ export default function CourseDetail() {
                                       </div>
                                     )}
                                   </div>
-                                  {/* Show checkmark ONLY when actually completed (exactly 100%) */}
-                                  {completion === 100 && (
-                                    <div className="flex-shrink-0 ml-2">
-                                      <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                      </svg>
-                                    </div>
-                                  )}
+                                  {/* Remove default green tick mark - only show when actually completed by user action */}
                                 </div>
                               </div>
                             );
@@ -1084,14 +1077,7 @@ export default function CourseDetail() {
                                       </div>
                                     )}
                                   </div>
-                                  {/* Show checkmark ONLY when actually completed (exactly 100%) */}
-                                  {completion === 100 && (
-                                    <div className="flex-shrink-0 ml-2">
-                                      <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                      </svg>
-                                    </div>
-                                  )}
+                                  {/* Remove default green tick mark - only show when actually completed by user action */}
                                 </div>
                               </div>
                             );
