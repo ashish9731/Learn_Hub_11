@@ -292,10 +292,15 @@ export default function CourseAssignment() {
   console.log('Assigned podcast IDs:', Array.from(assignedPodcastIds));
   console.log('Assigned PDF IDs:', Array.from(assignedPdfIds));
   
+  console.log('All courses in system:', supabaseData.courses.map(c => ({id: c.id, title: c.title})));
+  
   const courseHierarchy = supabaseData.courses
     .filter((course: Course) => {
       const isAssigned = assignedCourseIds.has(course.id);
       console.log(`Course ${course.id} (${course.title}) - Assigned: ${isAssigned}`);
+      // Additional debug info
+      console.log(`Comparing course.id type: ${typeof course.id}, value: ${course.id}`);
+      console.log(`Assigned course IDs types and values:`, Array.from(assignedCourseIds).map(id => ({type: typeof id, value: id})));
       return isAssigned;
     })
     .map((course: Course) => {
