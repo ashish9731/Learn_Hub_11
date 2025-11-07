@@ -391,7 +391,7 @@ export default function Users() {
                         </button>
                         <button
                           onClick={() => handleDeleteClick(user)}
-                          className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-800 bg-red-50 dark:bg-red-900/20"
+                          className="p-3 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border-2 border-red-200 hover:border-red-300 dark:border-red-800 dark:hover:border-red-700 bg-red-50 dark:bg-red-900/20 flex items-center justify-center"
                           title="Delete User"
                         >
                           <Trash2 className="h-5 w-5" />
