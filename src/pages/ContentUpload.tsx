@@ -65,6 +65,7 @@ interface User {
 }
 
 export default function ContentUpload() {
+  console.log('ContentUpload component initialized');
   const [searchTerm, setSearchTerm] = useState('');
   const [contentTitle, setContentTitle] = useState('');
   const [contentDescription, setContentDescription] = useState('');

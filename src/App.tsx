@@ -331,6 +331,7 @@ function AppContent() {
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/analytics" element={<Analytics />} />
                     <Route path="/content" element={<ContentUpload />} />
+                    <Route path="/test" element={<div>Test Route</div>} />
                     <Route path="/companies" element={<Companies />} />
                     <Route path="/admins" element={<Admins />} />
                     <Route path="/users" element={<Users />} />
