@@ -82,7 +82,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
     let currentAnswers: Array<{answer_text: string, is_correct: boolean, explanation: string}> = [];
     let correctAnswerLetter = '';
     let collectingExplanation = false;
-    let explanationTargetIndex = -1;
+    let explanationBuffer = '';
     
     while (i < lines.length) {
       const line = lines[i];
@@ -98,10 +98,18 @@ function parseQuizFromDocument(documentContent: string): any[] {
             const answerIndex = correctAnswerLetter.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0);
             if (answerIndex >= 0 && answerIndex < currentAnswers.length) {
               currentAnswers[answerIndex].is_correct = true;
+              // Add any collected explanation to the correct answer
+              if (explanationBuffer) {
+                currentAnswers[answerIndex].explanation = explanationBuffer.trim();
+              }
             }
           } else if (currentAnswers.length > 0) {
             // Default to first answer if no correct answer specified
             currentAnswers[0].is_correct = true;
+            // Add any collected explanation to the first answer
+            if (explanationBuffer) {
+              currentAnswers[0].explanation = explanationBuffer.trim();
+            }
           }
           
           questions.push({
@@ -119,7 +127,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
         currentAnswers = [];
         correctAnswerLetter = '';
         collectingExplanation = false;
-        explanationTargetIndex = -1;
+        explanationBuffer = '';
         console.log('Found question:', questionNumber, currentQuestion);
       } 
       // Look for answer options with letter prefix
@@ -164,46 +172,28 @@ function parseQuizFromDocument(documentContent: string): any[] {
       }
       // Look for explanation
       else if (currentQuestion && currentAnswers.length > 0 && trimmedLine.toLowerCase().startsWith('explanation:')) {
-        // Start collecting explanation for the correct answer
+        // Start collecting explanation
         collectingExplanation = true;
-        
-        // Find the correct answer index
-        if (correctAnswerLetter && correctAnswerLetter.length === 1) {
-          explanationTargetIndex = correctAnswerLetter.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0);
-        } else {
-          // Default to first answer if no correct answer specified
-          explanationTargetIndex = 0;
-        }
-        
-        // Get the explanation text after the colon
         const explanationText = trimmedLine.substring(12).trim();
+        explanationBuffer = explanationText;
         console.log('Found explanation start:', explanationText);
-        
-        // Add explanation to the target answer if it exists
-        if (explanationTargetIndex >= 0 && explanationTargetIndex < currentAnswers.length) {
-          currentAnswers[explanationTargetIndex].explanation = explanationText;
-          console.log('Added explanation to answer index:', explanationTargetIndex);
-        }
       }
       // Continue explanation text
       else if (collectingExplanation && trimmedLine !== '' && 
                !trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/) &&
                !trimmedLine.toLowerCase().startsWith('answer:') &&
                !trimmedLine.toLowerCase().startsWith('correct answer:')) {
-        // Append to the explanation of the target answer
-        if (explanationTargetIndex >= 0 && explanationTargetIndex < currentAnswers.length) {
-          if (currentAnswers[explanationTargetIndex].explanation) {
-            currentAnswers[explanationTargetIndex].explanation += ' ' + trimmedLine;
-          } else {
-            currentAnswers[explanationTargetIndex].explanation = trimmedLine;
-          }
-          console.log('Continued explanation:', trimmedLine);
+        // Append to the explanation buffer
+        if (explanationBuffer) {
+          explanationBuffer += ' ' + trimmedLine;
+        } else {
+          explanationBuffer = trimmedLine;
         }
+        console.log('Continued explanation:', trimmedLine);
       }
-      // Stop collecting explanation when we hit a new question or empty line
-      else if (collectingExplanation && (trimmedLine === '' || trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/))) {
+      // Stop collecting explanation when we hit a new question
+      else if (collectingExplanation && trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/)) {
         collectingExplanation = false;
-        explanationTargetIndex = -1;
       }
       
       i++;
@@ -216,10 +206,18 @@ function parseQuizFromDocument(documentContent: string): any[] {
         const answerIndex = correctAnswerLetter.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0);
         if (answerIndex >= 0 && answerIndex < currentAnswers.length) {
           currentAnswers[answerIndex].is_correct = true;
+          // Add any collected explanation to the correct answer
+          if (explanationBuffer) {
+            currentAnswers[answerIndex].explanation = explanationBuffer.trim();
+          }
         }
       } else if (currentAnswers.length > 0) {
         // Default to first answer if no correct answer specified
         currentAnswers[0].is_correct = true;
+        // Add any collected explanation to the first answer
+        if (explanationBuffer) {
+          currentAnswers[0].explanation = explanationBuffer.trim();
+        }
       }
       
       questions.push({
