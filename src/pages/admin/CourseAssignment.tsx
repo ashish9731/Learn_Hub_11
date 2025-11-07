@@ -17,6 +17,7 @@ interface Course {
   id: string;
   title: string;
   company_id: string;
+  image_url?: string | null;
   created_at: string;
   level?: string;
 }
@@ -802,7 +803,23 @@ export default function CourseAssignment() {
                                 <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                               )}
                             </div>
-                            <BookOpen className="h-4 w-4 text-purple-600 mr-2" />
+                            {/* Course Image */}
+                            <div className="flex-shrink-0 mr-2">
+                              {course.image_url ? (
+                                <img
+                                  src={course.image_url}
+                                  alt={course.title}
+                                  className="h-8 w-8 object-cover rounded"
+                                  onError={(e) => {
+                                    e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+                                  }}
+                                />
+                              ) : (
+                                <div className="h-8 w-8 bg-gray-200 rounded flex items-center justify-center">
+                                  <BookOpen className="h-4 w-4 text-gray-500" />
+                                </div>
+                              )}
+                            </div>
                             <div className="flex items-center">
                               <span className="text-sm font-medium text-black dark:text-white">{course.title}</span>
                               {course.level && (

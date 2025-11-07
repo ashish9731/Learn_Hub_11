@@ -849,9 +849,6 @@ export default function CourseDetail() {
                                   </div> 
                                   <div className="flex-1 min-w-0">
                                     <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
-                                    {podcast.description && (
-                                      <p className="text-xs text-gray-300 mb-1">{podcast.description}</p>
-                                    )}
                                     <p className="text-xs text-gray-400">Audio content</p>
                                     {completion > 0 && completion < 100 && (
                                       <div className="ml-2 flex items-center">
@@ -984,9 +981,6 @@ export default function CourseDetail() {
                                   </div> 
                                   <div className="flex-1 min-w-0">
                                     <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
-                                    {podcast.description && (
-                                      <p className="text-xs text-gray-300 mb-1">{podcast.description}</p>
-                                    )}
                                     <p className="text-xs text-gray-400">Video content</p>
                                     {completion > 0 && completion < 100 && (
                                       <div className="ml-2 flex items-center">

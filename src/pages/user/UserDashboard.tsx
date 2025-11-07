@@ -808,6 +808,24 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                     className="bg-white/5 rounded-xl border border-white/10 p-5 hover:bg-white/10 transition-colors cursor-pointer"
                     onClick={() => navigate(`/user/courses/${course.id}`)}
                   >
+                    {/* Course Image */}
+                    <div className="aspect-video w-full bg-gray-200 relative rounded-lg overflow-hidden mb-4">
+                      {course.image_url ? (
+                        <img
+                          src={course.image_url}
+                          alt={course.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                          <BookOpen className="h-8 w-8 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+                    
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="font-semibold text-white line-clamp-2">{course.title}</h3>
                       {isCompleted && (
