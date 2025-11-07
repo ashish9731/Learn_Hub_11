@@ -66,6 +66,45 @@ interface User {
 
 export default function ContentUpload() {
   console.log('ContentUpload component initialized');
+  
+  // Add error boundary state
+  const [componentError, setComponentError] = useState<string | null>(null);
+  
+  // Error boundary effect
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('ContentUpload component error:', event.error);
+      setComponentError(event.error?.message || 'An unknown error occurred');
+    };
+    
+    window.addEventListener('error', handleError);
+    
+    return () => {
+      window.removeEventListener('error', handleError);
+    };
+  }, []);
+  
+  // If there's a component error, show it
+  if (componentError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+            <div className="text-center py-12">
+              <div className="text-red-400 mb-4">Component Error: {componentError}</div>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 bg-red-600/20 backdrop-blur-lg border border-red-500/30 rounded-lg text-red-300 hover:bg-red-600/30 transition-colors"
+              >
+                Reload Page
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [contentTitle, setContentTitle] = useState('');
   const [contentDescription, setContentDescription] = useState('');
