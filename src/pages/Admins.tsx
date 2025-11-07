@@ -309,7 +309,7 @@ export default function Admins() {
               <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate dark:text-white">
                 All Admins
               </h2>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm text-gray-700 dark:text-gray-400">
                 Manage all system administrators and their access
               </p>
             </div>
@@ -349,7 +349,7 @@ export default function Admins() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate dark:text-gray-400">{card.title}</dt>
+                      <dt className="text-sm font-medium text-gray-700 truncate dark:text-gray-400">{card.title}</dt>
                       <dd className="text-lg font-medium text-black dark:text-white">{card.value}</dd>
                     </dl>
                   </div>
@@ -399,7 +399,7 @@ export default function Admins() {
                     </div>
                     
                     <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-gray-700 dark:text-gray-400">
                         Created: {new Date(admin.created_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -412,7 +412,7 @@ export default function Admins() {
               <div>
                 <UserCog className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600" />
                 <h3 className="mt-2 text-sm font-medium text-black dark:text-white">No admins</h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">No admins have been created yet.</p>
+                <p className="mt-1 text-sm text-gray-700 dark:text-gray-400">No admins have been created yet.</p>
               </div>
             </div>
           )}
@@ -425,7 +425,7 @@ export default function Admins() {
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
               <div className="p-6">
                 <h3 className="text-lg font-medium text-black mb-4 dark:text-white">Confirm Delete</h3>
-                <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">
+                <p className="text-sm text-gray-700 mb-6 dark:text-gray-400">
                   Are you sure you want to delete the admin <span className="font-semibold text-black dark:text-white">{selectedAdmin.email}</span>? This action cannot be undone.
                 </p>
                 <div className="flex justify-end space-x-3">

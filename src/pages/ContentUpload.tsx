@@ -153,6 +153,7 @@ export default function ContentUpload() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedCourses, setExpandedCourses] = useState<Record<string, boolean>>({});
+  const [assignmentExpandedCourses, setAssignmentExpandedCourses] = useState<Record<string, boolean>>({});
   const [isUploading, setIsUploading] = useState(false);
   
   // Assigned courses state for Super Admin viewing
@@ -398,7 +399,7 @@ export default function ContentUpload() {
       // For docs, images, templates, and quizzes
       return (
         <div>
-          <label htmlFor="file" className="block text-sm font-medium text-black mb-2 dark:text-white">
+          <label htmlFor="file" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             File Upload <span className="text-red-500">*</span>
           </label>
           
@@ -1462,6 +1463,14 @@ export default function ContentUpload() {
       [courseId]: !prev[courseId]
     }));
   };
+  
+  // Toggle course expansion for assignment section
+  const toggleAssignmentCourseExpansion = (courseId: string) => {
+    setAssignmentExpandedCourses(prev => ({
+      ...prev,
+      [courseId]: !prev[courseId]
+    }));
+  };
 
   const renderCourseLibrary = () => {
     const filteredCourses = supabaseData.courses.filter(course =>
@@ -2079,7 +2088,7 @@ export default function ContentUpload() {
             <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate dark:text-white">
               Content Upload
             </h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
               Manage and upload learning content across different categories
             </p>
           </div>
@@ -2159,10 +2168,10 @@ export default function ContentUpload() {
           {/* Add New Course Form */}
           <div className="lg:col-span-1">
             <div className="bg-white shadow rounded-lg p-6 mb-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-              <h3 className="text-lg font-medium text-white mb-4">Add New Course</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Add New Course</h3>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="course-title" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="course-title" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Course Title <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -2176,7 +2185,7 @@ export default function ContentUpload() {
                 </div>
 
                 <div>
-                  <label htmlFor="course-level" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="course-level" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Course Level
                   </label>
                   <select
@@ -2196,7 +2205,7 @@ export default function ContentUpload() {
 
                 {/* Add Course Description Field */}
                 <div>
-                  <label htmlFor="course-description" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="course-description" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Course Description
                   </label>
                   <textarea
@@ -2239,10 +2248,10 @@ export default function ContentUpload() {
           {/* Courses List */}
           <div className="lg:col-span-2">
             <div className="bg-white shadow rounded-lg p-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-              <h3 className="text-lg font-medium text-white mb-4">Upload Content</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Upload Content</h3>
               <form className="space-y-4">
                 <div>
-                  <label htmlFor="course" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="course" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Select Course <span className="text-red-500">*</span>
                   </label>
                   <select
@@ -2261,7 +2270,7 @@ export default function ContentUpload() {
                 </div>
 
                 <div>
-                  <label htmlFor="content-type" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="content-type" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Content Type
                   </label>
                   <select
@@ -2293,7 +2302,7 @@ export default function ContentUpload() {
                 </div>
 
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Content Title <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -2307,7 +2316,7 @@ export default function ContentUpload() {
                 </div>
 
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Description
                   </label>
                   <textarea
@@ -2364,12 +2373,12 @@ export default function ContentUpload() {
 
         {/* Create Assignment Section */}
         <div className="bg-white shadow rounded-lg p-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-          <h3 className="text-lg font-medium text-white mb-6">Create Assignment</h3>
-          <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">Assign Content to Organization and Set Learning Objectives</p>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Create Assignment</h3>
+          <p className="text-sm text-gray-700 mb-6 dark:text-gray-300">Assign Content to Organization and Set Learning Objectives</p>
           
           <div className="space-y-6">
             <div>
-              <label htmlFor="assignment-title" className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="assignment-title" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Assignment Title *
               </label>
               <input
@@ -2383,7 +2392,7 @@ export default function ContentUpload() {
             </div>
 
             <div>
-              <label htmlFor="assignment-description" className="block text-sm font-medium text-white mb-2">
+              <label htmlFor="assignment-description" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Assignment Description
               </label>
               <textarea
@@ -2399,7 +2408,7 @@ export default function ContentUpload() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {/* Select Company */}
               <div>
-                <label htmlFor="company" className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="company" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   Select Company *
                 </label>
                 <select
@@ -2419,7 +2428,7 @@ export default function ContentUpload() {
 
               {/* Select Admin */}
               <div>
-                <label htmlFor="admin" className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="admin" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   Select Admin
                 </label>
                 <select
@@ -2442,7 +2451,7 @@ export default function ContentUpload() {
 
               {/* Select Course for Assignment */}
               <div>
-                <label htmlFor="assignment-course" className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="assignment-course" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   Select Course *
                 </label>
                 <select
@@ -2465,7 +2474,7 @@ export default function ContentUpload() {
 
               {/* Select Content */}
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   Select Content *
                 </label>
                 <div className="border border-gray-300 rounded-md bg-gray-100 max-h-64 overflow-y-auto dark:border-gray-600 dark:bg-gray-700">
@@ -2476,11 +2485,11 @@ export default function ContentUpload() {
                           {/* Course Header */}
                           <div 
                             className="flex items-center justify-between p-3 cursor-pointer hover:bg-white dark:hover:bg-gray-800"
-                            onClick={() => toggleCourseExpansion(course.id)}
+                            onClick={() => toggleAssignmentCourseExpansion(course.id)}
                           >
                             <div className="flex items-center">
                               <div className="mr-2">
-                                {expandedCourses[course.id] ? (
+                                {assignmentExpandedCourses[course.id] ? (
                                   <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                                 ) : (
                                   <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
@@ -2495,12 +2504,12 @@ export default function ContentUpload() {
                           </div>
                           
                           {/* Course Content */}
-                          {expandedCourses[course.id] && (
+                          {assignmentExpandedCourses[course.id] && (
                             <div className="pl-6 pr-3 pb-3">
                               {/* Podcasts Section */}
                               {course.coursePodcasts.length > 0 && (
                                 <div className="mb-3">
-                                  <h5 className="text-xs font-medium text-purple-400 mb-2 flex items-center">
+                                  <h5 className="text-xs font-medium text-purple-600 mb-2 flex items-center">
                                     <Headphones className="h-3 w-3 mr-1" />
                                     Podcasts ({course.coursePodcasts.length})
                                   </h5>
@@ -2539,7 +2548,7 @@ export default function ContentUpload() {
                               {/* Documents Section */}
                               {course.coursePDFs.length > 0 && (
                                 <div className="mb-3">
-                                  <h5 className="text-xs font-medium text-purple-400 mb-2 flex items-center">
+                                  <h5 className="text-xs font-medium text-purple-600 mb-2 flex items-center">
                                     <FileText className="h-3 w-3 mr-1" />
                                     Documents ({course.coursePDFs.length})
                                   </h5>
