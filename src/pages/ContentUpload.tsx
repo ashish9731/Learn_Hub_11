@@ -129,35 +129,55 @@ export default function ContentUpload() {
       
       console.log('Loading Supabase data...');
       
-      const [coursesData, categoriesData, podcastsData, pdfsData] = await Promise.all([
-        supabaseHelpers.getCourses().catch(err => {
-          console.error('Error loading courses:', err);
-          return [];
-        }),
-        supabaseHelpers.getContentCategories().catch(err => {
-          console.error('Error loading categories:', err);
-          return [];
-        }),
-        supabaseHelpers.getPodcasts().catch(err => {
-          console.error('Error loading podcasts:', err);
-          return [];
-        }),
-        supabaseHelpers.getPDFs().catch(err => {
-          console.error('Error loading PDFs:', err);
-          return [];
-        })
+      // Load data with individual error handling
+      const coursesPromise = supabaseHelpers.getCourses().catch(err => {
+        console.error('Error loading courses:', err);
+        return [];
+      });
+      
+      const categoriesPromise = supabaseHelpers.getContentCategories().catch(err => {
+        console.error('Error loading categories:', err);
+        return [];
+      });
+      
+      const podcastsPromise = supabaseHelpers.getPodcasts().catch(err => {
+        console.error('Error loading podcasts:', err);
+        return [];
+      });
+      
+      const pdfsPromise = supabaseHelpers.getPDFs().catch(err => {
+        console.error('Error loading PDFs:', err);
+        return [];
+      });
+      
+      const companiesPromise = supabaseHelpers.getCompanies().catch(err => {
+        console.error('Error loading companies:', err);
+        return [];
+      });
+      
+      const usersPromise = supabaseHelpers.getUsers().catch(err => {
+        console.error('Error loading users:', err);
+        return [];
+      });
+      
+      // Wait for all promises to resolve
+      const [coursesData, categoriesData, podcastsData, pdfsData, companiesData, usersData] = await Promise.all([
+        coursesPromise,
+        categoriesPromise,
+        podcastsPromise,
+        pdfsPromise,
+        companiesPromise,
+        usersPromise
       ]);
       
-      const [companiesData, usersData] = await Promise.all([
-        supabaseHelpers.getCompanies().catch(err => {
-          console.error('Error loading companies:', err);
-          return [];
-        }),
-        supabaseHelpers.getUsers().catch(err => {
-          console.error('Error loading users:', err);
-          return [];
-        })
-      ]);
+      console.log('All data loaded:', {
+        courses: coursesData?.length || 0,
+        categories: categoriesData?.length || 0,
+        podcasts: podcastsData?.length || 0,
+        pdfs: pdfsData?.length || 0,
+        companies: companiesData?.length || 0,
+        users: usersData?.length || 0
+      });
       
       setSupabaseData({
         courses: coursesData || [],
@@ -171,15 +191,13 @@ export default function ContentUpload() {
         users: usersData || []
       });
       
-      console.log('Data loaded successfully:', {
-        courses: coursesData?.length || 0,
-        podcasts: podcastsData?.length || 0,
-        pdfs: pdfsData?.length || 0
-      });
+      console.log('Supabase data state updated');
       
     } catch (err) {
       console.error('Failed to load Supabase data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load data';
+      console.error('Error message:', errorMessage);
+      setError(errorMessage);
     } finally {
       console.log('Setting loading to false');
       setLoading(false);
