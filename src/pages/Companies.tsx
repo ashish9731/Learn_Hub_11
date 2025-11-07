@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, Plus, Edit, Trash2, Building2, User, Users, Mail, Phone, MapPin, Image, X, CheckCircle, BookOpen, ArrowLeft } from 'lucide-react';
 import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
@@ -60,6 +60,8 @@ export default function Companies() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [supabaseData, setSupabaseData] = useState<{
     companies: Company[];
     users: User[];
@@ -274,6 +276,72 @@ export default function Companies() {
     }
   };
 
+  const handleDirectLogoUpload = (company: any) => {
+    setSelectedCompany(company);
+    // Trigger file input click
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedCompany) return;
+
+    // Reset error state
+    setLogoUploadError(null);
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setLogoUploadError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setLogoUploadError('File size must be less than 2MB');
+      return;
+    }
+
+    try {
+      // Check if company already has a logo
+      const existingLogo = supabaseData.logos.find(logo => logo.company_id === selectedCompany.id);
+      
+      // Create a unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${selectedCompany.id}/${Date.now()}_logo.${fileExt}`;
+      
+      // Upload to logo-pictures bucket
+      const uploadResult = await supabaseHelpers.uploadFile('logo-pictures', fileName, file);
+      
+      if (existingLogo) {
+        // Update existing logo record
+        await supabaseHelpers.updateLogo(existingLogo.id, {
+          name: `${selectedCompany.name} Logo`,
+          logo_url: uploadResult.publicUrl
+        });
+      } else {
+        // Create new logo record
+        await supabaseHelpers.createLogo({
+          name: `${selectedCompany.name} Logo`,
+          company_id: selectedCompany.id,
+          logo_url: uploadResult.publicUrl
+        });
+      }
+      
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+      // Reload data to show the new logo
+      await loadCompaniesData();
+    } catch (error) {
+      console.error('Failed to upload logo:', error);
+      setLogoUploadError('Failed to upload logo. Please try again.');
+    }
+  };
+
   const handleLogoUpload = async (logoUrl: string) => {
     await loadCompaniesData();
   };
@@ -418,9 +486,9 @@ export default function Companies() {
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleEditLogo(company)}
+                            onClick={() => handleDirectLogoUpload(company)}
                             className="p-2 text-green-400 hover:text-green-300 rounded-full hover:bg-green-900/20"
-                            title="Edit Logo"
+                            title="Upload Logo"
                           >
                             <Image className="h-4 w-4" />
                           </button>
@@ -514,6 +582,35 @@ export default function Companies() {
             onDelete={() => handleLogoDelete(selectedCompany.id)}
             size="md"
           />
+        )}
+
+        {/* Hidden file input for direct logo upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+
+        {/* Logo upload error message */}
+        {logoUploadError && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+              <div className="p-6">
+                <h3 className="text-lg font-medium text-black mb-4 dark:text-white">Logo Upload Error</h3>
+                <p className="text-sm text-gray-500 mb-6 dark:text-gray-400">{logoUploadError}</p>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => setLogoUploadError(null)}
+                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-600"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
       </div>
