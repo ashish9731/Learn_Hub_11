@@ -463,53 +463,53 @@ export default function Companies() {
             <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Company Details</h3>
           </div>
           {filteredCompanies.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
               {filteredCompanies.map((company: any) => {
                 const companyAdmins = getCompanyAdmins(company.id);
                 const companyUsers = getCompanyUsers(company.id);
                 const companyCourses = getCompanyCourses(company.id);
                 
                 return (
-                  <div key={company.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
-                    <div className="p-6">
-                      <div className="flex justify-end space-x-2 mb-4">
+                  <div key={company.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow transition-shadow duration-200 overflow-hidden">
+                    <div className="p-4">
+                      <div className="flex justify-end space-x-1 mb-3">
                         <button
                           onClick={() => handleEditCompany(company)}
-                          className="p-2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                          className="p-1.5 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                           title="Edit Company"
                         >
-                          <Edit className="h-5 w-5" />
+                          <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDirectLogoUpload(company)}
-                          className="p-2 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+                          className="p-1.5 text-green-500 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
                           title="Upload Logo"
                         >
-                          <Image className="h-5 w-5" />
+                          <Image className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => {
                             console.log('Delete button clicked for company:', company);
                             handleDeleteClick(company);
                           }}
-                          className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          className="p-1.5 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                           title="Delete Company"
                         >
-                          <Trash2 className="h-5 w-5" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-16 w-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                          <CompanyLogo companyId={company.id} size="md" />
+                        <div className="flex-shrink-0 h-12 w-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                          <CompanyLogo companyId={company.id} size="sm" />
                         </div>
-                        <div className="ml-4">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                        <div className="ml-3">
+                          <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                             {company.name}
                           </h3>
                         </div>
                       </div>
                       
-                      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
                         <p className="text-xs text-gray-700 dark:text-gray-400">
                           Created: {new Date(company.created_at).toLocaleDateString()}
                         </p>

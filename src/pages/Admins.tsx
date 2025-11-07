@@ -364,41 +364,41 @@ export default function Admins() {
             <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Admin Details</h3>
           </div>
           {filteredAdmins.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
               {filteredAdmins.map((admin: any) => (
-                <div key={admin.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex justify-end space-x-2 mb-4">
+                <div key={admin.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow transition-shadow duration-200 overflow-hidden">
+                  <div className="p-4">
+                    <div className="flex justify-end space-x-1 mb-3">
                       <button
                         onClick={() => handleEditAdmin(admin)}
-                        className="p-2 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        className="p-1.5 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                         title="Edit Admin"
                       >
-                        <Edit className="h-5 w-5" />
+                        <Edit className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => {
                           console.log('Delete button clicked for admin:', admin);
                           handleDeleteClick(admin);
                         }}
-                        className="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        className="p-1.5 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         title="Delete Admin"
                       >
-                        <Trash2 className="h-5 w-5" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                        <UserCog className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                      <div className="flex-shrink-0 h-10 w-10 rounded-md bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                        <UserCog className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                       </div>
-                      <div className="ml-4">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                      <div className="ml-3">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                           {getAdminProfile(admin.id)?.full_name || admin.email}
                         </h3>
                       </div>
                     </div>
                     
-                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
                       <p className="text-xs text-gray-700 dark:text-gray-400">
                         Created: {new Date(admin.created_at).toLocaleDateString()}
                       </p>
