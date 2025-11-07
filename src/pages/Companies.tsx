@@ -459,19 +459,6 @@ export default function Companies() {
           onSubmit={handleAddCompany}
         />
 
-        <EditCompanyModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          onSubmit={handleUpdateCompany}
-          company={editingCompany}
-        />
-
-        <EditLogoModal
-          isOpen={isEditLogoModalOpen}
-          onClose={() => setIsEditLogoModalOpen(false)}
-          companyId={editingCompany?.id}
-          companyName={editingCompany?.name}
-        />
       </div>
     </div>
   );
