@@ -884,9 +884,6 @@ export default function CourseDetail() {
                     {currentPodcast && !currentPodcast.is_youtube_video ? (
                       <div className="bg-gray-800 rounded-lg p-4">
                         <h3 className="text-lg font-medium text-white mb-2">{currentPodcast.title}</h3>
-                        {currentPodcast.description && (
-                          <p className="text-sm text-gray-300 mb-4">{currentPodcast.description}</p>
-                        )}
                         <div className="mt-4">
                           <PodcastPlayer 
                             podcast={currentPodcast} 
@@ -1015,9 +1012,6 @@ export default function CourseDetail() {
                     {currentPodcast && currentPodcast.is_youtube_video ? (
                       <div className="bg-gray-800 rounded-lg p-4">
                         <h3 className="text-lg font-medium text-white mb-2">{currentPodcast.title}</h3>
-                        {currentPodcast.description && (
-                          <p className="text-sm text-gray-300 mb-4">{currentPodcast.description}</p>
-                        )}
                         <div className="mt-4">
                           {renderYouTubePlayer(currentPodcast.video_url)}
                         </div>
