@@ -473,6 +473,7 @@ export default function Companies() {
                 return (
                   <div key={company.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
                     <div className="p-6">
+                      {(() => { console.log('Rendering company card:', company); return null; })()}
                       <div className="flex items-start justify-between">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-16 w-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
@@ -500,11 +501,15 @@ export default function Companies() {
                             <Image className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteClick(company)}
+                            onClick={() => {
+                              console.log('Delete button clicked for company:', company);
+                              handleDeleteClick(company);
+                            }}
                             className="p-3 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border-2 border-red-300 hover:border-red-400 dark:border-red-700 dark:hover:border-red-600 bg-red-100 dark:bg-red-900/30 flex items-center justify-center shadow-md hover:shadow-lg"
                             title="Delete Company"
                           >
                             <Trash2 className="h-5 w-5" />
+                            <span className="ml-1 text-xs font-bold">DEL</span>
                           </button>
                         </div>
                       </div>
