@@ -619,7 +619,7 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">Podcasts</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Podcasts</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     realTimeKPIs.totalPodcasts > 0 ? 'bg-blue-900/30 text-blue-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
                   }`}>
@@ -666,7 +666,7 @@ export default function Dashboard() {
                       <UserCog className="h-5 w-5 text-purple-600 mr-3" />
                       <div className="text-left">
                         <h4 className="text-sm font-medium text-white">Add Admin</h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Create new administrator</p>
+                        <p className="text-xs text-gray-200 dark:text-gray-300">Create new administrator</p>
                       </div>
                     </div>
                   </span>
@@ -683,7 +683,7 @@ export default function Dashboard() {
                       <Users className="h-5 w-5 text-purple-600 mr-3" />
                       <div className="text-left">
                         <h4 className="text-sm font-medium text-white">Add User</h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Create new user account</p>
+                        <p className="text-xs text-gray-200 dark:text-gray-300">Create new user account</p>
                       </div>
                     </div>
                   </span>
@@ -700,7 +700,7 @@ export default function Dashboard() {
                       <BarChart3 className="h-5 w-5 text-purple-600 mr-3" />
                       <div className="text-left">
                         <h4 className="text-sm font-medium text-white">View Analytics</h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Check system performance</p>
+                        <p className="text-xs text-gray-200 dark:text-gray-300">Check system performance</p>
                       </div>
                     </div>
                   </span>
