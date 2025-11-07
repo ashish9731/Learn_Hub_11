@@ -628,7 +628,7 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">Companies</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Companies</span>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                     realTimeKPIs.totalCompanies > 0 ? 'bg-purple-900/30 text-purple-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
                   }`}>
