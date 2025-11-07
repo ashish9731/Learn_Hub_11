@@ -388,7 +388,8 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
       : 0;
     
     // Calculate total learning hours based on actual podcast durations from progress data
-    let totalPossibleSeconds = 0;
+    // NOT based on play time, but on the actual duration of the content
+    let totalContentSeconds = 0;
     let totalSecondsPlayed = 0;
     let totalProgress = 0;
     let progressCount = 0;
@@ -408,61 +409,56 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     console.log('Podcast Progress Items:', podcastProgress);
     console.log('Assigned Course IDs:', Array.from(assignedCourseIds));
     
-    // Calculate total possible hours and actual time spent
+    // Calculate total content hours (based on actual podcast durations from progress data)
     assignedPodcasts.forEach((podcast, index) => {
-      // Find progress for this podcast
+      // Find progress for this podcast to get the duration
       const progress = podcastProgress.find(p => p.podcast_id === podcast.id);
       
       console.log(`Podcast ${index + 1}:`, {
         id: podcast.id,
         title: podcast.title,
         hasProgress: !!progress,
-        progress: progress ? {
-          duration: progress.duration,
-          progress_percent: progress.progress_percent
-        } : null
+        duration: progress ? progress.duration : 0
       });
       
-      // Only include podcasts that have progress data (meaning they've been interacted with)
-      if (progress && progress.duration > 0) {
-        // Use actual duration from progress data
-        const duration = progress.duration;
-        
-        // Add to total possible time
-        totalPossibleSeconds += duration;
+      // Use duration from progress data (this is the actual content duration)
+      const duration = progress && progress.duration > 0 ? progress.duration : 0;
+      
+      // Add to total content time (this is the actual content duration, not play time)
+      if (duration > 0) {
+        totalContentSeconds += duration;
         
         // Calculate actual time spent based on progress percentage
-        const timeSpent = duration * (progress.progress_percent / 100);
+        const timeSpent = duration * ((progress?.progress_percent || 0) / 100);
         totalSecondsPlayed += timeSpent;
         
-        totalProgress += progress.progress_percent || 0;
+        totalProgress += progress?.progress_percent || 0;
         progressCount++;
         
-        console.log(`  -> Added to calculation: duration=${duration}, progress=${progress.progress_percent}%, timeSpent=${timeSpent}`);
+        console.log(`  -> Added to calculation: duration=${duration}, timeSpent=${timeSpent}`);
       } else {
-        console.log(`  -> SKIPPED: no progress or zero duration`);
+        console.log(`  -> SKIPPED: no duration or zero duration`);
       }
-      // Skip podcasts without progress data or duration
     });
     
     // Convert total seconds to hours with decimal precision
-    const totalPossibleHours = totalPossibleSeconds / 3600;
-    const totalHoursPlayed = totalSecondsPlayed / 3600;
+    const totalContentHours = totalContentSeconds / 3600; // Total content hours
+    const totalHoursPlayed = totalSecondsPlayed / 3600; // Actual hours played
     const averageProgress = progressCount > 0 ? Math.round(totalProgress / progressCount) : 0;
     
     console.log('=== CALCULATION RESULTS ===');
+    console.log('Total Content Seconds:', totalContentSeconds);
+    console.log('Total Content Hours:', totalContentHours);
     console.log('Total Seconds Played:', totalSecondsPlayed);
     console.log('Total Hours Played:', totalHoursPlayed);
-    console.log('Total Possible Seconds:', totalPossibleSeconds);
-    console.log('Total Possible Hours:', totalPossibleHours);
     console.log('Progress Count:', progressCount);
     console.log('Average Progress:', averageProgress);
     
     return {
       assignedCourses,
       completedCourses,
-      totalHours: Math.round(totalHoursPlayed * 100) / 100, // Round to 2 decimal places for accuracy
-      totalPossibleHours: Math.round(totalPossibleHours * 100) / 100, // Total possible hours
+      totalHours: Math.round(totalContentHours * 100) / 100, // Total content hours, not play time
+      totalHoursPlayed: Math.round(totalHoursPlayed * 100) / 100, // Actual hours played
       averageProgress,
       // Add detailed stats for KPI drill-down
       totalMinutes: Math.round(totalSecondsPlayed / 60), // Show total minutes played
@@ -542,7 +538,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
     return { courseProgressData, progressDistribution };
   };
 
-  const { assignedCourses, completedCourses, totalHours, totalPossibleHours, averageProgress, totalMinutes, totalSecondsPlayed } = calculateKPIs();
+  const { assignedCourses, completedCourses, totalHours, totalHoursPlayed, averageProgress, totalMinutes, totalSecondsPlayed } = calculateKPIs();
   const { courseProgressData, progressDistribution } = prepareChartData();
 
   // Colors for pie chart
@@ -949,17 +945,17 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                     <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
                       <p className="text-gray-300">Total Hours</p>
                       <p className="text-3xl font-bold text-white">{totalHours}</p>
-                      <p className="text-sm text-gray-400">Hours played</p>
+                      <p className="text-sm text-gray-400">Hours of content</p>
                     </div>
                     <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
-                      <p className="text-gray-300">Total Possible Hours</p>
-                      <p className="text-3xl font-bold text-white">{totalPossibleHours}</p>
-                      <p className="text-sm text-gray-400">If all content completed</p>
+                      <p className="text-gray-300">Hours Played</p>
+                      <p className="text-3xl font-bold text-white">{totalHoursPlayed}</p>
+                      <p className="text-sm text-gray-400">Actual time spent</p>
                     </div>
                     <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 p-4">
                       <p className="text-gray-300">Completion Rate</p>
                       <p className="text-3xl font-bold text-white">
-                        {totalPossibleHours > 0 ? Math.round((totalHours / totalPossibleHours) * 100) : 0}%
+                        {totalHours > 0 ? Math.round((totalHoursPlayed / totalHours) * 100) : 0}%
                       </p>
                       <p className="text-sm text-gray-400">Of total content</p>
                     </div>
