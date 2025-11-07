@@ -593,54 +593,42 @@ export default function Dashboard() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Admins</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalAdmins > 0 ? 'bg-green-900/30 text-green-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
-                  }`}>
+                  <span className="text-sm text-black dark:text-white">
                     {realTimeKPIs.totalAdmins > 0 ? 'Active' : 'None'}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Users</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalUsers > 0 ? 'bg-green-900/30 text-green-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
-                  }`}>
+                  <span className="text-sm text-black dark:text-white">
                     {realTimeKPIs.totalUsers > 0 ? 'Active' : 'None'}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Courses</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalCourses > 0 ? 'bg-green-900/30 text-green-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
-                  }`}>
+                  <span className="text-sm text-black dark:text-white">
                     {realTimeKPIs.totalCourses > 0 ? 'Available' : 'None'}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Podcasts</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalPodcasts > 0 ? 'bg-blue-900/30 text-blue-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
-                  }`}>
+                  <span className="text-sm text-black dark:text-white">
                     {realTimeKPIs.totalPodcasts > 0 ? `${realTimeKPIs.totalPodcasts} Available` : 'None'}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Companies</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalCompanies > 0 ? 'bg-purple-900/30 text-purple-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
-                  }`}>
+                  <span className="text-sm text-black dark:text-white">
                     {realTimeKPIs.totalCompanies > 0 ? `${realTimeKPIs.totalCompanies} Active` : 'None'}
                   </span>
                 </div>
                 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-700 dark:text-gray-300">Content Items</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    realTimeKPIs.totalCourses > 0 ? 'bg-green-900/30 text-green-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700'
-                  }`}>
+                  <span className="text-sm text-black dark:text-white">
                     {realTimeKPIs.totalCourses > 0 ? `${realTimeKPIs.totalCourses} Available` : 'None'}
                   </span>
                 </div>
