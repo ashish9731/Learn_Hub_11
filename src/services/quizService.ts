@@ -356,6 +356,13 @@ export async function generateQuizFromDocument(
     if (quizData.length === 0) {
       console.error('Failed to parse any questions from document content');
       console.log('Document content that failed to parse:', quizDocumentContent.substring(0, 1000));
+      
+      // Check if the content is an error message
+      if (quizDocumentContent.startsWith('Error:')) {
+        console.error('Document content contains an error message:', quizDocumentContent);
+        throw new Error(quizDocumentContent);
+      }
+      
       return null;
     }
     

@@ -139,7 +139,12 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
           if (quizDocument.content_text.startsWith('Error:')) {
             throw new Error(`Quiz document processing error: ${quizDocument.content_text}`);
           }
-
+          
+          // Check if content_text is too short (likely indicates extraction failure)
+          if (quizDocument.content_text.length < 50) {
+            throw new Error('Quiz document content is too short. Please ensure your document contains properly formatted questions and answers.');
+          }
+          
           // Get course title
           const { data: courseData, error: courseError } = await supabase
             .from('courses')
@@ -167,7 +172,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
             // Load the generated quiz questions
             await loadQuizQuestions(generatedQuizId);
           } else {
-            setError('Failed to generate quiz from document. Please check that your document contains properly formatted questions and answers.');
+            setError('Failed to generate quiz from document. Please check that your document contains properly formatted questions and answers with explicit answer indicators (e.g., "Answer: a" or "Correct Answer: B").');
             setIsLoading(false);
             setShowStartButton(true); // Show start button again if failed
             return;
