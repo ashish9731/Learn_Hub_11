@@ -139,7 +139,7 @@ export default function CourseAssignment() {
         // Get PDF assignments assigned TO this admin (by SuperAdmins)
         const { data: pdfAssignments, error: pdfError } = await supabase
           .from('pdf_assignments')
-          .select('*, pdfs!inner(*)')
+          .select('*, pdfs(*)')
           .eq('user_id', user.id);
         
         if (pdfError) {
@@ -152,7 +152,7 @@ export default function CourseAssignment() {
         // Get podcast assignments assigned TO this admin (by SuperAdmins)
         const { data: podcastAssignments, error: podcastError } = await supabase
           .from('podcast_assignments')
-          .select('*, podcasts!inner(*)')
+          .select('*, podcasts(*)')
           .eq('user_id', user.id);
           
         if (podcastError) {
@@ -404,8 +404,9 @@ export default function CourseAssignment() {
     };
   }).filter(course => {
     console.log(`Filtering course ${course.id} (${course.title}) - totalContent: ${course.totalContent}`);
-    return course.totalContent > 0;
-  }); // Only show courses with assigned content
+    // Show courses that have been assigned to the admin, even if they don't have content assigned yet
+    return true;
+  }); // Show all assigned courses
   
   console.log('Course hierarchy built:', courseHierarchy.length);
 
