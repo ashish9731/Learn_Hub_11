@@ -665,11 +665,11 @@ export default function AuthPage({ onLogin }: AuthPageProps) {
               <div className="mt-8">
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                   <h3 className="text-sm font-medium text-white mb-2">Getting Started:</h3>
-                  <div className="space-y-1 text-xs text-white/80">
-                    <p>• <strong>New users:</strong> Click "Sign up" to create an account</p>
-                    <p>• <strong>Existing users:</strong> Sign in with your credentials</p>
-                    <p>• <strong>Super Admin:</strong> Contact system administrator for access</p>
-                    <p>• <strong>Independent registration:</strong> Register for admin approval</p>
+                  <div className="space-y-1 text-xs text-white">
+                    <p>• <strong className="text-white">New users:</strong> Click "Sign up" to create an account</p>
+                    <p>• <strong className="text-white">Existing users:</strong> Sign in with your credentials</p>
+                    <p>• <strong className="text-white">Super Admin:</strong> Contact system administrator for access</p>
+                    <p>• <strong className="text-white">Independent registration:</strong> Register for admin approval</p>
                   </div>
                 </div>
               </div>
