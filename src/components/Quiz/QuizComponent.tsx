@@ -117,7 +117,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
           // If we still have an error, show error message
           if (documentsError) {
             console.error('Error fetching quiz documents:', documentsError);
-            throw new Error('Failed to fetch quiz documents. Please try again later.');
+            throw new Error(`Failed to fetch quiz documents: ${documentsError.message || 'Unknown error'}`);
           }
           
           // If no quiz documents found, show message
@@ -153,89 +153,149 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
             .single();
             
           if (courseError) {
-            throw new Error('Failed to fetch course information');
+            throw new Error(`Failed to fetch course information: ${courseError.message || 'Unknown error'}`);
           }
           
           // Generate quiz from document content using our existing service
           // Trust that admin has already assigned the course to the user
           // No need to check enrollment as it's handled by the assignment system
+          console.log('Generating quiz from document content...');
+          console.log('Course ID for quiz generation:', courseId);
+          console.log('Course Title for quiz generation:', courseData.title);
+          console.log('Document content length for quiz generation:', quizDocument.content_text.length);
+          
           const generatedQuizId = await generateQuizFromDocument(
             courseId,
             courseData.title,
             quizDocument.content_text
           );
           
+          console.log('Quiz generation result:', generatedQuizId);
+          
           if (generatedQuizId) {
+            console.log('Quiz generated successfully with ID:', generatedQuizId);
             setQuizId(generatedQuizId);
             setQuizGenerated(true);
             
             // Load the generated quiz questions
+            console.log('Loading quiz questions for quiz ID:', generatedQuizId);
             await loadQuizQuestions(generatedQuizId);
           } else {
-            setError('Failed to generate quiz from document. Please check that your document contains properly formatted questions and answers with explicit answer indicators (e.g., "Answer: a" or "Correct Answer: B").');
+            const errorMessage = 'Failed to generate quiz from document. Please check that your document contains properly formatted questions and answers with explicit answer indicators (e.g., "Answer: a" or "Correct Answer: B").';
+            console.error(errorMessage);
+            setError(errorMessage);
             setIsLoading(false);
             setShowStartButton(true); // Show start button again if failed
             return;
           }
         } else {
-          setError('Only document-based quizzes are supported');
+          const errorMessage = 'Only document-based quizzes are supported';
+          console.error(errorMessage);
+          setError(errorMessage);
           setIsLoading(false);
           setShowStartButton(true); // Show start button again if failed
           return;
         }
       } catch (err) {
         console.error('Error initializing quiz:', err);
-        setError(err instanceof Error ? err.message : 'Failed to initialize quiz');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize quiz. Please try again.';
+        setError(errorMessage);
         setIsLoading(false);
         setShowStartButton(true); // Show start button again if failed
       }
     };
 
   const loadQuizQuestions = async (generatedQuizId: string) => {
+    console.log('Loading quiz questions for quiz ID:', generatedQuizId);
     try {
+      // First, let's check if the quiz exists
+      console.log('Checking if quiz exists...');
+      const { data: quizCheck, error: quizCheckError } = await supabase
+        .from('course_quizzes')
+        .select('id')
+        .eq('id', generatedQuizId)
+        .maybeSingle();
+        
+      if (quizCheckError) {
+        console.error('Error checking quiz existence:', quizCheckError);
+        throw new Error(`Error checking quiz: ${quizCheckError.message || 'Unknown error'}`);
+      }
+      
+      if (!quizCheck) {
+        console.error('Quiz not found with ID:', generatedQuizId);
+        throw new Error('Quiz not found. The quiz may not have been generated correctly.');
+      }
+      
+      console.log('Quiz exists, proceeding to load questions...');
+      
       // Load course quiz questions
+      console.log('Querying quiz_questions table for course_quiz_id:', generatedQuizId);
       const { data, error } = await supabase
         .from('quiz_questions')
         .select(`
           id,
           question_text,
-          difficulty,
-          quiz_answers (
-            id,
-            answer_text,
-            is_correct,
-            explanation
-          )
+          difficulty
         `)
         .eq('course_quiz_id', generatedQuizId)
-        .order('id'); // Temporarily use id ordering until order_index column is added to database
+        .order('id');
         
-      if (error) throw error;
+      console.log('Quiz questions query result - Data:', data);
+      console.log('Quiz questions query result - Error:', error);
+        
+      if (error) {
+        console.error('Error loading quiz questions:', error);
+        // Check if this is a 404-like error (no data found)
+        if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('not found')) {
+          throw new Error('Quiz not found. The quiz may not have been generated correctly or has been deleted.');
+        }
+        throw new Error(`Failed to load quiz questions: ${error.message || 'Unknown error'}`);
+      }
       
+      console.log('Found', data?.length || 0, 'questions, loading answers for each...');
+      
+      // Load answers for each question separately to avoid complex joins
       if (data && data.length > 0) {
-        // Transform the data to match our interface
-        const transformedQuestions: Question[] = data.map((question: any) => ({
-          id: question.id,
-          question_text: question.question_text,
-          difficulty: question.difficulty,
-          answers: question.quiz_answers ? question.quiz_answers.map((answer: any) => ({
-            id: answer.id,
-            answer_text: answer.answer_text,
-            is_correct: answer.is_correct,
-            explanation: answer.explanation
-          })) : []
-        }));
+        const questionsWithAnswers = [];
+        for (const question of data) {
+          console.log('Loading answers for question ID:', question.id);
+          const { data: answers, error: answersError } = await supabase
+            .from('quiz_answers')
+            .select('id, answer_text, is_correct, explanation')
+            .eq('question_id', question.id)
+            .order('id');
+            
+          if (answersError) {
+            console.error('Error loading answers for question', question.id, ':', answersError);
+            // Continue with empty answers array instead of failing completely
+            questionsWithAnswers.push({
+              ...question,
+              answers: []
+            });
+          } else {
+            console.log('Loaded', answers?.length || 0, 'answers for question', question.id);
+            questionsWithAnswers.push({
+              ...question,
+              answers: answers || []
+            });
+          }
+        }
         
-        setQuestions(transformedQuestions);
+        console.log('Transformed questions with answers:', questionsWithAnswers);
+        
+        setQuestions(questionsWithAnswers);
         setSelectedAnswers({});
-        setIsAnswered(new Array(transformedQuestions.length).fill(false));
+        setIsAnswered(new Array(questionsWithAnswers.length).fill(false));
         setIsLoading(false);
+        console.log('Successfully loaded', questionsWithAnswers.length, 'questions');
       } else {
-        throw new Error('No questions found for this quiz');
+        console.warn('No questions found for quiz ID:', generatedQuizId);
+        throw new Error('No questions found for this quiz. The quiz may not have been generated correctly.');
       }
     } catch (err) {
       console.error('Error loading quiz questions:', err);
-      setError('Failed to load quiz questions');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load quiz questions. Please try again.';
+      setError(errorMessage);
       setIsLoading(false);
       setShowStartButton(true); // Show start button again if failed
     }

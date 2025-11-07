@@ -95,6 +95,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
         // Save previous question if exists
         if (currentQuestion && currentAnswers.length >= 2) {
           // Mark correct answer if we found the answer line
+          let correctAnswerFound = false;
           if (correctAnswerLetter && correctAnswerLetter.length === 1) {
             const answerIndex = correctAnswerLetter.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0);
             if (answerIndex >= 0 && answerIndex < currentAnswers.length) {
@@ -103,11 +104,19 @@ function parseQuizFromDocument(documentContent: string): any[] {
               if (explanationBuffer) {
                 currentAnswers[answerIndex].explanation = explanationBuffer.trim();
               }
+              correctAnswerFound = true;
             }
-          } else if (currentAnswers.length > 0) {
-            // If no correct answer was explicitly specified, don't default to first answer
-            console.log('No correct answer specified in document for question:', currentQuestion);
-            return [];
+          }
+          
+          // If no correct answer was explicitly specified, default to first answer as fallback
+          // but only if we have at least one answer
+          if (!correctAnswerFound && currentAnswers.length > 0) {
+            console.log('No correct answer specified in document for question:', currentQuestion, '- defaulting to first answer');
+            currentAnswers[0].is_correct = true;
+            // Add any collected explanation to the first answer
+            if (explanationBuffer) {
+              currentAnswers[0].explanation = explanationBuffer.trim();
+            }
           }
           
           questions.push({
@@ -221,6 +230,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
     // Save the last question
     if (currentQuestion && currentAnswers.length >= 2) {
       // Mark correct answer if we found the answer line
+      let correctAnswerFound = false;
       if (correctAnswerLetter && correctAnswerLetter.length === 1) {
         const answerIndex = correctAnswerLetter.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0);
         if (answerIndex >= 0 && answerIndex < currentAnswers.length) {
@@ -229,11 +239,19 @@ function parseQuizFromDocument(documentContent: string): any[] {
           if (explanationBuffer) {
             currentAnswers[answerIndex].explanation = explanationBuffer.trim();
           }
+          correctAnswerFound = true;
         }
-      } else if (currentAnswers.length > 0) {
-        // If no correct answer was explicitly specified, don't default to first answer
-        console.log('No correct answer specified in document for question:', currentQuestion);
-        return [];
+      }
+      
+      // If no correct answer was explicitly specified, default to first answer as fallback
+      // but only if we have at least one answer
+      if (!correctAnswerFound && currentAnswers.length > 0) {
+        console.log('No correct answer specified in document for final question:', currentQuestion, '- defaulting to first answer');
+        currentAnswers[0].is_correct = true;
+        // Add any collected explanation to the first answer
+        if (explanationBuffer) {
+          currentAnswers[0].explanation = explanationBuffer.trim();
+        }
       }
       
       questions.push({
@@ -260,80 +278,126 @@ function parseQuizFromDocument(documentContent: string): any[] {
 }
 
 /**
- * Generate a quiz from uploaded quiz document content
- * @param courseId The course ID
- * @param courseTitle The course title
- * @param quizDocumentContent The content extracted from the uploaded quiz document
- * @returns Quiz ID if successful, null if failed
+ * Generate a quiz from an uploaded document for a specific course
+ * This function parses the document content and creates quiz questions directly
+ * without using AI generation
+ * 
+ * @param courseId - The ID of the course
+ * @param courseTitle - The title of the course
+ * @param quizDocumentContent - The text content extracted from the uploaded document
+ * @returns Promise<string | null> - The ID of the generated quiz or null if failed
  */
 export async function generateQuizFromDocument(
   courseId: string,
   courseTitle: string,
   quizDocumentContent: string
 ): Promise<string | null> {
+  console.log('=== GENERATE QUIZ FROM DOCUMENT ===');
+  console.log('Course ID:', courseId);
+  console.log('Course Title:', courseTitle);
+  console.log('Document content length:', quizDocumentContent.length);
+  console.log('Document content preview:', quizDocumentContent.substring(0, 200) + '...');
+  
   try {
-    console.log('=== GENERATE QUIZ FROM DOCUMENT ===');
-    console.log('Course ID:', courseId);
-    console.log('Course Title:', courseTitle);
-    console.log('Document content length:', quizDocumentContent.length);
-    console.log('Document content preview:', quizDocumentContent.substring(0, 200) + '...');
+    // Validate inputs
+    if (!courseId) {
+      throw new Error('Course ID is required');
+    }
     
-    // Always regenerate the quiz from document content
-    // First, check if a final quiz already exists for this course
-    const { data: existingQuiz, error: existingQuizError } = await supabase
+    if (!courseTitle) {
+      throw new Error('Course title is required');
+    }
+    
+    if (!quizDocumentContent || quizDocumentContent.trim() === '') {
+      throw new Error('Quiz document content is required');
+    }
+    
+    // Get the admin client if available
+    let supabaseClient = supabase;
+    let usingAdminClient = false;
+    
+    try {
+      const { supabaseAdmin } = await import('../lib/supabase');
+      if (supabaseAdmin) {
+        supabaseClient = supabaseAdmin;
+        usingAdminClient = true;
+        console.log('Using admin client for quiz generation');
+      } else {
+        console.log('Admin client not available, using regular client');
+      }
+    } catch (importError) {
+      console.log('Could not import admin client, using regular client');
+    }
+    
+    // Check if a quiz already exists for this course
+    console.log('Checking for existing quiz for course:', courseId);
+    const { data: existingQuiz, error: existingQuizError } = await supabaseClient
       .from('course_quizzes')
       .select('id')
       .eq('course_id', courseId)
       .maybeSingle();
-
+    
     if (existingQuizError) {
-      console.error('Error checking existing document quiz:', existingQuizError);
-      // Continue even if there's an error checking for existing quiz
+      console.error('Error checking for existing quiz:', existingQuizError);
+    } else {
+      console.log('Existing quiz check result:', existingQuiz);
     }
-
-    // If quiz already exists, delete it first to ensure we regenerate from document
+    
+    // If an existing quiz is found, delete it and its questions/answers
     if (existingQuiz) {
-      console.log('Quiz already exists with ID:', existingQuiz.id, 'Deleting it to regenerate from document');
+      console.log('Found existing quiz, deleting it:', existingQuiz.id);
       
-      // First get the question IDs
-      const { data: questions, error: questionsError } = await supabase
+      // Get all question IDs for this quiz
+      const { data: questions, error: questionsError } = await supabaseClient
         .from('quiz_questions')
         .select('id')
         .eq('course_quiz_id', existingQuiz.id);
       
       if (questionsError) {
         console.error('Error fetching quiz questions:', questionsError);
-      } else if (questions && questions.length > 0) {
-        // Delete existing quiz answers
+      } else {
+        console.log('Found', questions?.length || 0, 'questions to delete');
+      }
+      
+      // Delete existing quiz answers
+      if (questions && questions.length > 0) {
         const questionIds = questions.map(q => q.id);
-        const { error: deleteAnswersError } = await supabase
+        console.log('Deleting', questionIds.length, 'quiz answers for existing questions');
+        
+        const { error: deleteAnswersError } = await supabaseClient
           .from('quiz_answers')
           .delete()
           .in('question_id', questionIds);
         
         if (deleteAnswersError) {
           console.error('Error deleting quiz answers:', deleteAnswersError);
+        } else {
+          console.log('Successfully deleted quiz answers');
         }
       }
       
       // Delete existing quiz questions
-      const { error: deleteQuestionsError } = await supabase
+      const { error: deleteQuestionsError } = await supabaseClient
         .from('quiz_questions')
         .delete()
         .eq('course_quiz_id', existingQuiz.id);
       
       if (deleteQuestionsError) {
         console.error('Error deleting quiz questions:', deleteQuestionsError);
+      } else {
+        console.log('Successfully deleted quiz questions');
       }
       
       // Delete the quiz itself
-      const { error: deleteQuizError } = await supabase
+      const { error: deleteQuizError } = await supabaseClient
         .from('course_quizzes')
         .delete()
         .eq('id', existingQuiz.id);
       
       if (deleteQuizError) {
         console.error('Error deleting existing quiz:', deleteQuizError);
+      } else {
+        console.log('Successfully deleted existing quiz');
       }
       
       console.log('Deleted existing quiz, will regenerate from document content');
@@ -412,130 +476,86 @@ export async function generateQuizFromDocument(
       };
     });
     
-    // Since we're having RLS issues with direct inserts, let's try a different approach
-    // We'll use the admin client to create the quiz, which bypasses RLS
-    // First get the admin client
-    const { supabaseAdmin } = await import('../lib/supabase');
-    
-    if (!supabaseAdmin) {
-      console.error('Admin client not available, falling back to regular client');
-      // Try with regular client
-      const { data: quiz, error: quizError } = await supabase
-        .from('course_quizzes')
-        .insert({
-          course_id: courseId,
-          title: `${courseTitle} Final Quiz`,
-          description: `Final quiz generated from uploaded quiz document for ${courseTitle}`
-        })
-        .select()
-        .single();
-        
-      if (quizError) {
-        console.error('Error creating document quiz:', quizError);
-        return null;
-      }
-
-      // Create questions and answers
-      for (let index = 0; index < quizData.length; index++) {
-        const questionData = quizData[index];
-        // Create question
-        const { data: question, error: questionError } = await supabase
-          .from('quiz_questions')
-          .insert({
-            course_quiz_id: quiz.id,
-            question_text: questionData.question_text,
-            question_type: questionData.question_type || 'multiple_choice',
-            difficulty: questionData.difficulty || 'medium'
-            // Temporarily remove order_index to avoid database errors until migration is applied
-          })
-          .select()
-          .single();
-
-        if (questionError) {
-          console.error('Error creating quiz question:', questionError);
-          continue;
-        }
-
-        // Create answers
-        for (const answerData of questionData.answers) {
-          const { error: answerError } = await supabase
-            .from('quiz_answers')
-            .insert({
-              question_id: question.id,
-              answer_text: answerData.answer_text,
-              is_correct: answerData.is_correct || false,
-              explanation: answerData.explanation || 'No explanation provided for this answer.'
-            });
-
-          if (answerError) {
-            console.error('Error creating quiz answer:', answerError);
-          }
-        }
-      }
-
-      console.log('Document quiz generated successfully:', quiz.id);
-      return quiz.id;
-    } else {
-      // Use admin client which bypasses RLS
-      const { data: quiz, error: quizError } = await supabaseAdmin
-        .from('course_quizzes')
-        .insert({
-          course_id: courseId,
-          title: `${courseTitle} Final Quiz`,
-          description: `Final quiz generated from uploaded quiz document for ${courseTitle}`
-        })
-        .select()
-        .single();
-        
-      if (quizError) {
-        console.error('Error creating document quiz with admin client:', quizError);
-        return null;
-      }
-
-      // Create questions and answers using admin client
-      for (let index = 0; index < quizData.length; index++) {
-        const questionData = quizData[index];
-        // Create question
-        const { data: question, error: questionError } = await supabaseAdmin
-          .from('quiz_questions')
-          .insert({
-            course_quiz_id: quiz.id,
-            question_text: questionData.question_text,
-            question_type: questionData.question_type || 'multiple_choice',
-            difficulty: questionData.difficulty || 'medium'
-            // Temporarily remove order_index to avoid database errors until migration is applied
-          })
-          .select()
-          .single();
-
-        if (questionError) {
-          console.error('Error creating quiz question:', questionError);
-          continue;
-        }
-
-        // Create answers
-        for (const answerData of questionData.answers) {
-          const { error: answerError } = await supabaseAdmin
-            .from('quiz_answers')
-            .insert({
-              question_id: question.id,
-              answer_text: answerData.answer_text,
-              is_correct: answerData.is_correct || false,
-              explanation: answerData.explanation || 'No explanation provided for this answer.'
-            });
-
-          if (answerError) {
-            console.error('Error creating quiz answer:', answerError);
-          }
-        }
-      }
-
-      console.log('Document quiz generated successfully with admin client:', quiz.id);
-      return quiz.id;
+    // Create the quiz using the appropriate client
+    console.log('Creating quiz in database...');
+    const { data: quiz, error: quizError } = await supabaseClient
+      .from('course_quizzes')
+      .insert({
+        course_id: courseId,
+        title: `${courseTitle} Final Quiz`,
+        description: `Final quiz generated from uploaded quiz document for ${courseTitle}`
+      })
+      .select()
+      .single();
+      
+    if (quizError) {
+      console.error('Error creating document quiz:', quizError);
+      throw new Error(`Failed to create quiz: ${quizError.message}`);
     }
+    
+    console.log('Quiz created successfully with ID:', quiz.id);
+
+    // Create questions and answers
+    console.log('Creating', quizData.length, 'questions for quiz...');
+    let questionsCreated = 0;
+    for (let index = 0; index < quizData.length; index++) {
+      const questionData = quizData[index];
+      console.log('Creating question', index + 1, ':', questionData.question_text.substring(0, 50) + '...');
+      
+      // Create question
+      const { data: question, error: questionError } = await supabaseClient
+        .from('quiz_questions')
+        .insert({
+          course_quiz_id: quiz.id,
+          question_text: questionData.question_text,
+          question_type: questionData.question_type || 'multiple_choice',
+          difficulty: questionData.difficulty || 'medium'
+          // Temporarily remove order_index to avoid database errors until migration is applied
+        })
+        .select()
+        .single();
+
+      if (questionError) {
+        console.error('Error creating quiz question:', questionError);
+        continue;
+      }
+      
+      console.log('Question created with ID:', question.id);
+
+      // Create answers
+      console.log('Creating', questionData.answers.length, 'answers for question...');
+      let answersCreated = 0;
+      for (const answerData of questionData.answers) {
+        console.log('Creating answer:', answerData.answer_text.substring(0, 50) + '...');
+        const { error: answerError } = await supabaseClient
+          .from('quiz_answers')
+          .insert({
+            question_id: question.id,
+            answer_text: answerData.answer_text,
+            is_correct: answerData.is_correct || false,
+            explanation: answerData.explanation || 'No explanation provided for this answer.'
+          });
+
+        if (answerError) {
+          console.error('Error creating quiz answer:', answerError);
+        } else {
+          answersCreated++;
+        }
+      }
+      console.log('Created', answersCreated, 'answers for question');
+      questionsCreated++;
+    }
+    
+    console.log('Created', questionsCreated, 'questions for quiz');
+
+    console.log('Document quiz generated successfully with ID:', quiz.id);
+    return quiz.id;
   } catch (error) {
-    console.error('Error generating document quiz:', error);
-    return null;
+    console.error('Error in generateQuizFromDocument:', error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to generate quiz from document: ${error.message}`);
+    }
+    throw new Error('Failed to generate quiz from document due to an unknown error');
   }
 }
 
