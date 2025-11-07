@@ -368,7 +368,7 @@ export default function Users() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
               {filteredUsers.map((user: any) => (
                 <div key={user.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow transition-shadow duration-200 overflow-hidden">
-                  <div className="p-4">
+                  <div className="p-5">
                     <div className="flex justify-end space-x-1 mb-3">
                       <button
                         onClick={() => handleEditUser(user)}
@@ -389,11 +389,11 @@ export default function Users() {
                       </button>
                     </div>
                     <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-md bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-md bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                         <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                       </div>
-                      <div className="ml-3">
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                      <div className="ml-4">
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                           {getUserProfile(user.id)?.full_name || user.email}
                         </h3>
                       </div>

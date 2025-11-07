@@ -463,7 +463,7 @@ export default function Companies() {
             <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Company Details</h3>
           </div>
           {filteredCompanies.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
               {filteredCompanies.map((company: any) => {
                 const companyAdmins = getCompanyAdmins(company.id);
                 const companyUsers = getCompanyUsers(company.id);
@@ -471,7 +471,7 @@ export default function Companies() {
                 
                 return (
                   <div key={company.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow transition-shadow duration-200 overflow-hidden">
-                    <div className="p-4">
+                    <div className="p-5">
                       <div className="flex justify-end space-x-1 mb-3">
                         <button
                           onClick={() => handleEditCompany(company)}
@@ -499,11 +499,11 @@ export default function Companies() {
                         </button>
                       </div>
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-12 w-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <div className="flex-shrink-0 h-14 w-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                           <CompanyLogo companyId={company.id} size="sm" />
                         </div>
-                        <div className="ml-3">
-                          <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                        <div className="ml-4">
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                             {company.name}
                           </h3>
                         </div>

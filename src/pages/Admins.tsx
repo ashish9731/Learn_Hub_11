@@ -364,10 +364,10 @@ export default function Admins() {
             <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Admin Details</h3>
           </div>
           {filteredAdmins.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
               {filteredAdmins.map((admin: any) => (
                 <div key={admin.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow transition-shadow duration-200 overflow-hidden">
-                  <div className="p-4">
+                  <div className="p-5">
                     <div className="flex justify-end space-x-1 mb-3">
                       <button
                         onClick={() => handleEditAdmin(admin)}
@@ -388,11 +388,11 @@ export default function Admins() {
                       </button>
                     </div>
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-md bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                      <div className="flex-shrink-0 h-12 w-12 rounded-md bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                         <UserCog className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                       </div>
-                      <div className="ml-3">
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                      <div className="ml-4">
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                           {getAdminProfile(admin.id)?.full_name || admin.email}
                         </h3>
                       </div>
