@@ -1987,7 +1987,7 @@ export default function ContentUpload() {
               Manage and upload learning content across different categories
             </p>
           </div>
-          <div className="mt-4 flex md:mt-0 md:ml-4">
+          <div className="mt-4 flex md:mt-0 md:ml-4 space-x-2">
             <button
               onClick={() => window.history.back()}
               className="custom-button"
@@ -1997,6 +1997,39 @@ export default function ContentUpload() {
               <span className="front">
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 <span>Back</span>
+              </span>
+            </button>
+            <button
+              onClick={() => window.location.href = '/companies'}
+              className="custom-button bg-blue-600 hover:bg-blue-700"
+            >
+              <span className="shadow"></span>
+              <span className="edge"></span>
+              <span className="front">
+                <Building2 className="h-5 w-5 mr-2" />
+                <span>Add Company</span>
+              </span>
+            </button>
+            <button
+              onClick={() => window.location.href = '/admins'}
+              className="custom-button bg-green-600 hover:bg-green-700"
+            >
+              <span className="shadow"></span>
+              <span className="edge"></span>
+              <span className="front">
+                <User className="h-5 w-5 mr-2" />
+                <span>Add Admin</span>
+              </span>
+            </button>
+            <button
+              onClick={() => window.location.href = '/users'}
+              className="custom-button bg-purple-600 hover:bg-purple-700"
+            >
+              <span className="shadow"></span>
+              <span className="edge"></span>
+              <span className="front">
+                <Users className="h-5 w-5 mr-2" />
+                <span>Add User</span>
               </span>
             </button>
           </div>
