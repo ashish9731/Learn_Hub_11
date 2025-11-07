@@ -152,7 +152,9 @@ function AppContent() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log('Checking authentication...');
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('Session data:', session);
         
         if (session) {
           setIsAuthenticated(true);
@@ -164,6 +166,8 @@ function AppContent() {
             .select('role, company_id')
             .eq('id', session.user.id)
             .maybeSingle();
+
+          console.log('User data from database:', { userData, userError });
 
           if (!userError) {
             if (userData) {
@@ -212,6 +216,7 @@ function AppContent() {
           }
         } else {
           // No session exists - user is not authenticated
+          console.log('No session found, user not authenticated');
           setIsAuthenticated(false);
           setUserEmail('');
           setUserRole('user');
@@ -226,6 +231,7 @@ function AppContent() {
           setUserRole('user');
         }
       } finally {
+        console.log('Auth check complete, setting loading to false');
         setIsLoading(false);
       }
     };
@@ -249,6 +255,7 @@ function AppContent() {
   }, [connectionTested]);
 
   const handleLogin = async (email: string, role?: string) => {
+    console.log('handleLogin called with:', { email, role });
     setIsAuthenticated(true);
     setUserEmail(email);
     
@@ -259,6 +266,7 @@ function AppContent() {
       try {
         // Get current user session
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('Current session:', session);
         if (session?.user) {
           // Get user role from database
           const { data: userData, error } = await supabase
@@ -267,6 +275,7 @@ function AppContent() {
             .eq('id', session.user.id)
             .single();
             
+          console.log('User data from database:', { userData, error });
           if (!error && userData) {
             finalRole = userData.role;
           }
@@ -322,6 +331,7 @@ function AppContent() {
         <>
           {userRole === 'super_admin' && (
             <>
+              {console.log('Rendering super_admin routes')}
               <Header onLogout={handleLogout} userEmail={userEmail} userRole={userRole} />
               <main className="min-h-screen bg-white dark:bg-gray-900">
                 <div className="py-6">
