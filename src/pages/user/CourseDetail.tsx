@@ -833,10 +833,10 @@ export default function CourseDetail() {
                           setActiveTab(tab);
                         }
                       }}
-                      className={`flex-1 min-w-[140px] px-6 py-4 rounded-2xl font-semibold text-lg capitalize transition-all duration-300 transform hover:scale-105 ${
+                      className={`flex-1 min-w-[140px] px-6 py-4 rounded-2xl font-semibold text-lg capitalize transition-all duration-300 transform hover:scale-105 border-2 ${
                         activeTab === tab
-                          ? 'bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-xl'
-                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:shadow-lg'
+                          ? 'bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-xl border-purple-500'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:shadow-lg border-gray-600'
                       }`}
                     >
                       {tab === 'docs' ? 'Documents' : tab === 'images' ? 'Images & Infographics' : tab === 'templates' ? 'Templates' : tab === 'quizzes' ? 'Quiz' : tab}
