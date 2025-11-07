@@ -651,7 +651,7 @@ export default function Analytics() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="md:flex md:items-center md:justify-between mb-8">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-white sm:text-3xl sm:truncate">
+            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate dark:text-white">
               Analytics Dashboard
             </h2>
             <p className="mt-1 text-sm text-gray-300">
@@ -706,8 +706,8 @@ export default function Analytics() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">{card.title}</dt>
-                      <dd className="text-2xl font-semibold text-gray-900">{card.value}</dd>
+                      <dt className="text-sm font-medium text-gray-500 truncate dark:text-gray-400">{card.title}</dt>
+                      <dd className="text-2xl font-semibold text-gray-900 dark:text-white">{card.value}</dd>
                     </dl>
                   </div>
                   <div className="ml-auto">
