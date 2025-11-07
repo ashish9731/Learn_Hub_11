@@ -2496,7 +2496,7 @@ export default function ContentUpload() {
                                 )}
                               </div>
                               <BookOpen className="h-4 w-4 text-purple-600 mr-2" />
-                              <span className="text-sm font-medium text-white">{course.title}</span>
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">{course.title}</span>
                             </div>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
                               {course.totalContent} items
@@ -2509,7 +2509,7 @@ export default function ContentUpload() {
                               {/* Podcasts Section */}
                               {course.coursePodcasts.length > 0 && (
                                 <div className="mb-3">
-                                  <h5 className="text-xs font-medium text-purple-600 mb-2 flex items-center">
+                                  <h5 className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-2 flex items-center">
                                     <Headphones className="h-3 w-3 mr-1" />
                                     Podcasts ({course.coursePodcasts.length})
                                   </h5>
@@ -2537,7 +2537,7 @@ export default function ContentUpload() {
                                             className="h-3 w-3 text-blue-600 mr-2"
                                           />
                                           <Music className="h-3 w-3 text-purple-600 mr-1" />
-                                          <span className="text-xs text-white">{podcast.title}</span>
+                                          <span className="text-xs text-gray-900 dark:text-white">{podcast.title}</span>
                                         </div>
                                       );
                                     })}
@@ -2548,7 +2548,7 @@ export default function ContentUpload() {
                               {/* Documents Section */}
                               {course.coursePDFs.length > 0 && (
                                 <div className="mb-3">
-                                  <h5 className="text-xs font-medium text-purple-600 mb-2 flex items-center">
+                                  <h5 className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-2 flex items-center">
                                     <FileText className="h-3 w-3 mr-1" />
                                     Documents ({course.coursePDFs.length})
                                   </h5>
@@ -2576,7 +2576,7 @@ export default function ContentUpload() {
                                             className="h-3 w-3 text-purple-600 mr-2"
                                           />
                                           <FileText className="h-3 w-3 text-purple-500 mr-1" />
-                                          <span className="text-xs text-white">{pdf.title}</span>
+                                          <span className="text-xs text-gray-900 dark:text-white">{pdf.title}</span>
                                         </div>
                                       );
                                     })}
@@ -2599,7 +2599,7 @@ export default function ContentUpload() {
                   )}
                 </div>
                 {selectedCourses.length > 0 && (
-                  <p className="mt-2 text-sm text-purple-600">
+                  <p className="mt-2 text-sm text-purple-600 dark:text-purple-400">
                     {selectedCourses.length} item(s) selected
                   </p>
                 )}
