@@ -870,7 +870,7 @@ export default function CourseAssignment() {
                                                   className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                                 />
                                                 <Music className="h-3 w-3 text-purple-600 mr-1" />
-                                                <span className="text-xs text-white">{podcast.title}</span>
+                                                <span className="text-xs text-black dark:text-white">{podcast.title}</span>
                                               </div>
                                             );
                                           })}
@@ -904,7 +904,7 @@ export default function CourseAssignment() {
                                                 className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                               />
                                               <Music className="h-3 w-3 text-purple-600 mr-1" />
-                                              <span className="text-xs text-white">{podcast.title}</span>
+                                              <span className="text-xs text-black dark:text-white">{podcast.title}</span>
                                             </div>
                                           );
                                         })}
@@ -941,7 +941,7 @@ export default function CourseAssignment() {
                                           className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                         />
                                         <FileText className="h-3 w-3 text-blue-500 mr-1" />
-                                        <span className="text-xs text-white">{pdf.title}</span>
+                                        <span className="text-xs text-black dark:text-white">{pdf.title}</span>
                                       </div>
                                     );
                                   })}
@@ -964,7 +964,7 @@ export default function CourseAssignment() {
                                           className="h-3 w-3 text-green-600 focus:ring-green-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                         />
                                         <Image className="h-3 w-3 text-green-500 mr-1" />
-                                        <span className="text-xs text-white">{pdf.title}</span>
+                                        <span className="text-xs text-black dark:text-white">{pdf.title}</span>
                                       </div>
                                     );
                                   })}
@@ -987,7 +987,7 @@ export default function CourseAssignment() {
                                           className="h-3 w-3 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                         />
                                         <FileText className="h-3 w-3 text-purple-500 mr-1" />
-                                        <span className="text-xs text-white">{pdf.title}</span>
+                                        <span className="text-xs text-black dark:text-white">{pdf.title}</span>
                                       </div>
                                     );
                                   })}
@@ -1010,7 +1010,7 @@ export default function CourseAssignment() {
                                           className="h-3 w-3 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded mr-2 dark:border-gray-600"
                                         />
                                         <FileText className="h-3 w-3 text-yellow-500 mr-1" />
-                                        <span className="text-xs text-white">{pdf.title} (Quiz)</span>
+                                        <span className="text-xs text-black dark:text-white">{pdf.title} (Quiz)</span>
                                       </div>
                                     );
                                   })}
