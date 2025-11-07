@@ -1480,7 +1480,7 @@ export default function ContentUpload() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-white">Course Library</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Course Library</h2>
           <button
             onClick={() => setShowAddCourseForm(true)}
             className="custom-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
@@ -2053,7 +2053,7 @@ export default function ContentUpload() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
-        <div className="ml-4 text-white">Loading content...</div>
+        <div className="ml-4 text-gray-900 dark:text-white">Loading content...</div>
       </div>
     );
   }
