@@ -991,6 +991,96 @@ export default function ContentUpload() {
         }
       }
         
+      // ALSO CREATE ENTRIES IN PDF_ASSIGNMENTS AND PODCAST_ASSIGNMENTS TABLES
+      // This is needed so that Admins can see the assigned content in their CourseAssignment page
+      if (!insertError) {
+        try {
+          // Create PDF assignments
+          const pdfAssignments = selectedCourses
+            .filter(contentId => supabaseData.pdfs.some(pdf => pdf.id === contentId))
+            .map(pdfId => ({
+              user_id: selectedAdminId,
+              pdf_id: pdfId,
+              assigned_by: currentUser.id,
+              assigned_at: new Date().toISOString()
+            }));
+          
+          // Create podcast assignments
+          const podcastAssignments = selectedCourses
+            .filter(contentId => supabaseData.podcasts.some(podcast => podcast.id === contentId))
+            .map(podcastId => ({
+              user_id: selectedAdminId,
+              podcast_id: podcastId,
+              assigned_by: currentUser.id,
+              assigned_at: new Date().toISOString()
+            }));
+          
+          console.log('Creating PDF assignments:', pdfAssignments);
+          console.log('Creating podcast assignments:', podcastAssignments);
+          
+          // Insert PDF assignments
+          if (pdfAssignments.length > 0) {
+            if (supabaseAdmin) {
+              const { error: pdfError } = await supabaseAdmin
+                .from('pdf_assignments')
+                .upsert(pdfAssignments, {
+                  onConflict: 'user_id,pdf_id',
+                  ignoreDuplicates: true
+                });
+              
+              if (pdfError) {
+                console.error('PDF assignment error:', pdfError);
+                insertError = pdfError;
+              }
+            } else {
+              const { error: pdfError } = await supabase
+                .from('pdf_assignments')
+                .upsert(pdfAssignments, {
+                  onConflict: 'user_id,pdf_id',
+                  ignoreDuplicates: true
+                });
+              
+              if (pdfError) {
+                console.error('PDF assignment error:', pdfError);
+                insertError = pdfError;
+              }
+            }
+          }
+          
+          // Insert podcast assignments
+          if (podcastAssignments.length > 0) {
+            if (supabaseAdmin) {
+              const { error: podcastError } = await supabaseAdmin
+                .from('podcast_assignments')
+                .upsert(podcastAssignments, {
+                  onConflict: 'user_id,podcast_id',
+                  ignoreDuplicates: true
+                });
+              
+              if (podcastError) {
+                console.error('Podcast assignment error:', podcastError);
+                insertError = podcastError;
+              }
+            } else {
+              const { error: podcastError } = await supabase
+                .from('podcast_assignments')
+                .upsert(podcastAssignments, {
+                  onConflict: 'user_id,podcast_id',
+                  ignoreDuplicates: true
+                });
+              
+              if (podcastError) {
+                console.error('Podcast assignment error:', podcastError);
+                insertError = podcastError;
+              }
+            }
+          }
+        } catch (assignmentError) {
+          console.error('Error creating content assignments:', assignmentError);
+          insertError = assignmentError;
+        }
+      }
+        
       if (insertError) {
         console.error('Error creating assignments:', insertError);
         
