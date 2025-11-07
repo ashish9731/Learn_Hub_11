@@ -86,8 +86,9 @@ export default function PodcastPlayer({
         // Only set if audio is loaded and has duration
         const savedTime = data.playback_position || 0;
         audioRef.current.currentTime = savedTime;
-        setLastValidTime(savedTime);
-        setMaxAllowedTime(savedTime); // User can only go forward from saved position
+        // Remove time restrictions to allow full playback from anywhere
+        setLastValidTime(0); // Reset to allow seeking from start
+        setMaxAllowedTime(audioRef.current.duration || 0); // Allow full duration
       }
     } catch (error) {
       console.error('Error loading podcast progress:', error);
@@ -153,8 +154,8 @@ export default function PodcastPlayer({
       
       // Allow full skipping - user can jump to any position
       // Remove all time restrictions to ensure full playback
-      setLastValidTime(currentTime);
-      setMaxAllowedTime(duration || currentTime); // Allow full duration
+      setLastValidTime(0); // Reset to allow seeking from start
+      setMaxAllowedTime(duration || 0); // Allow full duration
       
       // Reset progressSaved flag when time changes significantly
       setProgressSaved(false);
@@ -180,8 +181,8 @@ export default function PodcastPlayer({
       const currentTime = audioRef.current.currentTime;
       
       // Remove all time restrictions to ensure full playback
-      setLastValidTime(currentTime);
-      setMaxAllowedTime(audioRef.current.duration || currentTime); // Allow full duration
+      setLastValidTime(0); // Reset to allow seeking from start
+      setMaxAllowedTime(audioRef.current.duration || 0); // Allow full duration
     }
   };
 

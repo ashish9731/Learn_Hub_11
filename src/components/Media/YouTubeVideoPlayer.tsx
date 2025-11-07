@@ -300,16 +300,8 @@ export default function YouTubeVideoPlayer({
     if (currentVideoIndex === videos.length - 1) {
       generateQuiz();
     } else {
-      // Automatically move to next video only if previous one is completed
-      const nextVideo = videos[currentVideoIndex + 1];
-      const previousVideoCompleted = currentVideoIndex === 0 || completedVideos[videos[currentVideoIndex].id];
-      
-      if (previousVideoCompleted) {
-        setCurrentVideoIndex(currentVideoIndex + 1);
-      } else {
-        // Show message that previous video must be completed first
-        alert('You must complete the previous video before moving to the next one.');
-      }
+      // Allow moving to next video without restrictions
+      setCurrentVideoIndex(currentVideoIndex + 1);
     }
   };
 
@@ -354,6 +346,9 @@ export default function YouTubeVideoPlayer({
     // Allow skipping to any video without restrictions
     if (currentVideoIndex < videos.length - 1) {
       setCurrentVideoIndex(currentVideoIndex + 1);
+      // Reset time tracking for new video
+      setLastValidTime(0);
+      setMaxAllowedTime(0);
     } else {
       // Last video, show quiz
       generateQuiz();

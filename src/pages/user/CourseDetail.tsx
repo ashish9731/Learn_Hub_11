@@ -436,33 +436,14 @@ export default function CourseDetail() {
 
   // Check if a podcast is unlocked (previous podcasts in the same category must be completed)
   const isPodcastUnlocked = (podcast: Podcast, categoryPodcasts: Podcast[]) => {
-    // Find the index of this podcast in the category
-    const podcastIndex = categoryPodcasts.findIndex(p => p.id === podcast.id);
-    
-    // First podcast is always unlocked
-    if (podcastIndex === 0) return true;
-    
-    // Check if all previous podcasts are completed (100%)
-    for (let i = 0; i < podcastIndex; i++) {
-      const previousPodcast = categoryPodcasts[i];
-      const progress = podcastProgress[previousPodcast.id];
-      if (!progress || progress.progress_percent < 100) {
-        return false;
-      }
-    }
-    
+    // Allow all podcasts to be unlocked - remove restriction
     return true;
   };
 
   // Check if a YouTube video is unlocked (previous videos must be completed)
   const isVideoUnlocked = (videoIndex: number, videos: any[]) => {
-    // First video is always unlocked
-    if (videoIndex === 0) return true;
-    
-    // Check if previous video is completed
-    const previousVideo = videos[videoIndex - 1];
-    const progress = podcastProgress[previousVideo.id]; // Using podcast_progress for YouTube videos too
-    return progress && progress.progress_percent >= 100;
+    // Allow all videos to be unlocked - remove restriction
+    return true;
   };
 
   // Get the completion percentage for a podcast
