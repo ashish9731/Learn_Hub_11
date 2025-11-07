@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, Music, Image, RefreshCw } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Upload, BookOpen, Headphones, FileText, Play, Clock, BarChart3, Youtube, ArrowLeft, ChevronDown, ChevronRight, Music, Image, RefreshCw, Building2, Users, User } from 'lucide-react';
 import { supabaseHelpers } from '../hooks/useSupabase';
 import { useRealtimeSync } from '../hooks/useSupabase';
 import { supabase, supabaseAdmin } from '../lib/supabase';
@@ -181,7 +181,9 @@ export default function ContentUpload() {
       console.error('Failed to load Supabase data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load data');
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
+      console.log('Loading state set to false');
     }
   };
 
@@ -762,6 +764,8 @@ export default function ContentUpload() {
       };
       
       console.log('Course data to update:', courseData);
+      
+      if (!editingCourseId) return;
       
       const { data, error } = await supabaseHelpers.updateCourse(editingCourseId, courseData);
 
@@ -1974,6 +1978,34 @@ export default function ContentUpload() {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+            <div className="text-center py-12">
+              <div className="text-red-400 mb-4">Error loading content: {error}</div>
+              <button
+                onClick={loadSupabaseData}
+                className="mt-4 px-4 py-2 bg-red-600/20 backdrop-blur-lg border border-red-500/30 rounded-lg text-red-300 hover:bg-red-600/30 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-6">
