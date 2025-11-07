@@ -500,17 +500,22 @@ export default function Companies() {
                           >
                             <Image className="h-5 w-5" />
                           </button>
-                          <button
-                            onClick={() => {
-                              console.log('Delete button clicked for company:', company);
-                              handleDeleteClick(company);
-                            }}
-                            className="p-3 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border-2 border-red-300 hover:border-red-400 dark:border-red-700 dark:hover:border-red-600 bg-yellow-300 dark:bg-yellow-400 flex items-center justify-center shadow-md hover:shadow-lg"
-                            title="Delete Company"
-                          >
-                            <Trash2 className="h-5 w-5" />
-                            <span className="ml-1 text-xs font-bold text-black">DEL</span>
-                          </button>
+                          <div className="relative">
+                            <button
+                              onClick={() => {
+                                console.log('Delete button clicked for company:', company);
+                                handleDeleteClick(company);
+                              }}
+                              className="p-3 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors border-2 border-red-300 hover:border-red-400 dark:border-red-700 dark:hover:border-red-600 bg-yellow-300 dark:bg-yellow-400 flex items-center justify-center shadow-md hover:shadow-lg"
+                              title="Delete Company"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                              <span className="ml-1 text-xs font-bold text-black">DEL</span>
+                            </button>
+                            <div className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold animate-pulse">
+                              3
+                            </div>
+                          </div>
                         </div>
                       </div>
                       
