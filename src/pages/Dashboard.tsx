@@ -442,7 +442,7 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <div>
-            <h2 className="text-2xl font-bold leading-7 text-black dark:text-white sm:text-3xl sm:truncate">Super Admin Dashboard</h2>
+            <h2 className="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:text-3xl sm:truncate">Super Admin Dashboard</h2>
             <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Manage your learning management system</p>
           </div>
         </div>

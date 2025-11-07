@@ -405,7 +405,7 @@ export default function Companies() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-2xl font-bold leading-7 text-black sm:text-3xl sm:truncate dark:text-white">
+              <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate dark:text-white">
                 All Companies
               </h2>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -460,7 +460,7 @@ export default function Companies() {
 
         <div className="bg-white shadow overflow-hidden sm:rounded-md border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg leading-6 font-medium text-black dark:text-white">Company Details</h3>
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Company Details</h3>
             <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">Company Name • Admins • Users • Courses</p>
           </div>
           {filteredCompanies.length > 0 ? (
