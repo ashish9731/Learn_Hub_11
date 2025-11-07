@@ -372,15 +372,6 @@ export default function Users() {
                           <h3 className="text-lg font-medium text-black truncate dark:text-white">
                             {getUserProfile(user.id)?.full_name || user.email}
                           </h3>
-                          <div className="mt-1 flex flex-wrap gap-1">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              {user.company_id ? 'Active' : 'Unassigned'}
-                            </span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400">
-                              User
-                            </span>
-                          </div>
                         </div>
                       </div>
                       <div className="flex space-x-1">
@@ -401,46 +392,8 @@ export default function Users() {
                       </div>
                     </div>
                     
-                    <div className="mt-4 space-y-2">
-                      <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                        <Building2 className="h-4 w-4 mr-2" />
-                        <span className="truncate">{user.company_id ? getCompanyName(user.company_id) : 'No Company Assigned'}</span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                        <Mail className="h-4 w-4 mr-2" />
-                        <span className="truncate">{user.email}</span>
-                      </div>
-                      {getUserProfile(user.id)?.phone && (
-                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                          <Phone className="h-4 w-4 mr-2" />
-                          <span>{getUserProfile(user.id)?.phone}</span>
-                        </div>
-                      )}
-                      {getUserProfile(user.id)?.department && (
-                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                          <Building2 className="h-4 w-4 mr-2" />
-                          <span>{getUserProfile(user.id)?.department}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      <div className="text-center p-2 bg-white rounded dark:bg-gray-800">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Admin</p>
-                        <p className="text-sm font-medium text-black truncate dark:text-white">{getAdminName(user.company_id) || 'No Admin'}</p>
-                      </div>
-                      <div className="text-center p-2 bg-white rounded dark:bg-gray-800">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Courses</p>
-                        <p className="text-sm font-medium text-black dark:text-white">
-                          {supabaseData.userCourses.filter((uc: any) => uc.user_id === user.id).length}
-                        </p>
-                      </div>
-                      <div className="text-center p-2 bg-white rounded dark:bg-gray-800">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Joined</p>
-                        <p className="text-sm font-medium text-black dark:text-white">
-                          {new Date(user.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
+                    <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                      Created: {new Date(user.created_at).toLocaleDateString()}
                     </div>
                   </div>
                 </div>

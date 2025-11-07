@@ -274,7 +274,7 @@ export default function Companies() {
     }
   };
 
-  const handleLogoUpload = async (companyId: string, logoUrl: string) => {
+  const handleLogoUpload = async (logoUrl: string) => {
     await loadCompaniesData();
   };
 
@@ -407,12 +407,6 @@ export default function Companies() {
                             <h3 className="text-lg font-medium text-black truncate dark:text-white">
                               {company.name}
                             </h3>
-                            <div className="mt-1">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Active
-                              </span>
-                            </div>
                           </div>
                         </div>
                         <div className="flex space-x-1">
@@ -437,21 +431,6 @@ export default function Companies() {
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4 grid grid-cols-3 gap-2">
-                        <div className="text-center p-2 bg-white rounded dark:bg-gray-800">
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Admins</p>
-                          <p className="text-sm font-medium text-black dark:text-white">{companyAdmins.length}</p>
-                        </div>
-                        <div className="text-center p-2 bg-white rounded dark:bg-gray-800">
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Users</p>
-                          <p className="text-sm font-medium text-black dark:text-white">{companyUsers.length}</p>
-                        </div>
-                        <div className="text-center p-2 bg-white rounded dark:bg-gray-800">
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Courses</p>
-                          <p className="text-sm font-medium text-black dark:text-white">{companyCourses.length}</p>
                         </div>
                       </div>
                       
@@ -524,6 +503,16 @@ export default function Companies() {
             onClose={() => setIsEditModalOpen(false)}
             onSubmit={handleUpdateCompany}
             company={selectedCompany}
+          />
+        )}
+
+        {selectedCompany && isLogoModalOpen && (
+          <LogoUpload
+            companyId={selectedCompany.id}
+            currentLogoUrl={getCompanyLogo(selectedCompany.id)}
+            onUploadComplete={handleLogoUpload}
+            onDelete={() => handleLogoDelete(selectedCompany.id)}
+            size="md"
           />
         )}
 

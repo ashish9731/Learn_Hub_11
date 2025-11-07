@@ -979,6 +979,22 @@ export const supabaseHelpers = {
     if (error) throw error;
   },
 
+  updateLogo: async (logoId: string, updates: any) => {
+    if (!supabaseAdmin) {
+      throw new Error('Admin client not available');
+    }
+    
+    const { data, error } = await supabaseAdmin
+      .from('logos')
+      .update(updates)
+      .eq('id', logoId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
   // File upload operations
   uploadFile: async (bucket: string, fileName: string, file: File) => {
     if (!supabaseAdmin) {
