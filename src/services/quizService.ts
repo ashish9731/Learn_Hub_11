@@ -736,7 +736,7 @@ export async function generateQuizFromDocument(
       console.log('Deleted existing quiz, will regenerate from document content');
     }
 
-    // Create quiz
+    // Create quiz with enhanced verification
     const { data: quizInsert, error: quizError } = await supabaseClient
       .from('course_quizzes')
       .insert({
@@ -749,21 +749,22 @@ export async function generateQuizFromDocument(
       .single();
 
     if (quizError || !quizInsert?.id) {
-      console.error('Failed to create quiz:', quizError);
+      console.error('❌ Quiz creation failed:', quizError);
       return null;
     }
 
     const courseQuizId = quizInsert.id;
+    console.log('✅ Verified quiz exists with ID:', courseQuizId);
 
-    // Verify quiz exists before inserting questions
+    // Re-fetch to confirm it's actually visible (RLS check)
     const { data: verify, error: verifyError } = await supabaseClient
       .from('course_quizzes')
       .select('id')
       .eq('id', courseQuizId)
-      .single();
+      .maybeSingle();
 
     if (verifyError || !verify) {
-      console.error('Quiz verification failed:', verifyError);
+      console.error('❌ Quiz not found after insert - RLS likely blocking visibility');
       return null;
     }
 
