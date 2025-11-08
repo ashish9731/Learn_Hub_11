@@ -1030,23 +1030,8 @@ export default function CourseDetail() {
                                 </p>
                                 <button
                                   onClick={() => {
-                                    // Try different approaches to force browser preview
-                                    const url = pdf.pdf_url;
-                                    if (url) {
-                                      // Method 1: Try with preview parameters
-                                      let previewUrl = url;
-                                      
-                                      // If it's a Supabase URL, try adding response headers
-                                      if (url.includes('supabase')) {
-                                        // Try to force inline content disposition
-                                        if (!url.includes('response-content-disposition')) {
-                                          previewUrl = url + (url.includes('?') ? '&' : '?') + 'response-content-disposition=inline';
-                                        }
-                                      }
-                                      
-                                      // Open in new tab
-                                      window.open(previewUrl, '_blank');
-                                    }
+                                    // Use the direct URL for Supabase storage objects
+                                    window.open(pdf.pdf_url, '_blank');
                                   }}
                                   className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                                   // Prevent right-click and download
