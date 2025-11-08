@@ -602,12 +602,14 @@ export default function CourseDetail() {
     return (
       <div className="aspect-video">
         <iframe
-          src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&disablekb=1&fs=1`}
           className="w-full h-full rounded-lg"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
           title="YouTube Video Player"
+          // Add attributes to prevent download/context menu
+          onContextMenu={(e) => e.preventDefault()}
         ></iframe>
       </div>
     );
@@ -1065,6 +1067,8 @@ export default function CourseDetail() {
                                   }}
                                   // Prevent right-click and download
                                   onContextMenu={(e) => e.preventDefault()}
+                                  // Additional attributes to prevent download
+                                  draggable="false"
                                 >
                                   <FileText className="h-3 w-3 mr-1" />
                                   View Document
@@ -1106,6 +1110,14 @@ export default function CourseDetail() {
                                 className="w-full h-full object-contain"
                                 // Prevent right-click and download
                                 onContextMenu={(e) => e.preventDefault()}
+                                // Additional attributes to prevent download
+                                draggable="false"
+                                // Prevent keyboard shortcuts for saving
+                                onKeyDown={(e) => {
+                                  if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+                                    e.preventDefault();
+                                  }
+                                }}
                               />
                             </div>
                             <h3 className="text-sm font-medium text-white mb-1 truncate">{pdf.title}</h3>
@@ -1125,6 +1137,14 @@ export default function CourseDetail() {
                               }}
                               // Prevent right-click and download
                               onContextMenu={(e) => e.preventDefault()}
+                              // Additional attributes to prevent download
+                              draggable="false"
+                              // Prevent keyboard shortcuts for saving
+                              onKeyDown={(e) => {
+                                if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+                                  e.preventDefault();
+                                }
+                              }}
                             >
                               <Image className="h-3 w-3 mr-1" />
                               View Image

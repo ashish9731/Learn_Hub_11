@@ -59,6 +59,14 @@ export default function PodcastPlayer({
         className="w-full"
         // Add attributes to prevent download
         onContextMenu={(e) => e.preventDefault()}
+        // Additional attributes to prevent download
+        draggable="false"
+        // Prevent keyboard shortcuts for saving
+        onKeyDown={(e) => {
+          if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+          }
+        }}
       />
     </div>
   );
