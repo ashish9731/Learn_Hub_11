@@ -625,21 +625,48 @@ export async function generateQuizFromDocument(
   quizDocumentContent: string
 ): Promise<string | null> {
   try {
+    console.log('=== DEBUG: START QUIZ GENERATION ===');
+    console.log('Course ID:', courseId);
+    console.log('Course Title:', courseTitle);
+    console.log('Document content length:', quizDocumentContent.length);
+    console.log('Document content preview (first 500 chars):', quizDocumentContent.substring(0, 500));
+    
     // Replace multiple spaces with a single space to normalize text
     const text = quizDocumentContent
       .replace(/\r?\n|\r/g, ' ') // remove line breaks
       .replace(/\s{2,}/g, ' ')   // collapse extra spaces
       .trim();
+      
+    console.log('Normalized text length:', text.length);
+    console.log('Normalized text preview (first 500 chars):', text.substring(0, 500));
 
     // 🧩 Regex that works even if there are no newlines
     const pattern =
       /Question\s*(\d+):\s*(.*?)\s*a\)\s*(.*?)\s*b\)\s*(.*?)\s*c\)\s*(.*?)\s*d\)\s*(.*?)\s*Answer:\s*([a-dA-D])\s*Explanation:\s*(.*?)(?=\s*Question\s*\d+:|$)/gims;
 
+    console.log('Applying regex pattern to parse questions...');
     const matches = Array.from(text.matchAll(pattern));
+    
+    console.log('Regex matches found:', matches.length);
+    
+    // Log first few matches for debugging
+    if (matches.length > 0) {
+      console.log('First match details:', {
+        fullMatch: matches[0][0],
+        questionNumber: matches[0][1],
+        questionText: matches[0][2],
+        optionA: matches[0][3],
+        optionB: matches[0][4],
+        optionC: matches[0][5],
+        optionD: matches[0][6],
+        correctAnswer: matches[0][7],
+        explanation: matches[0][8]
+      });
+    }
 
     if (matches.length === 0) {
       console.error('❌ No questions parsed from document text');
-      console.log('First 500 chars:', text.substring(0, 500));
+      console.log('Full normalized text:', text);
       return null;
     }
 
@@ -661,6 +688,8 @@ export async function generateQuizFromDocument(
     } catch (importError) {
       console.log('Could not import admin client, using regular client');
     }
+    
+    console.log('Supabase client type:', usingAdminClient ? 'Admin' : 'Regular');
 
     // Check if a quiz already exists for this course
     console.log('Checking for existing quiz for course:', courseId);
@@ -737,6 +766,7 @@ export async function generateQuizFromDocument(
     }
 
     // Create quiz with enhanced verification
+    console.log('Creating new quiz for course:', courseId);
     const { data: quizInsert, error: quizError } = await supabaseClient
       .from('course_quizzes')
       .insert({
@@ -757,6 +787,7 @@ export async function generateQuizFromDocument(
     console.log('✅ Verified quiz exists with ID:', courseQuizId);
 
     // Re-fetch to confirm it's actually visible (RLS check)
+    console.log('Verifying quiz visibility with RLS check...');
     const { data: verify, error: verifyError } = await supabaseClient
       .from('course_quizzes')
       .select('id')
@@ -765,16 +796,27 @@ export async function generateQuizFromDocument(
 
     if (verifyError || !verify) {
       console.error('❌ Quiz not found after insert - RLS likely blocking visibility');
+      console.error('Verification error:', verifyError);
       return null;
     }
+    
+    console.log('✅ Quiz visibility verified');
 
     // Add a small delay to ensure consistency
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    for (const match of matches) {
+    for (let i = 0; i < matches.length; i++) {
+      const match = matches[i];
       const [, qNum, questionText, a, b, c, d, correctLetter, explanation] = match;
+      
+      console.log(`Processing question ${i + 1}/${matches.length}:`, qNum);
+      console.log(`Question text: ${questionText}`);
+      console.log(`Options: a) ${a}, b) ${b}, c) ${c}, d) ${d}`);
+      console.log(`Correct answer: ${correctLetter}`);
+      console.log(`Explanation: ${explanation}`);
 
       // Insert question
+      console.log(`Inserting question ${qNum}...`);
       const { data: questionData, error: qErr } = await supabaseClient
         .from('quiz_questions')
         .insert({
@@ -791,6 +833,7 @@ export async function generateQuizFromDocument(
       }
 
       const qid = questionData.id;
+      console.log(`✅ Question ${qNum} inserted with ID:`, qid);
       
       // Add a small delay to ensure consistency
       await new Promise(resolve => setTimeout(resolve, 50));
@@ -804,6 +847,8 @@ export async function generateQuizFromDocument(
 
       for (const opt of options) {
         const isCorrect = opt.key.toLowerCase() === correctLetter.toLowerCase();
+        console.log(`Inserting answer ${opt.key} for question ${qNum}, isCorrect: ${isCorrect}`);
+        
         const { error: answerError } = await supabaseClient.from('quiz_answers').insert({
           question_id: qid,
           answer_text: opt.text.trim(),
@@ -813,11 +858,13 @@ export async function generateQuizFromDocument(
         
         if (answerError) {
           console.error(`Error inserting answer for question ${qNum}, option ${opt.key}:`, answerError);
+        } else {
+          console.log(`✅ Answer ${opt.key} inserted successfully`);
         }
       }
     }
 
-    console.log(`✅ Quiz ${courseQuizId} created successfully.`);
+    console.log(`✅ Quiz ${courseQuizId} created successfully with ${matches.length} questions.`);
     return courseQuizId;
   } catch (err) {
     console.error('generateQuizFromDocument failed:', err);
