@@ -391,7 +391,7 @@ function parseQuizFlexible(documentContent: string): any[] {
           
           answers.push({
             answer_text: answerText,
-            is_correct: letter === correctAnswerLetter,
+            is_correct: false,
             explanation: '' // Will be filled later
           });
         }
@@ -488,41 +488,88 @@ function parseSpecialFormat(documentContent: string): any[] {
       const trimmedBlock = block.trim();
       if (!trimmedBlock) continue;
       
-      // Extract question text
-      const questionMatch = trimmedBlock.match(/Question \d+:\s*(.+?)(?=[a-dA-D][\.\)]|$)/is);
-      if (!questionMatch) continue;
+      // Extract question text - handle the case where everything is on one line
+      // Match: Question 1: What is the primary aim of coaching in the workplace?a) To provide...
+      const questionMatch = trimmedBlock.match(/Question\s*\d+:\s*(.+?)(?=\s*[a-dA-D][\.\)]|\s*$)/i);
+      if (!questionMatch) {
+        console.log('No question match found in block:', trimmedBlock.substring(0, 100));
+        continue;
+      }
       
       const questionText = questionMatch[1].trim();
+      console.log('Extracted question text:', questionText);
       
-      // Extract answers
+      // Extract answers - handle the case where everything is concatenated
       const answers: Array<{answer_text: string, is_correct: boolean, explanation: string}> = [];
-      const answerMatches = [...trimmedBlock.matchAll(/^([a-dA-D])[\.\)]\s*(.+)$/gm)];
       
-      for (const match of answerMatches) {
-        const letter = match[1].toUpperCase();
-        const answerText = match[2].trim();
+      // Look for all answer options in the block
+      const answerRegex = /([a-dA-D])[\.\)]\s*([^a-dA-D]*?)(?=\s*[a-dA-D][\.\)]|\s*Answer:|\s*Explanation:|\s*$)/gi;
+      let answerMatch;
+      const foundAnswers: Array<{letter: string, text: string}> = [];
+      
+      while ((answerMatch = answerRegex.exec(trimmedBlock)) !== null) {
+        const letter = answerMatch[1].toUpperCase();
+        const text = answerMatch[2].trim();
+        if (text) {
+          foundAnswers.push({letter, text});
+        }
+      }
+      
+      // If we didn't find answers with the regex, try a different approach
+      if (foundAnswers.length === 0) {
+        // Try to extract answers manually by looking for patterns
+        const answerPatterns = [
+          /a[\.\)]\s*([^bB]*)/,
+          /b[\.\)]\s*([^cC]*)/,
+          /c[\.\)]\s*([^dD]*)/,
+          /d[\.\)]\s*(.*)/
+        ];
         
+        for (let i = 0; i < answerPatterns.length; i++) {
+          const match = trimmedBlock.match(answerPatterns[i]);
+          if (match && match[1]) {
+            const letters = ['A', 'B', 'C', 'D'];
+            const text = match[1].trim();
+            // Remove any trailing Answer: or Explanation: parts
+            const cleanText = text.replace(/\s*(Answer:|Explanation:).*$/, '').trim();
+            if (cleanText) {
+              foundAnswers.push({letter: letters[i], text: cleanText});
+            }
+          }
+        }
+      }
+      
+      // Convert found answers to the proper format
+      for (const answer of foundAnswers) {
         answers.push({
-          answer_text: answerText,
+          answer_text: answer.text,
           is_correct: false, // Will be set later
           explanation: ''
         });
       }
       
-      if (answers.length < 2) continue;
+      if (answers.length < 2) {
+        console.log('Not enough answers found, skipping question');
+        continue;
+      }
       
       // Extract correct answer
-      const answerMatch = trimmedBlock.match(/Answer:\s*([a-dA-D])/i);
-      if (answerMatch) {
-        const correctLetter = answerMatch[1].toUpperCase();
-        const correctAnswer = answers.find(a => a.answer_text.startsWith(correctLetter + ')') || 
-                                                a.answer_text.startsWith(correctLetter + '.') ||
-                                                // Check if the answer letter matches
-                                                a.answer_text.charAt(0).toUpperCase() === correctLetter);
-        if (correctAnswer) {
-          correctAnswer.is_correct = true;
-        } else {
-          // Fallback: mark first answer as correct
+      const answerRegexPattern = /Answer:\s*([a-dA-D])/i;
+      const answerMatchResult = trimmedBlock.match(answerRegexPattern);
+      if (answerMatchResult) {
+        const correctLetter = answerMatchResult[1].toUpperCase();
+        console.log('Found correct answer letter:', correctLetter);
+        
+        // Mark the correct answer
+        for (let i = 0; i < foundAnswers.length; i++) {
+          if (foundAnswers[i].letter === correctLetter) {
+            answers[i].is_correct = true;
+            break;
+          }
+        }
+        
+        // If we didn't find a match, default to first answer
+        if (!answers.some(a => a.is_correct)) {
           answers[0].is_correct = true;
         }
       } else {
@@ -531,10 +578,12 @@ function parseSpecialFormat(documentContent: string): any[] {
       }
       
       // Extract explanation
-      const explanationMatch = trimmedBlock.match(/Explanation:\s*(.+?)(?=\n\n|$)/is);
+      const explanationMatch = trimmedBlock.match(/Explanation:\s*(.+?)(?=Question\s*\d+:|$)/is);
       if (explanationMatch) {
         const explanationText = explanationMatch[1].trim();
-        // Assign to correct answer or first answer
+        console.log('Found explanation:', explanationText);
+        
+        // Assign to correct answer
         const correctAnswer = answers.find(a => a.is_correct);
         if (correctAnswer) {
           correctAnswer.explanation = explanationText;
