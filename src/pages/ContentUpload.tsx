@@ -2081,15 +2081,15 @@ export default function ContentUpload() {
 
   console.log('Rendering main content');
   return (
-    <div className="py-6">
+    <div className="py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="md:flex md:items-center md:justify-between mb-6">
+        <div className="md:flex md:items-center md:justify-between mb-8">
           <div className="flex-1 min-w-0">
-            <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate dark:text-white">
-              Content Upload
+            <h2 className="text-3xl font-bold leading-8 text-gray-900 sm:text-4xl sm:truncate dark:text-white">
+              Content Management
             </h2>
-            <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
-              Manage and upload learning content across different categories
+            <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+              Upload and organize learning content across different categories
             </p>
           </div>
           <div className="mt-4 flex md:mt-0 md:ml-4">
@@ -2108,55 +2108,49 @@ export default function ContentUpload() {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-            <div className="p-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105 duration-300">
+            <div className="p-6">
               <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="bg-green-500 rounded-md p-3">
-                    <BookOpen className="h-6 w-6 text-white" />
-                  </div>
+                <div className="flex-shrink-0 bg-white bg-opacity-20 rounded-lg p-3">
+                  <BookOpen className="h-8 w-8 text-white" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate dark:text-gray-400">Total Courses</dt>
-                    <dd className="text-2xl font-semibold text-black dark:text-white">{totalCourses}</dd>
+                    <dt className="text-sm font-medium text-white text-opacity-80 truncate">Total Courses</dt>
+                    <dd className="text-3xl font-bold text-white">{totalCourses}</dd>
                   </dl>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-            <div className="p-5">
+          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105 duration-300">
+            <div className="p-6">
               <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="bg-blue-500 rounded-md p-3">
-                    <Headphones className="h-6 w-6 text-white" />
-                  </div>
+                <div className="flex-shrink-0 bg-white bg-opacity-20 rounded-lg p-3">
+                  <Headphones className="h-8 w-8 text-white" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate dark:text-gray-400">Podcasts</dt>
-                    <dd className="text-2xl font-semibold text-black dark:text-white">{totalPodcasts}</dd>
+                    <dt className="text-sm font-medium text-white text-opacity-80 truncate">Podcasts</dt>
+                    <dd className="text-3xl font-bold text-white">{totalPodcasts}</dd>
                   </dl>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-            <div className="p-5">
+          <div className="bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105 duration-300">
+            <div className="p-6">
               <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="bg-purple-500 rounded-md p-3">
-                    <FileText className="h-6 w-6 text-white" />
-                  </div>
+                <div className="flex-shrink-0 bg-white bg-opacity-20 rounded-lg p-3">
+                  <FileText className="h-8 w-8 text-white" />
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate dark:text-gray-400">Documents</dt>
-                    <dd className="text-2xl font-semibold text-black dark:text-white">{totalDocuments}</dd>
+                    <dt className="text-sm font-medium text-white text-opacity-80 truncate">Documents</dt>
+                    <dd className="text-3xl font-bold text-white">{totalDocuments}</dd>
                   </dl>
                 </div>
               </div>
@@ -2167,11 +2161,11 @@ export default function ContentUpload() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Add New Course Form */}
           <div className="lg:col-span-1">
-            <div className="bg-white shadow rounded-lg p-6 mb-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Add New Course</h3>
-              <div className="space-y-4">
+            <div className="bg-white shadow-xl rounded-xl p-6 mb-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 hover:shadow-2xl">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">Add New Course</h3>
+              <div className="space-y-5">
                 <div>
-                  <label htmlFor="course-title" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  <label htmlFor="course-title" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                     Course Title <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -2179,20 +2173,20 @@ export default function ContentUpload() {
                     id="course-title"
                     value={newCourseTitle}
                     onChange={(e) => setNewCourseTitle(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                     placeholder="Enter course title"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="course-level" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  <label htmlFor="course-level" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                     Course Level
                   </label>
                   <select
                     id="course-level"
                     value={newCourseLevel}
                     onChange={(e) => setNewCourseLevel(e.target.value as 'Basics' | 'Intermediate' | 'Advanced')}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                   >
                     <option value="Basics">Basic</option>
                     <option value="Intermediate">Intermediate</option>
@@ -2205,15 +2199,15 @@ export default function ContentUpload() {
 
                 {/* Add Course Description Field */}
                 <div>
-                  <label htmlFor="course-description" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  <label htmlFor="course-description" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                     Course Description
                   </label>
                   <textarea
                     id="course-description"
                     value={newCourseDescription}
                     onChange={(e) => setNewCourseDescription(e.target.value)}
-                    rows={3}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    rows={4}
+                    className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                     placeholder="Enter course description"
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -2221,14 +2215,15 @@ export default function ContentUpload() {
                   </p>
                 </div>
 
-                <div className="flex space-x-3">
+                <div className="flex space-x-4 pt-2">
                   <button
                     type="button"
                     onClick={() => {
                       setNewCourseTitle('');
                       setNewCourseLevel('Basics');
+                      setNewCourseDescription('');
                     }}
-                    className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black bg-gray-100 hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-purple-500"
+                    className="flex-1 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-black bg-gray-100 hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-purple-500 transition-all duration-200"
                   >
                     Clear
                   </button>
@@ -2236,7 +2231,7 @@ export default function ContentUpload() {
                     type="button"
                     onClick={handleCreateCourse}
                     disabled={!newCourseTitle.trim()}
-                    className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-700 dark:hover:bg-purple-600"
+                    className="flex-1 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gradient-to-r dark:from-purple-700 dark:to-indigo-700 dark:hover:from-purple-600 dark:hover:to-indigo-600 transition-all duration-200"
                   >
                     Add Course
                   </button>
@@ -2247,18 +2242,18 @@ export default function ContentUpload() {
 
           {/* Courses List */}
           <div className="lg:col-span-2">
-            <div className="bg-white shadow rounded-lg p-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Upload Content</h3>
-              <form className="space-y-4">
+            <div className="bg-white shadow-xl rounded-xl p-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 hover:shadow-2xl">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">Upload Content</h3>
+              <form className="space-y-5">
                 <div>
-                  <label htmlFor="course" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  <label htmlFor="course" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                     Select Course <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="course"
                     value={selectedCourse}
                     onChange={(e) => setSelectedCourse(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                   >
                     <option value="">Choose a course...</option>
                     {supabaseData.courses.map((course: any) => (
@@ -2270,14 +2265,14 @@ export default function ContentUpload() {
                 </div>
 
                 <div>
-                  <label htmlFor="content-type" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  <label htmlFor="content-type" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                     Content Type
                   </label>
                   <select
                     id="content-type"
                     value={contentType}
                     onChange={(e) => setContentType(e.target.value as 'audio' | 'video' | 'docs' | 'images' | 'templates' | 'quizzes')}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                   >
                     <option value="audio">Audio</option>
                     <option value="video">Video</option>
@@ -2302,7 +2297,7 @@ export default function ContentUpload() {
                 </div>
 
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  <label htmlFor="title" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                     Content Title <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -2310,28 +2305,28 @@ export default function ContentUpload() {
                     id="title"
                     value={contentTitle}
                     onChange={(e) => setContentTitle(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                     placeholder="Enter content title"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  <label htmlFor="description" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                     Description
                   </label>
                   <textarea
                     id="description"
-                    rows={3}
+                    rows={4}
                     value={contentDescription}
                     onChange={(e) => setContentDescription(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                     placeholder="Enter content description"
                   />
                 </div>
                 
                 {renderUploadForm()}
 
-                <div className="flex space-x-3">
+                <div className="flex space-x-4 pt-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -2341,7 +2336,7 @@ export default function ContentUpload() {
                       setYoutubeUrl('');
                       setSelectedCourse('');
                     }}
-                    className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black bg-gray-100 hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-purple-500"
+                    className="flex-1 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-black bg-gray-100 hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-purple-500 transition-all duration-200"
                   >
                     Clear
                   </button>
@@ -2356,7 +2351,7 @@ export default function ContentUpload() {
                       (contentType === 'video' && !youtubeUrl) || 
                       ((contentType === 'docs' || contentType === 'images' || contentType === 'templates' || contentType === 'quizzes') && !selectedFile)
                     }
-                    className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-700 dark:hover:bg-purple-600"
+                    className="flex-1 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gradient-to-r dark:from-purple-700 dark:to-indigo-700 dark:hover:from-purple-600 dark:hover:to-indigo-600 transition-all duration-200"
                   >
                     {isUploading ? 'Uploading...' : 'Upload'}
                   </button>
@@ -2372,35 +2367,35 @@ export default function ContentUpload() {
         </div>
 
         {/* Create Assignment Section */}
-        <div className="bg-white shadow rounded-lg p-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-6">Create Assignment</h3>
-          <p className="text-sm text-gray-700 mb-6 dark:text-gray-300">Assign Content to Organization and Set Learning Objectives</p>
+        <div className="bg-white shadow-xl rounded-xl p-6 border border-gray-200 dark:bg-gray-800 dark:border-gray-700 transition-all duration-300 hover:shadow-2xl">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 pb-2 border-b border-gray-200 dark:border-gray-700">Create Assignment</h3>
+          <p className="text-base text-gray-700 mb-6 dark:text-gray-300">Assign Content to Organization and Set Learning Objectives</p>
           
           <div className="space-y-6">
             <div>
-              <label htmlFor="assignment-title" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Assignment Title *
+              <label htmlFor="assignment-title" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                Assignment Title <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 id="assignment-title"
                 value={assignmentTitle}
                 onChange={(e) => setAssignmentTitle(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                 placeholder="Enter assignment title"
               />
             </div>
 
             <div>
-              <label htmlFor="assignment-description" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+              <label htmlFor="assignment-description" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                 Assignment Description
               </label>
               <textarea
                 id="assignment-description"
-                rows={3}
+                rows={4}
                 value={assignmentDescription}
                 onChange={(e) => setAssignmentDescription(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                 placeholder="Enter assignment description and learning objectives"
               />
             </div>
@@ -2408,14 +2403,14 @@ export default function ContentUpload() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {/* Select Company */}
               <div>
-                <label htmlFor="company" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                  Select Company *
+                <label htmlFor="company" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                  Select Company <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="company"
                   value={selectedCompanyId}
                   onChange={(e) => setSelectedCompanyId(e.target.value)}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                 >
                   <option value="">Choose a company...</option>
                   {supabaseData.companies?.map((company: any) => (
@@ -2428,14 +2423,14 @@ export default function ContentUpload() {
 
               {/* Select Admin */}
               <div>
-                <label htmlFor="admin" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                <label htmlFor="admin" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
                   Select Admin
                 </label>
                 <select
                   id="admin"
                   value={selectedAdminId}
                   onChange={(e) => setSelectedAdminId(e.target.value)}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                   disabled={!selectedCompanyId}
                 >
                   <option value="">Choose an admin...</option>
@@ -2451,14 +2446,14 @@ export default function ContentUpload() {
 
               {/* Select Course for Assignment */}
               <div>
-                <label htmlFor="assignment-course" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                  Select Course *
+                <label htmlFor="assignment-course" className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                  Select Course <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="assignment-course"
                   value={assignmentSelectedCourse}
                   onChange={(e) => setAssignmentSelectedCourse(e.target.value)}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-100 text-black dark:border-gray-600 dark:focus:ring-purple-500 dark:bg-gray-700 dark:text-white transition-all duration-200"
                   disabled={!selectedCompanyId}
                 >
                   <option value="">Choose a course...</option>
@@ -2474,53 +2469,53 @@ export default function ContentUpload() {
 
               {/* Select Content */}
               <div>
-                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                  Select Content *
+                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                  Select Content <span className="text-red-500">*</span>
                 </label>
-                <div className="border border-gray-300 rounded-md bg-gray-100 max-h-64 overflow-y-auto dark:border-gray-600 dark:bg-gray-700">
+                <div className="border border-gray-300 rounded-lg bg-gray-100 max-h-64 overflow-y-auto dark:border-gray-600 dark:bg-gray-700">
                   {courseHierarchy.filter(course => !assignmentSelectedCourse || course.id === assignmentSelectedCourse).length > 0 ? (
-                    <div className="divide-y divide-[#333333]">
+                    <div className="divide-y divide-gray-200 dark:divide-gray-600">
                       {courseHierarchy.map((course) => (
-                        <div key={course.id} className="border-b border-gray-300 dark:border-gray-600">
+                        <div key={course.id} className="border-b border-gray-200 dark:border-gray-600">
                           {/* Course Header */}
                           <div 
-                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-white dark:hover:bg-gray-800"
+                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-white dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
                             onClick={() => toggleAssignmentCourseExpansion(course.id)}
                           >
                             <div className="flex items-center">
-                              <div className="mr-2">
+                              <div className="mr-3">
                                 {assignmentExpandedCourses[course.id] ? (
-                                  <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                  <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                                 ) : (
-                                  <ChevronRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                  <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                                 )}
                               </div>
-                              <BookOpen className="h-4 w-4 text-purple-600 mr-2" />
-                              <span className="text-sm font-medium text-gray-900 dark:text-white">{course.title}</span>
+                              <BookOpen className="h-5 w-5 text-purple-600 mr-3" />
+                              <span className="text-base font-semibold text-gray-900 dark:text-white">{course.title}</span>
                             </div>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
                               {course.totalContent} items
                             </span>
                           </div>
                           
                           {/* Course Content */}
                           {assignmentExpandedCourses[course.id] && (
-                            <div className="pl-6 pr-3 pb-3">
+                            <div className="pl-8 pr-4 pb-4">
                               {/* Podcasts Section */}
                               {course.coursePodcasts.length > 0 && (
-                                <div className="mb-3">
-                                  <h5 className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-2 flex items-center">
-                                    <Headphones className="h-3 w-3 mr-1" />
+                                <div className="mb-4">
+                                  <h5 className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-3 flex items-center">
+                                    <Headphones className="h-4 w-4 mr-2" />
                                     Podcasts ({course.coursePodcasts.length})
                                   </h5>
-                                  <div className="space-y-1 ml-3">
+                                  <div className="space-y-2 ml-2">
                                     {course.coursePodcasts.map((podcast) => {
                                       const isSelected = selectedCourses.includes(podcast.id);
                                       return (
                                         <div
                                           key={podcast.id}
-                                          className={`flex items-center p-1 rounded cursor-pointer transition-colors ${
-                                            isSelected ? 'bg-blue-900/30' : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                                          className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                                            isSelected ? 'bg-purple-100 dark:bg-purple-900/30 border border-purple-300 dark:border-purple-700' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                                           }`}
                                           onClick={() => {
                                             setSelectedCourses(prev => 
@@ -2534,10 +2529,10 @@ export default function ContentUpload() {
                                             type="checkbox"
                                             checked={isSelected}
                                             onChange={() => {}}
-                                            className="h-3 w-3 text-blue-600 mr-2"
+                                            className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"
                                           />
-                                          <Music className="h-3 w-3 text-purple-600 mr-1" />
-                                          <span className="text-xs text-gray-900 dark:text-white">{podcast.title}</span>
+                                          <Music className="h-4 w-4 text-purple-600 ml-3 mr-2" />
+                                          <span className="text-sm text-gray-900 dark:text-white">{podcast.title}</span>
                                         </div>
                                       );
                                     })}
@@ -2547,19 +2542,19 @@ export default function ContentUpload() {
                               
                               {/* Documents Section */}
                               {course.coursePDFs.length > 0 && (
-                                <div className="mb-3">
-                                  <h5 className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-2 flex items-center">
-                                    <FileText className="h-3 w-3 mr-1" />
+                                <div className="mb-4">
+                                  <h5 className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-3 flex items-center">
+                                    <FileText className="h-4 w-4 mr-2" />
                                     Documents ({course.coursePDFs.length})
                                   </h5>
-                                  <div className="space-y-1 ml-3">
+                                  <div className="space-y-2 ml-2">
                                     {course.coursePDFs.map((pdf) => {
                                       const isSelected = selectedCourses.includes(pdf.id);
                                       return (
                                         <div
                                           key={pdf.id}
-                                          className={`flex items-center p-1 rounded cursor-pointer transition-colors ${
-                                            isSelected ? 'bg-purple-900/30' : 'bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                                          className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                                            isSelected ? 'bg-purple-100 dark:bg-purple-900/30 border border-purple-300 dark:border-purple-700' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                                           }`}
                                           onClick={() => {
                                             setSelectedCourses(prev => 
@@ -2573,10 +2568,10 @@ export default function ContentUpload() {
                                             type="checkbox"
                                             checked={isSelected}
                                             onChange={() => {}}
-                                            className="h-3 w-3 text-purple-600 mr-2"
+                                            className="h-4 w-4 text-purple-600 rounded focus:ring-purple-500"
                                           />
-                                          <FileText className="h-3 w-3 text-purple-500 mr-1" />
-                                          <span className="text-xs text-gray-900 dark:text-white">{pdf.title}</span>
+                                          <FileText className="h-4 w-4 text-purple-500 ml-3 mr-2" />
+                                          <span className="text-sm text-gray-900 dark:text-white">{pdf.title}</span>
                                         </div>
                                       );
                                     })}
@@ -2585,7 +2580,7 @@ export default function ContentUpload() {
                               )}
                               
                               {course.totalContent === 0 && (
-                                <p className="text-center text-gray-500 py-2 text-xs dark:text-gray-400">No content available</p>
+                                <p className="text-center text-gray-500 py-3 text-sm dark:text-gray-400">No content available</p>
                               )}
                             </div>
                           )}
@@ -2593,20 +2588,20 @@ export default function ContentUpload() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-4 text-gray-500 text-sm dark:text-gray-400">
+                    <div className="text-center py-6 text-gray-500 text-base dark:text-gray-400">
                       {assignmentSelectedCourse ? 'No content available for selected course' : 'No content available. Upload content first.'}
                     </div>
                   )}
                 </div>
                 {selectedCourses.length > 0 && (
-                  <p className="mt-2 text-sm text-purple-600 dark:text-purple-400">
+                  <p className="mt-3 text-sm text-purple-600 dark:text-purple-400">
                     {selectedCourses.length} item(s) selected
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="flex space-x-3 pt-4">
+            <div className="flex space-x-4 pt-4">
               <button
                 type="button"
                 onClick={() => {
@@ -2617,7 +2612,7 @@ export default function ContentUpload() {
                   setAssignmentSelectedCourse('');
                   setSelectedCourses([]);
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black bg-gray-100 hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-purple-500"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-black bg-gray-100 hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:border-gray-600 dark:text-white dark:bg-gray-700 dark:hover:bg-gray-800 dark:focus:ring-purple-500 transition-all duration-200"
               >
                 Clear
               </button>
@@ -2625,7 +2620,7 @@ export default function ContentUpload() {
                 type="button"
                 onClick={handleCreateAssignment}
                 disabled={!assignmentTitle || !selectedCompanyId || selectedCourses.length === 0}
-                className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-purple-700 dark:hover:bg-purple-600"
+                className="flex-1 px-4 py-3 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gradient-to-r dark:from-purple-700 dark:to-indigo-700 dark:hover:from-purple-600 dark:hover:to-indigo-600 transition-all duration-200"
               >
                 Create Assignment
               </button>

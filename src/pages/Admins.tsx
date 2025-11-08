@@ -316,10 +316,14 @@ export default function Admins() {
             <div className="flex space-x-2">
               <button
                 onClick={() => window.history.back()}
-                className="flex items-center px-4 py-2 bg-white text-black rounded-lg hover:bg-gray-100 border border-gray-200 transition-colors dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:border-gray-700"
+                className="custom-button"
               >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Back
+                <span className="shadow"></span>
+                <span className="edge"></span>
+                <span className="front">
+                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  <span>Back</span>
+                </span>
               </button>
               <button
                 onClick={() => setIsAddModalOpen(true)}
