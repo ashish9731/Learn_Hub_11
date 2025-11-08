@@ -745,12 +745,30 @@ export async function generateQuizFromDocument(
         description: 'Automatically generated quiz from document',
         created_at: new Date().toISOString()
       })
-      .select()
+      .select('id')
       .single();
 
-    if (quizError) throw quizError;
+    if (quizError || !quizInsert?.id) {
+      console.error('Failed to create quiz:', quizError);
+      return null;
+    }
 
     const courseQuizId = quizInsert.id;
+
+    // Verify quiz exists before inserting questions
+    const { data: verify, error: verifyError } = await supabaseClient
+      .from('course_quizzes')
+      .select('id')
+      .eq('id', courseQuizId)
+      .single();
+
+    if (verifyError || !verify) {
+      console.error('Quiz verification failed:', verifyError);
+      return null;
+    }
+
+    // Add a small delay to ensure consistency
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     for (const match of matches) {
       const [, qNum, questionText, a, b, c, d, correctLetter, explanation] = match;
@@ -763,15 +781,19 @@ export async function generateQuizFromDocument(
           question_text: questionText.trim(),
           difficulty: 'medium'
         })
-        .select()
+        .select('id')
         .single();
 
-      if (qErr) {
+      if (qErr || !questionData?.id) {
         console.error(`Error inserting question ${qNum}:`, qErr);
         continue;
       }
 
       const qid = questionData.id;
+      
+      // Add a small delay to ensure consistency
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       const options = [
         { key: 'a', text: a },
         { key: 'b', text: b },
@@ -781,12 +803,16 @@ export async function generateQuizFromDocument(
 
       for (const opt of options) {
         const isCorrect = opt.key.toLowerCase() === correctLetter.toLowerCase();
-        await supabaseClient.from('quiz_answers').insert({
+        const { error: answerError } = await supabaseClient.from('quiz_answers').insert({
           question_id: qid,
           answer_text: opt.text.trim(),
           is_correct: isCorrect,
           explanation: isCorrect ? explanation.trim() : ''
         });
+        
+        if (answerError) {
+          console.error(`Error inserting answer for question ${qNum}, option ${opt.key}:`, answerError);
+        }
       }
     }
 
