@@ -113,7 +113,6 @@ export default function CourseDetail() {
   const [quizCategoryName, setQuizCategoryName] = useState<string | null>(null);
   const [showFinalQuiz, setShowFinalQuiz] = useState(false);
   const [allModulesCompleted, setAllModulesCompleted] = useState(false);
-  const [videoViewMode, setVideoViewMode] = useState<'list' | 'tile'>('list');
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [quizResults, setQuizResults] = useState<{ passed: boolean; score: number; totalQuestions?: number; correctAnswers?: number } | null>(null);
   const [userName, setUserName] = useState<string>('');
@@ -925,32 +924,11 @@ export default function CourseDetail() {
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-semibold text-white">Video Content</h2>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setVideoViewMode('list')}
-                      className={`px-3 py-1 rounded-md text-sm ${
-                        videoViewMode === 'list'
-                          ? 'bg-blue-700 text-white'
-                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                      }`}
-                    >
-                      List View
-                    </button>
-                    <button
-                      onClick={() => setVideoViewMode('tile')}
-                      className={`px-3 py-1 rounded-md text-sm ${
-                        videoViewMode === 'tile'
-                          ? 'bg-blue-700 text-white'
-                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                      }`}
-                    >
-                      Tile View
-                    </button>
-                  </div>
+                  {/* Removed list view and tile view options as requested */}
                 </div>
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Video List - Left Side */}
-                  <div className={currentPodcast && currentPodcast.is_youtube_video ? "lg:w-1/2" : "w-full"}>
+                  <div className="w-full">
                     {(() => {
                       const assignedPodcasts = getAssignedPodcasts().filter(p => p.is_youtube_video);
                       console.log('Rendering video tab, assigned podcasts count:', assignedPodcasts.length);
@@ -1002,11 +980,6 @@ export default function CourseDetail() {
                             </div>
                           );
                       })()}
-                      {/* Complete Module Button for Video - Only show if there are video files and not all are completed */}
-                      {/*
-                      Removed the "Mark All Video Modules Complete" button as per user request
-                      This button was forcing completion without actual playback
-                      */}
                   </div>
                   
                   {/* Video Player - Right Side */}
