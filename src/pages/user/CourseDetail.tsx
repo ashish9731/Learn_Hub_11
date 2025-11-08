@@ -1058,8 +1058,8 @@ export default function CourseDetail() {
                                 <button
                                   onClick={() => {
                                     // Open PDF in embedded viewer to prevent download
-                                    const viewerUrl = `/pdf-viewer?url=${encodeURIComponent(pdf.pdf_url)}&title=${encodeURIComponent(pdf.title)}`;
-                                    window.open(viewerUrl, '_blank', 'width=800,height=600');
+                                    // Use the direct URL for Supabase storage objects
+                                    window.open(pdf.pdf_url, '_blank');
                                   }}
                                   className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                                   // Prevent right-click and download
@@ -1127,8 +1127,8 @@ export default function CourseDetail() {
                             <button
                               onClick={() => {
                                 // Open image in embedded viewer to prevent download
-                                const viewerUrl = `/image-viewer?url=${encodeURIComponent(pdf.pdf_url)}&title=${encodeURIComponent(pdf.title)}`;
-                                window.open(viewerUrl, '_blank', 'width=800,height=600');
+                                // Use the direct URL for Supabase storage objects
+                                window.open(pdf.pdf_url, '_blank');
                               }}
                               className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                               // Prevent right-click and download
