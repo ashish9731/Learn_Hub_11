@@ -1030,8 +1030,15 @@ export default function CourseDetail() {
                                 </p>
                                 <button
                                   onClick={() => {
-                                    // Use the direct URL for Supabase storage objects
-                                    window.open(pdf.pdf_url, '_blank');
+                                    // Use Supabase URL with inline content disposition to force browser preview
+                                    let url = pdf.pdf_url;
+                                    if (url && url.includes('supabase')) {
+                                      // Add response-content-disposition=inline parameter to force browser preview
+                                      if (!url.includes('response-content-disposition')) {
+                                        url = url + (url.includes('?') ? '&' : '?') + 'response-content-disposition=inline';
+                                      }
+                                    }
+                                    window.open(url, '_blank');
                                   }}
                                   className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                                   // Prevent right-click and download
