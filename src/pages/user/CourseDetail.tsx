@@ -1030,8 +1030,17 @@ export default function CourseDetail() {
                                 </p>
                                 <button
                                   onClick={() => {
-                                    // Open PDF directly in browser tab with security measures
-                                    window.open(pdf.pdf_url, '_blank');
+                                    // Open PDF directly in browser tab with proper URL handling
+                                    const url = pdf.pdf_url;
+                                    // Ensure the URL is properly formatted for browser viewing
+                                    if (url) {
+                                      // Open in new tab with noreferrer for security
+                                      const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+                                      if (newWindow) {
+                                        newWindow.opener = null;
+                                        newWindow.focus();
+                                      }
+                                    }
                                   }}
                                   className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                                   // Prevent right-click and download
@@ -1098,8 +1107,17 @@ export default function CourseDetail() {
                             <p className="text-xs text-gray-400 mb-2">Image</p>
                             <button
                               onClick={() => {
-                                // Open image directly in browser tab with security measures
-                                window.open(pdf.pdf_url, '_blank');
+                                // Open image directly in browser tab with proper URL handling
+                                const url = pdf.pdf_url;
+                                // Ensure the URL is properly formatted for browser viewing
+                                if (url) {
+                                  // Open in new tab with noreferrer for security
+                                  const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+                                  if (newWindow) {
+                                    newWindow.opener = null;
+                                    newWindow.focus();
+                                  }
+                                }
                               }}
                               className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                               // Prevent right-click and download
