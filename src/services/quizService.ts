@@ -89,8 +89,9 @@ function parseQuizFromDocument(documentContent: string): any[] {
       const line = lines[i];
       const trimmedLine = line.trim();
       
-      // Look for question pattern (e.g., "1. What is the capital of France?")
-      const questionMatch = trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/);
+      // Look for question pattern (e.g., "Question 1: What is the capital of France?")
+      // Also match your format: "Question 1: What is the primary aim of coaching in the workplace?"
+      const questionMatch = trimmedLine.match(/^(?:Question\s*)?(\d+)[\.\-\):]?\s*(.+)$/i);
       if (questionMatch) {
         // Save previous question if exists
         if (currentQuestion && currentAnswers.length >= 2) {
@@ -139,12 +140,34 @@ function parseQuizFromDocument(documentContent: string): any[] {
         console.log('Found question:', questionNumber, currentQuestion);
       } 
       // Look for answer options with various formats (e.g., "a) Paris", "(b) London", "c. Berlin")
-      else if (currentQuestion && trimmedLine.match(/^[\(\[]?[a-dA-D][\.\)\]]?\s*(.+)$/)) {
-        const answerMatch = trimmedLine.match(/^[\(\[]?([a-dA-D])[\.\)\]]?\s*(.+)$/);
+      // Also handle your format where answers might be on the same line
+      else if (currentQuestion && (trimmedLine.match(/^[\(\[]?[a-dA-D][\.\)\]]?\s*(.+)$/) || 
+               trimmedLine.match(/^([a-dA-D])[\.\)]\s*(.+)$/))) {
+        const answerMatch = trimmedLine.match(/^[\(\[]?([a-dA-D])[\.\)\]]?\s*(.+)$/) || 
+                           trimmedLine.match(/^([a-dA-D])[\.\)]\s*(.+)$/);
         if (answerMatch) {
           const letter = answerMatch[1].toUpperCase();
           const answerText = answerMatch[2].trim();
           console.log('Found answer option:', letter, answerText);
+          currentAnswers.push({
+            answer_text: answerText,
+            is_correct: false,
+            explanation: ''
+          });
+          inAnswerSection = true;
+        }
+      }
+      // Handle your specific format where all answers might be on consecutive lines without "Question" prefix
+      else if (currentQuestion && !trimmedLine.toLowerCase().startsWith('answer:') && 
+               !trimmedLine.toLowerCase().startsWith('correct answer:') &&
+               !trimmedLine.toLowerCase().startsWith('solution:') &&
+               !trimmedLine.toLowerCase().startsWith('explanation:') &&
+               trimmedLine.match(/^[a-dA-D][\.\)]\s*.+$/)) {
+        const answerMatch = trimmedLine.match(/^([a-dA-D])[\.\)]\s*(.+)$/);
+        if (answerMatch) {
+          const letter = answerMatch[1].toUpperCase();
+          const answerText = answerMatch[2].trim();
+          console.log('Found inline answer option:', letter, answerText);
           currentAnswers.push({
             answer_text: answerText,
             is_correct: false,
@@ -205,7 +228,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
       }
       // Continue explanation text
       else if (collectingExplanation && trimmedLine !== '' && 
-               !trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/)) {
+               !trimmedLine.match(/^(?:Question\s*)?(\d+)[\.\-\):]?\s*(.+)$/i)) {
         // Append to the explanation buffer
         if (explanationBuffer) {
           explanationBuffer += ' ' + trimmedLine;
@@ -216,7 +239,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
       }
       // Stop collecting explanation when we hit a new question or answer section
       else if (collectingExplanation && 
-               (trimmedLine.match(/^(\d+)[\.\-\)]\s*(.+)$/) || 
+               (trimmedLine.match(/^(?:Question\s*)?(\d+)[\.\-\):]?\s*(.+)$/i) || 
                 trimmedLine.toLowerCase().startsWith('answer:') ||
                 trimmedLine.toLowerCase().startsWith('correct answer:') ||
                 trimmedLine.toLowerCase().startsWith('solution:') ||
@@ -263,16 +286,123 @@ function parseQuizFromDocument(documentContent: string): any[] {
       console.log('Added final question:', currentQuestion, 'with', currentAnswers.length, 'answers');
     }
     
-    // If we still have no questions, return empty array rather than default questions
+    // If we still have no questions, try a more flexible parsing approach
     if (questions.length === 0) {
-      console.log('No questions parsed from document content');
-      return [];
+      console.log('No questions parsed with standard approach, trying flexible parsing...');
+      return parseQuizFlexible(documentContent);
     }
     
     console.log('Parsed', questions.length, 'questions from document text');
     return questions;
   } catch (error) {
     console.error('Error parsing quiz from document:', error);
+    return [];
+  }
+}
+
+/**
+ * Flexible parsing approach for various quiz formats
+ * @param documentContent The content extracted from the uploaded quiz document
+ * @returns Array of quiz questions parsed from the document
+ */
+function parseQuizFlexible(documentContent: string): any[] {
+  try {
+    console.log('Using flexible parsing approach');
+    
+    // Split content into blocks by double newlines or "Question" markers
+    const separatorRegex = new RegExp('\\n\\s*\\n\\s*\\n|\\n\\s*Question\\s*\\d+\\s*:', 'i');
+    const blocks = documentContent.split(separatorRegex);
+    const questions: any[] = [];
+    
+    for (const block of blocks) {
+      const trimmedBlock = block.trim();
+      if (!trimmedBlock) continue;
+      
+      // Try to extract question and answers from each block
+      const lines = trimmedBlock.split('\n').map(line => line.trim()).filter(line => line);
+      
+      if (lines.length < 3) continue; // Need at least question + 2 answers
+      
+      // Extract question (first line that doesn't look like an answer)
+      let questionText = '';
+      let answerLines: string[] = [];
+      let explanation = '';
+      let correctAnswer = '';
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        // If line looks like an answer option, it's the start of answers
+        if (line.match(/^[a-dA-D][\.\)]\s*.+$/)) {
+          questionText = lines.slice(0, i).join(' ');
+          answerLines = lines.slice(i);
+          break;
+        }
+      }
+      
+      // If we couldn't separate question from answers, skip this block
+      if (!questionText || answerLines.length < 2) continue;
+      
+      // Extract answers and correct answer
+      const answers: Array<{answer_text: string, is_correct: boolean, explanation: string}> = [];
+      let correctAnswerLetter = '';
+      
+      for (const line of answerLines) {
+        // Look for answer options
+        const answerMatch = line.match(/^([a-dA-D])[\.\)]\s*(.+)$/);
+        if (answerMatch) {
+          const letter = answerMatch[1].toUpperCase();
+          const answerText = answerMatch[2].trim();
+          
+          // Look for "Answer: X" or "Correct Answer: X" in the remaining lines
+          for (let j = 0; j < answerLines.length; j++) {
+            const checkLine = answerLines[j].toLowerCase();
+            if (checkLine.startsWith('answer:') || checkLine.startsWith('correct answer:')) {
+              const answerValueMatch = checkLine.match(/[:\s]([a-dA-D])[\.\)]?/);
+              if (answerValueMatch) {
+                correctAnswerLetter = answerValueMatch[1].toUpperCase();
+                // Look for explanation after the answer line
+                if (j + 1 < answerLines.length) {
+                  explanation = answerLines.slice(j + 1).join(' ');
+                }
+                break;
+              }
+            }
+          }
+          
+          answers.push({
+            answer_text: answerText,
+            is_correct: letter === correctAnswerLetter,
+            explanation: explanation || ''
+          });
+        }
+      }
+      
+      // If we found valid answers, add the question
+      if (answers.length >= 2 && answers.some(a => a.is_correct)) {
+        questions.push({
+          question_text: questionText,
+          question_type: 'multiple_choice',
+          difficulty: 'medium',
+          answers: answers
+        });
+        console.log('Added question via flexible parsing:', questionText);
+      } else if (answers.length >= 2) {
+        // If no correct answer marked, default to first answer
+        answers[0].is_correct = true;
+        questions.push({
+          question_text: questionText,
+          question_type: 'multiple_choice',
+          difficulty: 'medium',
+          answers: answers
+        });
+        console.log('Added question via flexible parsing (default first answer):', questionText);
+      }
+    }
+    
+    console.log('Flexible parsing found', questions.length, 'questions');
+    return questions;
+  } catch (error) {
+    console.error('Error in flexible parsing:', error);
     return [];
   }
 }
