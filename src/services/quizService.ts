@@ -391,7 +391,7 @@ function parseQuizFlexible(documentContent: string): any[] {
           
           answers.push({
             answer_text: answerText,
-            is_correct: letter === correctAnswerLetter,
+            is_correct: false,
             explanation: '' // Will be filled later
           });
         }
@@ -481,72 +481,68 @@ function parseSpecialFormat(documentContent: string): any[] {
     console.log('Using special format parsing');
     const questions: any[] = [];
     
-    // Split by "Question" markers
-    const questionBlocks = documentContent.split(/(?=Question \d+:)/i).filter(block => block.trim());
+    // Use a more precise regex pattern similar to the Python code that works
+    // This pattern matches the exact structure of your quiz format:
+    // Question X: question text
+    // a) option A
+    // b) option B
+    // c) option C
+    // d) option D
+    // Answer: X
+    // Explanation: explanation text
+    const pattern = new RegExp(
+      "Question\\s*(\\d+):\\s*(.*?)\\s*\\n" +
+      "\\s*a\\)\\s*(.*?)\\s*\\n" +
+      "\\s*b\\)\\s*(.*?)\\s*\\n" +
+      "\\s*c\\)\\s*(.*?)\\s*\\n" +
+      "\\s*d\\)\\s*(.*?)\\s*\\n" +
+      "\\s*Answer:\\s*([a-d])\\s*\\n" +
+      "\\s*Explanation:\\s*(.*?)(?=\\s*\\n\\s*Question\\s*\\d+:|\\s*$)",
+      "gs"
+    );
     
-    for (const block of questionBlocks) {
-      const trimmedBlock = block.trim();
-      if (!trimmedBlock) continue;
+    let match;
+    while ((match = pattern.exec(documentContent)) !== null) {
+      const [, qNum, question, a, b, c, d, answer, explanation] = match;
       
-      // Extract question text
-      const questionMatch = trimmedBlock.match(/Question \d+:\s*(.+?)(?=\n[a-dA-D][\.\)]|[a-dA-D][\.\)]|$)/is);
-      if (!questionMatch) continue;
-      
-      const questionText = questionMatch[1].trim();
-      
-      // Extract answers
-      const answers: Array<{answer_text: string, is_correct: boolean, explanation: string}> = [];
-      const answerMatches = [...trimmedBlock.matchAll(/^([a-dA-D])[\.\)]\s*(.+)$/gm)];
-      
-      for (const match of answerMatches) {
-        const letter = match[1].toUpperCase();
-        const answerText = match[2].trim();
-        
-        answers.push({
-          answer_text: answerText,
-          is_correct: false, // Will be set later
+      // Create answers array
+      const answers: Array<{answer_text: string, is_correct: boolean, explanation: string}> = [
+        {
+          answer_text: a.trim(),
+          is_correct: answer.trim().toLowerCase() === 'a',
           explanation: ''
-        });
-      }
-      
-      if (answers.length < 2) continue;
-      
-      // Extract correct answer
-      const answerMatch = trimmedBlock.match(/Answer:\s*([a-dA-D])/i);
-      if (answerMatch) {
-        const correctLetter = answerMatch[1].toUpperCase();
-        const correctAnswer = answers.find(a => a.answer_text.charAt(0).toUpperCase() === correctLetter);
-        if (correctAnswer) {
-          correctAnswer.is_correct = true;
-        } else {
-          // Fallback: mark first answer as correct
-          answers[0].is_correct = true;
+        },
+        {
+          answer_text: b.trim(),
+          is_correct: answer.trim().toLowerCase() === 'b',
+          explanation: ''
+        },
+        {
+          answer_text: c.trim(),
+          is_correct: answer.trim().toLowerCase() === 'c',
+          explanation: ''
+        },
+        {
+          answer_text: d.trim(),
+          is_correct: answer.trim().toLowerCase() === 'd',
+          explanation: ''
         }
-      } else {
-        // Default to first answer
-        answers[0].is_correct = true;
-      }
+      ];
       
-      // Extract explanation
-      const explanationMatch = trimmedBlock.match(/Explanation:\s*(.+?)(?=\n\n|$)/is);
-      if (explanationMatch) {
-        const explanationText = explanationMatch[1].trim();
-        // Assign to correct answer or first answer
-        const correctAnswer = answers.find(a => a.is_correct);
-        if (correctAnswer) {
-          correctAnswer.explanation = explanationText;
-        } else {
-          answers[0].explanation = explanationText;
-        }
+      // Assign explanation to the correct answer
+      const correctAnswerIndex = ['a', 'b', 'c', 'd'].indexOf(answer.trim().toLowerCase());
+      if (correctAnswerIndex >= 0 && correctAnswerIndex < answers.length) {
+        answers[correctAnswerIndex].explanation = explanation.trim();
       }
       
       questions.push({
-        question_text: questionText,
+        question_text: question.trim(),
         question_type: 'multiple_choice',
         difficulty: 'medium',
         answers: answers
       });
-      console.log('Added question via special format parsing:', questionText);
+      
+      console.log('Added question via special format parsing:', question.trim());
     }
     
     console.log('Special format parsing found', questions.length, 'questions');
