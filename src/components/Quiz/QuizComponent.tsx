@@ -579,6 +579,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                     </div>
                   </div>
                 )}
+                
               </div>
             </div>
           )}
