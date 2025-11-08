@@ -1030,12 +1030,22 @@ export default function CourseDetail() {
                                 </p>
                                 <button
                                   onClick={() => {
-                                    // Open PDF directly in browser with preview parameters
+                                    // Try different approaches to force browser preview
                                     const url = pdf.pdf_url;
                                     if (url) {
-                                      // Try to force browser preview by opening in a new tab
-                                      // Some browsers may still download based on content-type headers
-                                      window.open(url, '_blank');
+                                      // Method 1: Try with preview parameters
+                                      let previewUrl = url;
+                                      
+                                      // If it's a Supabase URL, try adding response headers
+                                      if (url.includes('supabase')) {
+                                        // Try to force inline content disposition
+                                        if (!url.includes('response-content-disposition')) {
+                                          previewUrl = url + (url.includes('?') ? '&' : '?') + 'response-content-disposition=inline';
+                                        }
+                                      }
+                                      
+                                      // Open in new tab
+                                      window.open(previewUrl, '_blank');
                                     }
                                   }}
                                   className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
