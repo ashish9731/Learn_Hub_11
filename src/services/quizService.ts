@@ -28,10 +28,10 @@ interface QuizQuestion {
  * @param documentContent The content extracted from the uploaded quiz document
  * @returns Array of quiz questions parsed from the document
  */
-function parseQuizFromDocument(documentContent: string): any[] {
+export function parseQuizFromDocument(documentContent: string): any[] {
   try {
     console.log('Parsing quiz from document content length:', documentContent.length);
-    console.log('Document content preview:', documentContent.substring(0, 500) + '...');
+    console.log('Document content preview:', documentContent.substring(0, 200) + '...');
     
     // Handle empty or whitespace-only content
     if (!documentContent || documentContent.trim().length === 0) {
@@ -44,7 +44,7 @@ function parseQuizFromDocument(documentContent: string): any[] {
       const jsonData = JSON.parse(documentContent);
       if (Array.isArray(jsonData)) {
         // Validate that it's in the correct format
-        const validQuestions = jsonData.filter(question => 
+        const validQuestions = jsonData.filter((question: any) => 
           question.question_text && 
           Array.isArray(question.answers) && 
           question.answers.length >= 2 && // At least 2 answers
@@ -489,7 +489,7 @@ function parseSpecialFormat(documentContent: string): any[] {
       if (!trimmedBlock) continue;
       
       // Extract question text
-      const questionMatch = trimmedBlock.match(/Question \d+:\s*(.+?)(?=[a-dA-D][\.\)]|$)/is);
+      const questionMatch = trimmedBlock.match(/Question \d+:\s*(.+?)(?=\n[a-dA-D][\.\)]|[a-dA-D][\.\)]|$)/is);
       if (!questionMatch) continue;
       
       const questionText = questionMatch[1].trim();
@@ -515,10 +515,7 @@ function parseSpecialFormat(documentContent: string): any[] {
       const answerMatch = trimmedBlock.match(/Answer:\s*([a-dA-D])/i);
       if (answerMatch) {
         const correctLetter = answerMatch[1].toUpperCase();
-        const correctAnswer = answers.find(a => a.answer_text.startsWith(correctLetter + ')') || 
-                                                a.answer_text.startsWith(correctLetter + '.') ||
-                                                // Check if the answer letter matches
-                                                a.answer_text.charAt(0).toUpperCase() === correctLetter);
+        const correctAnswer = answers.find(a => a.answer_text.charAt(0).toUpperCase() === correctLetter);
         if (correctAnswer) {
           correctAnswer.is_correct = true;
         } else {
