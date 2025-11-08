@@ -22,13 +22,15 @@ interface QuizComponentProps {
   isFinalQuiz: boolean;
   isDocumentQuiz: boolean;
   onComplete: (passed: boolean, score: number, totalQuestions: number, correctAnswers: number) => void;
+  autoStart?: boolean; // Add autoStart prop
 }
 
 const QuizComponent: React.FC<QuizComponentProps> = ({
   courseId,
   isFinalQuiz = true,
   isDocumentQuiz = true,
-  onComplete
+  onComplete,
+  autoStart = false // Default to false
 }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -405,6 +407,14 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
       alert("Failed to calculate quiz results");
     }
   };
+
+  // Auto-start quiz if autoStart prop is true
+  useEffect(() => {
+    if (autoStart && showStartButton && !isLoading) {
+      console.log('Auto-starting quiz due to autoStart prop');
+      startQuiz();
+    }
+  }, [autoStart, showStartButton, isLoading]);
 
   // Show start button initially
   if (showStartButton) {

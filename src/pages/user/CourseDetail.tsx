@@ -317,7 +317,7 @@ export default function CourseDetail() {
 
         // Load categories for this course
         const { data: categoriesData, error: categoriesError } = await supabase
-          .from('content-categories')
+          .from('content_categories')
           .select('*')
           .eq('course_id', courseId);
 
@@ -1249,6 +1249,7 @@ export default function CourseDetail() {
                     isFinalQuiz={true}
                     isDocumentQuiz={getAssignedPDFs('quizzes').length > 0}
                     onComplete={handleQuizComplete}
+                    autoStart={getAssignedPDFs('quizzes').length > 0} // Auto-start if quiz documents are available
                   />
                 ) : (
                   <div className="space-y-4">
