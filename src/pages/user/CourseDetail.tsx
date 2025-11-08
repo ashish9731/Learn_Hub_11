@@ -1055,16 +1055,13 @@ export default function CourseDetail() {
                                 <p className="text-xs text-gray-400 mb-3">
                                   {(pdf && pdf.content_type === 'docs') ? 'PDF Document' : 'Template/Document'}
                                 </p>
-                                <a 
-                                  href={pdf.pdf_url} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer" 
-                                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    // Open in new window/tab for view-only
-                                    window.open(pdf.pdf_url, '_blank');
+                                <button
+                                  onClick={() => {
+                                    // Open PDF in embedded viewer to prevent download
+                                    const viewerUrl = `/pdf-viewer?url=${encodeURIComponent(pdf.pdf_url)}&title=${encodeURIComponent(pdf.title)}`;
+                                    window.open(viewerUrl, '_blank', 'width=800,height=600');
                                   }}
+                                  className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                                   // Prevent right-click and download
                                   onContextMenu={(e) => e.preventDefault()}
                                   // Additional attributes to prevent download
@@ -1072,7 +1069,7 @@ export default function CourseDetail() {
                                 >
                                   <FileText className="h-3 w-3 mr-1" />
                                   View Document
-                                </a>
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -1118,6 +1115,8 @@ export default function CourseDetail() {
                                     e.preventDefault();
                                   }
                                 }}
+                                // Add additional attributes to prevent download
+                                onDragStart={(e) => e.preventDefault()}
                               />
                             </div>
                             <h3 className="text-sm font-medium text-white mb-1 truncate">{pdf.title}</h3>
@@ -1125,16 +1124,13 @@ export default function CourseDetail() {
                               <p className="text-xs text-gray-300 mb-2">{pdf.description}</p>
                             )}
                             <p className="text-xs text-gray-400 mb-2">Image</p>
-                            <a 
-                              href={pdf.pdf_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                // Open in new window/tab for view-only
-                                window.open(pdf.pdf_url, '_blank');
+                            <button
+                              onClick={() => {
+                                // Open image in embedded viewer to prevent download
+                                const viewerUrl = `/image-viewer?url=${encodeURIComponent(pdf.pdf_url)}&title=${encodeURIComponent(pdf.title)}`;
+                                window.open(viewerUrl, '_blank', 'width=800,height=600');
                               }}
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                               // Prevent right-click and download
                               onContextMenu={(e) => e.preventDefault()}
                               // Additional attributes to prevent download
@@ -1148,7 +1144,7 @@ export default function CourseDetail() {
                             >
                               <Image className="h-3 w-3 mr-1" />
                               View Image
-                            </a>
+                            </button>
                           </div>
                         ))}
                       </>

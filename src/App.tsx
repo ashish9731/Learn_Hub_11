@@ -115,8 +115,35 @@ import UserProfile from './pages/user/UserProfile';
 import UserSettings from './pages/user/UserSettings';
 import MyCourses from './pages/user/MyCourses';
 import CourseDetail from './pages/user/CourseDetail';
+import PDFViewer from './pages/user/PDFViewer';
+import ImageViewer from './pages/user/ImageViewer';
 import AIChat from './pages/user/AIChat';
 import AuthPage from './components/Auth/AuthPage';
+
+// Wrapper components to extract URL parameters
+const PDFViewerWrapper = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const url = urlParams.get('url') || '';
+  const title = urlParams.get('title') || 'Document Viewer';
+  
+  // Decode the URL
+  const decodedUrl = decodeURIComponent(url);
+  const decodedTitle = decodeURIComponent(title);
+  
+  return <PDFViewer url={decodedUrl} title={decodedTitle} />;
+};
+
+const ImageViewerWrapper = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const url = urlParams.get('url') || '';
+  const title = urlParams.get('title') || 'Image Viewer';
+  
+  // Decode the URL
+  const decodedUrl = decodeURIComponent(url);
+  const decodedTitle = decodeURIComponent(title);
+  
+  return <ImageViewer url={decodedUrl} title={decodedTitle} />;
+};
 
 function App() {
   return (
@@ -385,6 +412,8 @@ function AppContent() {
                     <Route path="/user/settings" element={<UserSettings />} />
                     <Route path="/user/courses" element={<MyCourses />} />
                     <Route path="/user/courses/:courseId" element={<CourseDetail />} />
+                    <Route path="/pdf-viewer" element={<PDFViewerWrapper />} />
+                    <Route path="/image-viewer" element={<ImageViewerWrapper />} />
                     <Route path="/user/ai-chat" element={<AIChat userEmail={userEmail} />} />
                     <Route path="*" element={<Navigate to="/user" replace />} />
                   </Routes>
