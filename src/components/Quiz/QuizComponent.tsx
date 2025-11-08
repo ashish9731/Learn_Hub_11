@@ -334,8 +334,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
         [currentQ.id]: {
           isCorrect,
           correctAnswerId: correctAnswer.id,
-          explanation: correctAnswer.explanation || 'No explanation found.',
-          selectedAnswerExplanation: selectedAnswer.explanation || 'No explanation found.'
+          explanation: correctAnswer.explanation || 'No explanation found.'
         }
       }));
       
