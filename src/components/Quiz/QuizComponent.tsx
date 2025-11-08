@@ -579,6 +579,15 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                   </div>
                 )}
                 
+                {/* For incorrect answers, also show explanation for the selected answer if it exists and is different */}
+                {!feedback.isCorrect && selectedAnswers[currentQ.id] && selectedAnswers[currentQ.id] !== feedback.correctAnswerId && (
+                  <div className="text-black dark:text-white">
+                    <span className="font-medium">Explanation for your answer:</span>
+                    <div className="ml-2">
+                      {currentQ.answers.find(a => a.id === selectedAnswers[currentQ.id])?.explanation || 'No explanation found.'}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
