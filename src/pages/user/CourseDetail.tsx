@@ -1057,9 +1057,119 @@ export default function CourseDetail() {
                                 </p>
                                 <button
                                   onClick={() => {
-                                    // Open PDF in embedded viewer to prevent download
-                                    // Use the direct URL for Supabase storage objects
-                                    window.open(pdf.pdf_url, '_blank');
+                                    // Open PDF in new window with security measures
+                                    const newWindow = window.open('', '_blank');
+                                    if (newWindow) {
+                                      newWindow.document.write(`
+                                        <!DOCTYPE html>
+                                        <html>
+                                        <head>
+                                          <title>${pdf.title || 'Document Viewer'}</title>
+                                          <style>
+                                            body {
+                                              margin: 0;
+                                              padding: 0;
+                                              background: #1f2937;
+                                              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                              height: 100vh;
+                                              overflow: hidden;
+                                            }
+                                            .header {
+                                              background: #1f2937;
+                                              color: white;
+                                              padding: 1rem;
+                                              display: flex;
+                                              justify-content: space-between;
+                                              align-items: center;
+                                              border-bottom: 1px solid #374151;
+                                            }
+                                            .content {
+                                              height: calc(100vh - 80px);
+                                              width: 100%;
+                                              border: none;
+                                            }
+                                            .footer {
+                                              background: #1f2937;
+                                              color: #9ca3af;
+                                              padding: 0.5rem;
+                                              text-align: center;
+                                              font-size: 0.75rem;
+                                              border-top: 1px solid #374151;
+                                            }
+                                            .close-btn {
+                                              background: #374151;
+                                              color: white;
+                                              border: none;
+                                              padding: 0.5rem 1rem;
+                                              border-radius: 0.375rem;
+                                              cursor: pointer;
+                                              font-size: 0.875rem;
+                                            }
+                                            .close-btn:hover {
+                                              background: #4b5563;
+                                            }
+                                          </style>
+                                        </head>
+                                        <body>
+                                          <div class="header">
+                                            <h1>${pdf.title || 'Document Viewer'}</h1>
+                                            <button class="close-btn" onclick="window.close()">Close</button>
+                                          </div>
+                                          <iframe 
+                                            src="${pdf.pdf_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH" 
+                                            class="content"
+                                            onload="setupSecurity()"
+                                          ></iframe>
+                                          <div class="footer">
+                                            Document is view-only. Download options are disabled.
+                                          </div>
+                                          <script>
+                                            // Prevent right-click
+                                            document.addEventListener('contextmenu', function(e) {
+                                              e.preventDefault();
+                                            });
+                                            
+                                            // Prevent keyboard shortcuts
+                                            document.addEventListener('keydown', function(e) {
+                                              // Prevent Ctrl+S, Ctrl+P, Ctrl+O, Ctrl+U, F12, Ctrl+Shift+I
+                                              if ((e.ctrlKey || e.metaKey) && 
+                                                  (e.key === 's' || e.key === 'p' || e.key === 'o' || e.key === 'u')) {
+                                                e.preventDefault();
+                                              }
+                                              if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                                                e.preventDefault();
+                                              }
+                                            });
+                                            
+                                            // Setup additional security for iframe
+                                            function setupSecurity() {
+                                              const iframe = document.querySelector('iframe');
+                                              if (iframe) {
+                                                // Try to access iframe content for additional security
+                                                try {
+                                                  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                                                  if (iframeDoc) {
+                                                    iframeDoc.addEventListener('contextmenu', function(e) {
+                                                      e.preventDefault();
+                                                    });
+                                                  }
+                                                } catch (err) {
+                                                  // Cross-origin restriction, can't access iframe content
+                                                  console.log('Cannot access iframe content due to cross-origin restrictions');
+                                                }
+                                              }
+                                            }
+                                            
+                                            // Prevent drag and drop
+                                            document.addEventListener('dragstart', function(e) {
+                                              e.preventDefault();
+                                            });
+                                          </script>
+                                        </body>
+                                        </html>
+                                      `);
+                                      newWindow.document.close();
+                                    }
                                   }}
                                   className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                                   // Prevent right-click and download
@@ -1126,9 +1236,127 @@ export default function CourseDetail() {
                             <p className="text-xs text-gray-400 mb-2">Image</p>
                             <button
                               onClick={() => {
-                                // Open image in embedded viewer to prevent download
-                                // Use the direct URL for Supabase storage objects
-                                window.open(pdf.pdf_url, '_blank');
+                                // Open image in new window with security measures
+                                const newWindow = window.open('', '_blank');
+                                if (newWindow) {
+                                  newWindow.document.write(`
+                                    <!DOCTYPE html>
+                                    <html>
+                                    <head>
+                                      <title>${pdf.title || 'Image Viewer'}</title>
+                                      <style>
+                                        body {
+                                          margin: 0;
+                                          padding: 0;
+                                          background: #1f2937;
+                                          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                          height: 100vh;
+                                          overflow: hidden;
+                                          display: flex;
+                                          flex-direction: column;
+                                        }
+                                        .header {
+                                          background: #1f2937;
+                                          color: white;
+                                          padding: 1rem;
+                                          display: flex;
+                                          justify-content: space-between;
+                                          align-items: center;
+                                          border-bottom: 1px solid #374151;
+                                        }
+                                        .content {
+                                          flex: 1;
+                                          display: flex;
+                                          align-items: center;
+                                          justify-content: center;
+                                          padding: 1rem;
+                                        }
+                                        .image-container {
+                                          max-width: 100%;
+                                          max-height: 100%;
+                                        }
+                                        img {
+                                          max-width: 100%;
+                                          max-height: 100%;
+                                          object-fit: contain;
+                                        }
+                                        .footer {
+                                          background: #1f2937;
+                                          color: #9ca3af;
+                                          padding: 0.5rem;
+                                          text-align: center;
+                                          font-size: 0.75rem;
+                                          border-top: 1px solid #374151;
+                                        }
+                                        .close-btn {
+                                          background: #374151;
+                                          color: white;
+                                          border: none;
+                                          padding: 0.5rem 1rem;
+                                          border-radius: 0.375rem;
+                                          cursor: pointer;
+                                          font-size: 0.875rem;
+                                        }
+                                        .close-btn:hover {
+                                          background: #4b5563;
+                                        }
+                                      </style>
+                                    </head>
+                                    <body>
+                                      <div class="header">
+                                        <h1>${pdf.title || 'Image Viewer'}</h1>
+                                        <button class="close-btn" onclick="window.close()">Close</button>
+                                      </div>
+                                      <div class="content">
+                                        <div class="image-container">
+                                          <img src="${pdf.pdf_url}" alt="${pdf.title}" onload="setupSecurity()" />
+                                        </div>
+                                      </div>
+                                      <div class="footer">
+                                        Image is view-only. Download options are disabled.
+                                      </div>
+                                      <script>
+                                        // Prevent right-click
+                                        document.addEventListener('contextmenu', function(e) {
+                                          e.preventDefault();
+                                        });
+                                        
+                                        // Prevent keyboard shortcuts
+                                        document.addEventListener('keydown', function(e) {
+                                          // Prevent Ctrl+S, Ctrl+P, Ctrl+O, Ctrl+U, F12, Ctrl+Shift+I
+                                          if ((e.ctrlKey || e.metaKey) && 
+                                              (e.key === 's' || e.key === 'p' || e.key === 'o' || e.key === 'u')) {
+                                            e.preventDefault();
+                                          }
+                                          if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                                            e.preventDefault();
+                                          }
+                                        });
+                                        
+                                        // Setup additional security for image
+                                        function setupSecurity() {
+                                          const img = document.querySelector('img');
+                                          if (img) {
+                                            img.addEventListener('contextmenu', function(e) {
+                                              e.preventDefault();
+                                            });
+                                            
+                                            img.addEventListener('dragstart', function(e) {
+                                              e.preventDefault();
+                                            });
+                                          }
+                                        }
+                                        
+                                        // Prevent drag and drop on body
+                                        document.addEventListener('dragstart', function(e) {
+                                          e.preventDefault();
+                                        });
+                                      </script>
+                                    </body>
+                                    </html>
+                                  `);
+                                  newWindow.document.close();
+                                }
                               }}
                               className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
                               // Prevent right-click and download
