@@ -1030,98 +1030,12 @@ export default function CourseDetail() {
                                 </p>
                                 <button
                                   onClick={() => {
-                                    // Create HTML page with embedded PDF for browser preview
-                                    const newWindow = window.open('', '_blank');
-                                    if (newWindow) {
-                                      newWindow.document.write(`
-                                        <!DOCTYPE html>
-                                        <html>
-                                        <head>
-                                          <title>${pdf.title || 'Document Viewer'}</title>
-                                          <style>
-                                            body {
-                                              margin: 0;
-                                              padding: 0;
-                                              background: #1f2937;
-                                              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                                              height: 100vh;
-                                              overflow: hidden;
-                                            }
-                                            .header {
-                                              background: #1f2937;
-                                              color: white;
-                                              padding: 1rem;
-                                              display: flex;
-                                              justify-content: space-between;
-                                              align-items: center;
-                                              border-bottom: 1px solid #374151;
-                                            }
-                                            .content {
-                                              height: calc(100vh - 80px);
-                                              width: 100%;
-                                              border: none;
-                                            }
-                                            .footer {
-                                              background: #1f2937;
-                                              color: #9ca3af;
-                                              padding: 0.5rem;
-                                              text-align: center;
-                                              font-size: 0.75rem;
-                                              border-top: 1px solid #374151;
-                                            }
-                                            .close-btn {
-                                              background: #374151;
-                                              color: white;
-                                              border: none;
-                                              padding: 0.5rem 1rem;
-                                              border-radius: 0.375rem;
-                                              cursor: pointer;
-                                              font-size: 0.875rem;
-                                            }
-                                            .close-btn:hover {
-                                              background: #4b5563;
-                                            }
-                                          </style>
-                                        </head>
-                                        <body>
-                                          <div class="header">
-                                            <h1>${pdf.title || 'Document Viewer'}</h1>
-                                            <button class="close-btn" onclick="window.close()">Close</button>
-                                          </div>
-                                          <iframe 
-                                            src="${pdf.pdf_url}" 
-                                            class="content"
-                                          ></iframe>
-                                          <div class="footer">
-                                            Document is view-only. Download options are disabled.
-                                          </div>
-                                          <script>
-                                            // Prevent right-click
-                                            document.addEventListener('contextmenu', function(e) {
-                                              e.preventDefault();
-                                            });
-                                            
-                                            // Prevent keyboard shortcuts
-                                            document.addEventListener('keydown', function(e) {
-                                              // Prevent Ctrl+S, Ctrl+P, Ctrl+O, Ctrl+U, F12, Ctrl+Shift+I
-                                              if ((e.ctrlKey || e.metaKey) && 
-                                                  (e.key === 's' || e.key === 'p' || e.key === 'o' || e.key === 'u')) {
-                                                e.preventDefault();
-                                              }
-                                              if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
-                                                e.preventDefault();
-                                              }
-                                            });
-                                            
-                                            // Prevent drag and drop
-                                            document.addEventListener('dragstart', function(e) {
-                                              e.preventDefault();
-                                            });
-                                          </script>
-                                        </body>
-                                        </html>
-                                      `);
-                                      newWindow.document.close();
+                                    // Open PDF directly in browser with preview parameters
+                                    const url = pdf.pdf_url;
+                                    if (url) {
+                                      // Try to force browser preview by opening in a new tab
+                                      // Some browsers may still download based on content-type headers
+                                      window.open(url, '_blank');
                                     }
                                   }}
                                   className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-700 hover:bg-blue-600"
