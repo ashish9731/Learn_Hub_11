@@ -679,159 +679,85 @@ export async function generateQuizFromDocument(
       console.log('Deleted existing quiz, will regenerate from document content');
     }
 
-    // Parse quiz questions directly from document content (no AI generation)
-    console.log('Parsing quiz directly from document content');
-    let quizData = parseQuizFromDocument(quizDocumentContent);
-    
-    console.log('Parsed quiz data:', JSON.stringify(quizData, null, 2));
-    
-    // If parsing failed, try with truncated content
-    if (quizData.length === 0 && quizDocumentContent.length > 3000) {
-      console.log('Parsing failed with full content, trying with truncated content');
-      const truncatedContent = quizDocumentContent.substring(0, 3000) + '...';
-      quizData = parseQuizFromDocument(truncatedContent);
-    }
-    
-    // If still no questions parsed, return error
-    if (quizData.length === 0) {
-      console.error('Failed to parse any questions from document content');
-      console.log('Document content that failed to parse:', quizDocumentContent.substring(0, 1000));
-      
-      // Check if the content is an error message
-      if (quizDocumentContent.startsWith('Error:')) {
-        console.error('Document content contains an error message:', quizDocumentContent);
-        throw new Error(quizDocumentContent);
-      }
-      
+    // Replace multiple spaces with a single space to normalize text
+    const text = quizDocumentContent
+      .replace(/\r?\n|\r/g, ' ') // remove line breaks
+      .replace(/\s{2,}/g, ' ')   // collapse extra spaces
+      .trim();
+
+    // 🧩 Regex that works even if there are no newlines
+    const pattern =
+      /Question\s*(\d+):\s*(.*?)\s*a\)\s*(.*?)\s*b\)\s*(.*?)\s*c\)\s*(.*?)\s*d\)\s*(.*?)\s*Answer:\s*([a-dA-D])\s*Explanation:\s*(.*?)(?=\s*Question\s*\d+:|$)/gims;
+
+    const matches = Array.from(text.matchAll(pattern));
+
+    if (matches.length === 0) {
+      console.error('❌ No questions parsed from document text');
+      console.log('First 500 chars:', text.substring(0, 500));
       return null;
     }
-    
-    console.log('Successfully parsed', quizData.length, 'questions from document');
-    
-    // Validate and filter the quiz data
-    if (!Array.isArray(quizData)) {
-      console.error('Invalid quiz data parsed from document:', quizData);
-      return null;
-    }
-    
-    // Filter out any invalid questions
-    const validQuestions = quizData.filter(question => 
-      question.question_text && 
-      Array.isArray(question.answers) && 
-      question.answers.length >= 2 && // At least 2 answers
-      question.answers.some((a: any) => a.is_correct === true) // At least one correct answer
-    );
-    
-    console.log('Valid questions after filtering:', validQuestions.length);
-    
-    // For document quizzes, we want at least 1 question
-    if (validQuestions.length < 1) {
-      console.warn(`Only ${validQuestions.length} valid questions found`);
-      // If we have questions but none have correct answers marked, this is a parsing issue
-      if (quizData.length > 0) {
-        console.error('Questions found but none have correct answers marked. Check document format.');
-        console.log('Sample question structure:', JSON.stringify(quizData[0], null, 2));
-      }
-      return null;
-    }
-    
-    // Use the valid questions
-    quizData = validQuestions;
-    
-    // Additional validation: Ensure each question has explanations or placeholder
-    quizData = quizData.map(question => {
-      // Ensure each answer has an explanation (even if empty)
-      const answersWithExplanations = question.answers.map((answer: any) => ({
-        ...answer,
-        explanation: answer.explanation || ''
-      }));
-      
-      return {
-        ...question,
-        answers: answersWithExplanations
-      };
-    });
-    
-    // Create the quiz using the appropriate client
-    console.log('Creating quiz in database...');
-    const { data: quiz, error: quizError } = await supabaseClient
+
+    console.log(`✅ Found ${matches.length} questions in document`);
+
+    // Create quiz
+    const { data: quizInsert, error: quizError } = await supabaseClient
       .from('course_quizzes')
       .insert({
         course_id: courseId,
-        title: `${courseTitle} Final Quiz`,
-        description: `Final quiz generated from uploaded quiz document for ${courseTitle}`
+        title: `${courseTitle} - Auto Quiz`,
+        description: 'Automatically generated quiz from document',
+        created_at: new Date().toISOString()
       })
       .select()
       .single();
-      
-    if (quizError) {
-      console.error('Error creating document quiz:', quizError);
-      throw new Error(`Failed to create quiz: ${quizError.message}`);
-    }
-    
-    console.log('Quiz created successfully with ID:', quiz.id);
 
-    // Create questions and answers
-    console.log('Creating', quizData.length, 'questions for quiz...');
-    let questionsCreated = 0;
-    for (let index = 0; index < quizData.length; index++) {
-      const questionData = quizData[index];
-      console.log('Creating question', index + 1, ':', questionData.question_text.substring(0, 50) + '...');
-      
-      // Create question
-      const { data: question, error: questionError } = await supabaseClient
+    if (quizError) throw quizError;
+
+    const courseQuizId = quizInsert.id;
+
+    for (const match of matches) {
+      const [, qNum, questionText, a, b, c, d, correctLetter, explanation] = match;
+
+      // Insert question
+      const { data: questionData, error: qErr } = await supabaseClient
         .from('quiz_questions')
         .insert({
-          course_quiz_id: quiz.id,
-          question_text: questionData.question_text,
-          question_type: questionData.question_type || 'multiple_choice',
-          difficulty: questionData.difficulty || 'medium'
-          // Temporarily remove order_index to avoid database errors until migration is applied
+          course_quiz_id: courseQuizId,
+          question_text: questionText.trim(),
+          difficulty: 'medium'
         })
         .select()
         .single();
 
-      if (questionError) {
-        console.error('Error creating quiz question:', questionError);
+      if (qErr) {
+        console.error(`Error inserting question ${qNum}:`, qErr);
         continue;
       }
-      
-      console.log('Question created with ID:', question.id);
 
-      // Create answers
-      console.log('Creating', questionData.answers.length, 'answers for question...');
-      let answersCreated = 0;
-      for (const answerData of questionData.answers) {
-        console.log('Creating answer:', answerData.answer_text.substring(0, 50) + '...');
-        const { error: answerError } = await supabaseClient
-          .from('quiz_answers')
-          .insert({
-            question_id: question.id,
-            answer_text: answerData.answer_text,
-            is_correct: answerData.is_correct || false,
-            explanation: answerData.explanation || 'No explanation provided for this answer.'
-          });
+      const qid = questionData.id;
+      const options = [
+        { key: 'a', text: a },
+        { key: 'b', text: b },
+        { key: 'c', text: c },
+        { key: 'd', text: d }
+      ];
 
-        if (answerError) {
-          console.error('Error creating quiz answer:', answerError);
-        } else {
-          answersCreated++;
-        }
+      for (const opt of options) {
+        const isCorrect = opt.key.toLowerCase() === correctLetter.toLowerCase();
+        await supabaseClient.from('quiz_answers').insert({
+          question_id: qid,
+          answer_text: opt.text.trim(),
+          is_correct: isCorrect,
+          explanation: isCorrect ? explanation.trim() : ''
+        });
       }
-      console.log('Created', answersCreated, 'answers for question');
-      questionsCreated++;
     }
-    
-    console.log('Created', questionsCreated, 'questions for quiz');
 
-    console.log('Document quiz generated successfully with ID:', quiz.id);
-    return quiz.id;
-  } catch (error) {
-    console.error('Error in generateQuizFromDocument:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to generate quiz from document: ${error.message}`);
-    }
-    throw new Error('Failed to generate quiz from document due to an unknown error');
+    console.log(`✅ Quiz ${courseQuizId} created successfully.`);
+    return courseQuizId;
+  } catch (err) {
+    console.error('generateQuizFromDocument failed:', err);
+    return null;
   }
 }
 
