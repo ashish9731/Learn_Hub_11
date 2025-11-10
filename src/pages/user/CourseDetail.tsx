@@ -777,7 +777,7 @@ export default function CourseDetail() {
                     </div>
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
                       <div className="text-2xl font-bold text-yellow-400 mb-1">
-                        {getAssignedPDFs('docs').length + getAssignedPDFs('infographics').length + getAssignedPDFs('templates').length}
+                        {getAssignedPDFs('docs').length + getAssignedPDFs('images').length + getAssignedPDFs('infographics').length + getAssignedPDFs('templates').length}
                       </div>
                       <div className="text-sm font-medium text-gray-300">Documents</div>
                     </div>
@@ -1075,11 +1075,15 @@ export default function CourseDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
                     // Filter out quiz documents - they should be invisible to users
+                    // Get both images and infographics content types for this tab
+                    const assignedImages = getAssignedPDFs('images').filter(pdf => pdf.content_type !== 'quizzes');
                     const assignedInfographics = getAssignedPDFs('infographics').filter(pdf => pdf.content_type !== 'quizzes');
+                    const allInfographicContent = [...assignedImages, ...assignedInfographics];
+                    console.log('Rendering infographics tab, assigned images count:', assignedImages.length);
                     console.log('Rendering infographics tab, assigned infographics count:', assignedInfographics.length);
-                    return assignedInfographics.length > 0 ? (
+                    return allInfographicContent.length > 0 ? (
                       <>
-                        {assignedInfographics.map((pdf: PDF) => (
+                        {allInfographicContent.map((pdf: PDF) => (
                           <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
                             <div className="aspect-video bg-gray-700 rounded-lg mb-3 overflow-hidden">
                               <img 
