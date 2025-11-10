@@ -777,7 +777,7 @@ export default function CourseDetail() {
                     </div>
                     <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-center shadow-sm border border-gray-700">
                       <div className="text-2xl font-bold text-yellow-400 mb-1">
-                        {getAssignedPDFs('docs').length + getAssignedPDFs('images').length + getAssignedPDFs('templates').length}
+                        {getAssignedPDFs('docs').length + getAssignedPDFs('infographics').length + getAssignedPDFs('templates').length}
                       </div>
                       <div className="text-sm font-medium text-gray-300">Documents</div>
                     </div>
@@ -788,7 +788,7 @@ export default function CourseDetail() {
               {/* Content Type Navigation Buttons - Below Course Image */}
               <div className="px-8 pb-8">
                 <div className="flex flex-wrap gap-4 justify-center">
-                  {['audio', 'video', 'docs', 'images', 'templates', 'quizzes'].map((tab) => (
+                  {['audio', 'video', 'docs', 'infographics', 'templates', 'quizzes'].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => {
@@ -808,7 +808,7 @@ export default function CourseDetail() {
                           : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:shadow-lg border-gray-600'
                       }`}
                     >
-                      {tab === 'docs' ? 'Documents' : tab === 'images' ? 'Images & Infographics' : tab === 'templates' ? 'Templates' : tab === 'quizzes' ? 'Quiz' : tab}
+                      {tab === 'docs' ? 'Documents' : tab === 'infographics' ? 'Infographics' : tab === 'templates' ? 'Templates' : tab === 'quizzes' ? 'Quiz' : tab}
                     </button>
                   ))}
                 </div>
@@ -1030,7 +1030,7 @@ export default function CourseDetail() {
                                 </p>
                                 <button
                                   onClick={() => {
-                                    // Open document directly in browser tab with proper URL handling (same as images)
+                                    // Open document directly in browser tab with proper URL handling (same as infographics)
                                     const url = pdf.pdf_url;
                                     // Ensure the URL is properly formatted for browser viewing
                                     if (url) {
@@ -1068,18 +1068,18 @@ export default function CourseDetail() {
               </div>
             )}
 
-            {/* Images Tab */}
-            {activeTab === 'images' && (
+            {/* Infographics Tab */}
+            {activeTab === 'infographics' && (
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Images & Infographics</h2>
+                <h2 className="text-xl font-semibold text-white mb-4">Infographics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
                     // Filter out quiz documents - they should be invisible to users
-                    const assignedImages = getAssignedPDFs('images').filter(pdf => pdf.content_type !== 'quizzes');
-                    console.log('Rendering images tab, assigned images count:', assignedImages.length);
-                    return assignedImages.length > 0 ? (
+                    const assignedInfographics = getAssignedPDFs('infographics').filter(pdf => pdf.content_type !== 'quizzes');
+                    console.log('Rendering infographics tab, assigned infographics count:', assignedInfographics.length);
+                    return assignedInfographics.length > 0 ? (
                       <>
-                        {assignedImages.map((pdf: PDF) => (
+                        {assignedInfographics.map((pdf: PDF) => (
                           <div key={pdf.id} className="border border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow bg-gray-800">
                             <div className="aspect-video bg-gray-700 rounded-lg mb-3 overflow-hidden">
                               <img 
@@ -1104,10 +1104,10 @@ export default function CourseDetail() {
                             {pdf.description && (
                               <p className="text-xs text-gray-300 mb-2">{pdf.description}</p>
                             )}
-                            <p className="text-xs text-gray-400 mb-2">Image</p>
+                            <p className="text-xs text-gray-400 mb-2">Infographic</p>
                             <button
                               onClick={() => {
-                                // Open image directly in browser tab with proper URL handling
+                                // Open infographic directly in browser tab with proper URL handling
                                 const url = pdf.pdf_url;
                                 // Ensure the URL is properly formatted for browser viewing
                                 if (url) {
@@ -1132,7 +1132,7 @@ export default function CourseDetail() {
                               }}
                             >
                               <Image className="h-3 w-3 mr-1" />
-                              View Image
+                              View Infographic
                             </button>
                           </div>
                         ))}
@@ -1140,8 +1140,8 @@ export default function CourseDetail() {
                     ) : (
                       <div className="text-center py-8 text-gray-400 col-span-full">
                         <Image className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                        <h3 className="text-lg font-medium text-white mb-2">No Images</h3>
-                        <p className="text-gray-400">No images or infographics have been assigned to you for this course.</p>
+                        <h3 className="text-lg font-medium text-white mb-2">No Infographics</h3>
+                        <p className="text-gray-400">No infographics have been assigned to you for this course.</p>
                       </div>
                     );
                   })()}
