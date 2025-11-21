@@ -581,10 +581,10 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
 
   // Dashboard view - KPIs and charts only (without categories KPI)
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-300 text-black dark:from-gray-900 dark:to-black dark:text-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Glassmorphism Header */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6 mb-8">
+        <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">Learning Dashboard</h1>
@@ -627,7 +627,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
           ].map((card, index) => (
             <div 
               key={index} 
-              className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
+              className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-xl border border-gray-200 dark:border-white/20 shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
               onClick={() => {
                 // Show detailed modal when KPI is clicked
                 setSelectedKpi(card.title);
@@ -653,7 +653,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Course Progress Chart */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+          <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6">
             <h2 className="text-xl font-bold mb-6 text-white">Course Progress</h2>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
@@ -691,7 +691,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
             <div className="mt-6 space-y-4 max-h-60 overflow-y-auto">
               <h3 className="font-medium text-gray-300">Course Details</h3>
               {courseProgressData.map((course, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-white/50 dark:bg-white/5 rounded-lg">
                   <div className="flex-1">
                     <p className="font-medium text-white">{course.name}</p>
                     <p className="text-sm text-gray-400">
@@ -708,7 +708,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
           </div>
 
           {/* Progress Distribution Table */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+          <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6">
             <h2 className="text-xl font-bold mb-6 text-white">Progress Distribution</h2>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-700">
@@ -749,17 +749,17 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
             
             {/* Summary Stats */}
             <div className="mt-6 grid grid-cols-3 gap-4">
-              <div className="bg-white/5 p-3 rounded-lg text-center">
+              <div className="bg-white/50 dark:bg-white/5 p-3 rounded-lg text-center">
                 <p className="text-2xl font-bold text-white">{supabaseData.userCourses.length}</p>
                 <p className="text-sm text-gray-400">Total Courses</p>
               </div>
-              <div className="bg-white/5 p-3 rounded-lg text-center">
+              <div className="bg-white/50 dark:bg-white/5 p-3 rounded-lg text-center">
                 <p className="text-2xl font-bold text-white">
                   {progressDistribution.find(item => item.name === 'Completed')?.value || 0}
                 </p>
                 <p className="text-sm text-gray-400">Completed</p>
               </div>
-              <div className="bg-white/5 p-3 rounded-lg text-center">
+              <div className="bg-white/50 dark:bg-white/5 p-3 rounded-lg text-center">
                 <p className="text-2xl font-bold text-white">
                   {Math.round((progressDistribution.find(item => item.name === 'Completed')?.value || 0) / 
                     Math.max(supabaseData.userCourses.length, 1) * 100)}%
@@ -771,7 +771,7 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
         </div>
 
         {/* Recently Accessed Courses */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+        <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6">
           <h2 className="text-xl font-bold mb-6 text-white">Recently Accessed Courses</h2>
           {supabaseData.userCourses.length === 0 ? (
             <div className="text-center py-12">
