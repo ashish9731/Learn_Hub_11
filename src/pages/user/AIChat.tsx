@@ -323,8 +323,8 @@ Your personalized learning recommendations from Kaaya have been saved to your de
       <div className="py-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-black dark:text-white">AI Chat Personalized Learning</h1>
-            <p className="mt-1 text-sm text-gray-700 dark:text-gray-400">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">AI Chat Personalized Learning</h1>
+            <p className="mt-1 text-sm text-gray-800 dark:text-gray-200">
               Complete your profile to start your personalized learning session with Kaaya
             </p>
           </div>
@@ -357,7 +357,7 @@ Your personalized learning recommendations from Kaaya have been saved to your de
               <div className="flex items-center space-x-4">
                 <div className="bg-white/10 rounded-lg px-4 py-2 backdrop-blur-sm">
                   <div className="text-sm">
-                    Daily words: <span className="font-semibold text-blue-200">{remainingWords}/200</span>
+                    Daily words: <span className="font-semibold text-white">{remainingWords}/200</span>
                   </div>
                   <div className="w-full bg-white/20 rounded-full h-1.5 mt-1">
                     <div className="bg-blue-300 h-1.5 rounded-full" style={{ width: `${(remainingWords/200)*100}%` }}></div>
@@ -381,8 +381,8 @@ Your personalized learning recommendations from Kaaya have been saved to your de
               onClick={() => setActiveTab('chat')}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'chat' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  ? 'bg-blue-700 text-white' 
+                  : 'bg-gray-50 text-gray-800 hover:bg-gray-100'
               }`}
             >
               <div className="flex items-center justify-center">
@@ -394,8 +394,8 @@ Your personalized learning recommendations from Kaaya have been saved to your de
               onClick={() => setActiveTab('learning-path')}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'learning-path' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  ? 'bg-blue-700 text-white' 
+                  : 'bg-gray-50 text-gray-800 hover:bg-gray-100'
               }`}
             >
               <div className="flex items-center justify-center">
@@ -407,8 +407,8 @@ Your personalized learning recommendations from Kaaya have been saved to your de
               onClick={() => setActiveTab('insights')}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'insights' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  ? 'bg-blue-700 text-white' 
+                  : 'bg-gray-50 text-gray-800 hover:bg-gray-100'
               }`}
             >
               <div className="flex items-center justify-center">
@@ -422,10 +422,10 @@ Your personalized learning recommendations from Kaaya have been saved to your de
         {remainingWords === 0 && (
           <div className="mb-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
             <div className="flex items-center">
-              <AlertCircle className="h-5 w-5 text-orange-600 mr-2" />
+              <AlertCircle className="h-5 w-5 text-orange-700 mr-2" />
               <div>
-                <h3 className="text-sm font-medium text-orange-800">Daily Limit Reached</h3>
-                <p className="text-sm text-orange-700">
+                <h3 className="text-sm font-medium text-orange-900">Daily Limit Reached</h3>
+                <p className="text-sm text-orange-800">
                   You've used all 200 words for today. Come back tomorrow for more personalized learning guidance!
                 </p>
               </div>
@@ -444,12 +444,12 @@ Your personalized learning recommendations from Kaaya have been saved to your de
                 </h3>
                 <div className="space-y-3">
                   {[
-                    { text: "What's my personalized learning path?", icon: Target, color: "bg-blue-100 text-blue-700 hover:bg-blue-200" },
-                    { text: "Which technologies should I learn next?", icon: BookOpen, color: "bg-green-100 text-green-700 hover:bg-green-200" },
-                    { text: "How can I advance in my current role?", icon: TrendingUp, color: "bg-purple-100 text-purple-700 hover:bg-purple-200" },
-                    { text: "Recommend courses for my interests", icon: MessageCircle, color: "bg-yellow-100 text-yellow-700 hover:bg-yellow-200" },
-                    { text: "Create a 30-day learning plan", icon: Lightbulb, color: "bg-pink-100 text-pink-700 hover:bg-pink-200" },
-                    { text: "What skills are trending in my field?", icon: Zap, color: "bg-indigo-100 text-indigo-700 hover:bg-indigo-200" }
+                    { text: "What's my personalized learning path?", icon: Target, color: "bg-blue-100 text-blue-800 hover:bg-blue-200" },
+                    { text: "Which technologies should I learn next?", icon: BookOpen, color: "bg-green-100 text-green-800 hover:bg-green-200" },
+                    { text: "How can I advance in my current role?", icon: TrendingUp, color: "bg-purple-100 text-purple-800 hover:bg-purple-200" },
+                    { text: "Recommend courses for my interests", icon: MessageCircle, color: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200" },
+                    { text: "Create a 30-day learning plan", icon: Lightbulb, color: "bg-pink-100 text-pink-800 hover:bg-pink-200" },
+                    { text: "What skills are trending in my field?", icon: Zap, color: "bg-indigo-100 text-indigo-800 hover:bg-indigo-200" }
                   ].map((item, index) => (
                     <button
                       key={index}
@@ -459,7 +459,7 @@ Your personalized learning recommendations from Kaaya have been saved to your de
                     >
                       <div className="flex items-start">
                         <item.icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                        <span className="ml-3 leading-relaxed">{item.text}</span>
+                        <span className="ml-3 leading-relaxed text-gray-900 dark:text-white">{item.text}</span>
                       </div>
                     </button>
                   ))}
@@ -478,17 +478,17 @@ Your personalized learning recommendations from Kaaya have been saved to your de
                     </div>
                     <div className="ml-3">
                       <div className="font-medium text-gray-900">{userProfile?.name}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{userProfile?.designation}</div>
+                      <div className="text-sm text-gray-700 dark:text-gray-300">{userProfile?.designation}</div>
                     </div>
                   </div>
                   
                   <div className="pt-2 border-t border-gray-100">
-                    <div className="text-sm font-medium text-gray-700">Company</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{userProfile?.companyName}</div>
+                    <div className="text-sm font-medium text-gray-800">Company</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">{userProfile?.companyName}</div>
                   </div>
                   
                   <div>
-                    <div className="text-sm font-medium text-gray-700">Learning Goals</div>
+                    <div className="text-sm font-medium text-gray-800">Learning Goals</div>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {userProfile?.interestedTech?.map((tech: string) => (
                         <span key={tech} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -502,16 +502,16 @@ Your personalized learning recommendations from Kaaya have been saved to your de
 
               <div className="bg-gradient-to-r from-green-100 to-blue-100 shadow-lg rounded-xl border border-green-200 p-6">
                 <div className="flex items-center mb-3">
-                  <Download className="h-5 w-5 text-green-600 mr-2" />
-                  <h4 className="text-base font-medium text-green-800">Learning Path Export</h4>
+                  <Download className="h-5 w-5 text-green-700 mr-2" />
+                  <h4 className="text-base font-medium text-green-900">Learning Path Export</h4>
                 </div>
-                <p className="text-sm text-green-700 mb-4">
+                <p className="text-sm text-green-800 mb-4">
                   Save your personalized learning recommendations as a text file to your device!
                 </p>
                 <button
                   onClick={downloadLearningPath}
                   disabled={messages.length <= 1}
-                  className="w-full flex items-center justify-center text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  className="w-full flex items-center justify-center text-sm bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   {messages.length <= 1 ? 'Chat with Kaaya first' : 'Download Learning Path'}

@@ -923,7 +923,7 @@ export default function CourseDetail() {
             {activeTab === 'video' && (
               <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-black dark:text-white">Video Content</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Video Content</h2>
                   {/* Removed list view and tile view options as requested */}
                 </div>
                 <div className="flex flex-col lg:flex-row gap-6">
@@ -941,60 +941,60 @@ export default function CourseDetail() {
                           return (
                             <div 
                               key={podcast.id} 
-                              className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-800 ${
+                              className={`p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-100 ${
                                   currentPodcast?.id === podcast.id 
-                                    ? 'bg-gray-800 border border-blue-500' 
-                                    : 'bg-gray-800'
-                                }`}
+                                    ? 'bg-gray-100 border border-blue-500' 
+                                    : 'bg-gray-100'
+                                } dark:hover:bg-gray-700 dark:bg-gray-800 dark:border-gray-700`}
                                 onClick={() => {
                                   handlePlayPodcast(podcast);
                                 }}
                               >
-                                <div className="flex items-center">
-                                  <div className="flex-shrink-0 mr-3">
-                                    <div className="w-10 h-10 bg-purple-900 rounded-full flex items-center justify-center">
-                                      <Youtube className="h-5 w-5 text-purple-400" />
-                                    </div>
-                                  </div> 
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
-                                    <p className="text-xs text-gray-700 dark:text-gray-400">Video content</p>
-                                    {completion > 0 && completion < 100 && (
-                                      <div className="ml-2 flex items-center">
-                                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                          <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
-                                        </div>
-                                        <span className="text-xs text-gray-700 dark:text-gray-500 ml-1">{completion}%</span>
-                                      </div>
-                                    )}
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 mr-3">
+                                  <div className="w-10 h-10 bg-purple-900 rounded-full flex items-center justify-center">
+                                    <Youtube className="h-5 w-5 text-purple-400" />
                                   </div>
-                                  {/* Remove default green tick mark - only show when actually completed by user action */}
+                                </div> 
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-sm font-medium text-gray-900 truncate dark:text-white">{podcast.title}</h3>
+                                  <p className="text-xs text-gray-700 dark:text-gray-400">Video content</p>
+                                  {completion > 0 && completion < 100 && (
+                                    <div className="ml-2 flex items-center">
+                                      <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                        <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
+                                      </div>
+                                      <span className="text-xs text-gray-700 dark:text-gray-500 ml-1">{completion}%</span>
+                                    </div>
+                                  )}
                                 </div>
+                                {/* Remove default green tick mark - only show when actually completed by user action */}
                               </div>
-                            );
-                          }) : (
-                            <div className="text-center py-8 text-gray-700 dark:text-gray-400">
-                              <Youtube className="h-12 w-12 mx-auto text-gray-500 dark:text-gray-500 mb-4" />
-                              <h3 className="text-lg font-medium text-black dark:text-white mb-2">No Video Content</h3>
-                              <p className="text-gray-700 dark:text-gray-400">No video content has been assigned to you for this course.</p>
                             </div>
                           );
+                        }) : (
+                          <div className="text-center py-8 text-gray-800 dark:text-gray-200">
+                            <Youtube className="h-12 w-12 mx-auto text-gray-500 dark:text-gray-500 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-white">No Video Content</h3>
+                            <p className="text-gray-700 dark:text-gray-400">No video content has been assigned to you for this course.</p>
+                          </div>
+                        );
                       })()}
                   </div>
                   
                   {/* Video Player - Right Side */}
                   <div className="lg:w-1/2">
                     {currentPodcast && currentPodcast.is_youtube_video ? (
-                      <div className="bg-gray-800 rounded-lg p-4">
-                        <h3 className="text-lg font-medium text-white mb-2">{currentPodcast.title}</h3>
+                      <div className="bg-white rounded-lg p-4 dark:bg-gray-800">
+                        <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-white">{currentPodcast.title}</h3>
                         <div className="mt-4">
                           {renderYouTubePlayer(currentPodcast.video_url)}
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-gray-800 rounded-lg p-8 text-center">
+                      <div className="bg-white rounded-lg p-8 text-center dark:bg-gray-800">
                         <Youtube className="h-16 w-16 mx-auto text-gray-500 dark:text-gray-500 mb-4" />
-                        <h3 className="text-lg font-medium text-white mb-2">Select a Video</h3>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-white">Select a Video</h3>
                         <p className="text-gray-700 dark:text-gray-400">Choose a video from the list to play it here.</p>
                       </div>
                     )}
@@ -1006,7 +1006,7 @@ export default function CourseDetail() {
             {/* Docs Tab */}
             {activeTab === 'docs' && (
               <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6">
-                <h2 className="text-xl font-semibold text-black dark:text-white mb-4">Documents</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Documents</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
                     // Filter out quiz documents - they should be invisible to users
@@ -1021,7 +1021,7 @@ export default function CourseDetail() {
                                 <FileText className="h-8 w-8 text-blue-400" />
                               </div>
                               <div className="ml-3 flex-1">
-                                <h3 className="text-sm font-medium text-black mb-1 dark:text-white">{pdf.title}</h3>
+                                <h3 className="text-sm font-medium text-gray-900 mb-1 dark:text-white">{pdf.title}</h3>
                                 {pdf.description && (
                                   <p className="text-xs text-gray-700 mb-2 dark:text-gray-300">{pdf.description}</p>
                                 )}
@@ -1057,9 +1057,9 @@ export default function CourseDetail() {
                         ))}
                       </>
                     ) : (
-                      <div className="text-center py-8 text-gray-700 dark:text-gray-400 col-span-full">
+                      <div className="text-center py-8 text-gray-800 dark:text-gray-200 col-span-full">
                         <FileText className="h-12 w-12 mx-auto text-gray-500 dark:text-gray-500 mb-4" />
-                        <h3 className="text-lg font-medium text-black mb-2 dark:text-white">No Documents</h3>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-white">No Documents</h3>
                         <p className="text-gray-700 dark:text-gray-400">No documents have been assigned to you for this course.</p>
                       </div>
                     );
@@ -1071,7 +1071,7 @@ export default function CourseDetail() {
             {/* Infographics Tab */}
             {activeTab === 'infographics' && (
               <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6">
-                <h2 className="text-xl font-semibold text-black dark:text-white mb-4">Infographics</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Infographics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
                     // Filter out quiz documents - they should be invisible to users
@@ -1085,7 +1085,7 @@ export default function CourseDetail() {
                       <>
                         {allInfographicContent.map((pdf: PDF) => (
                           <div key={pdf.id} className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:border-gray-700 dark:bg-gray-800">
-                            <div className="aspect-video bg-gray-700 rounded-lg mb-3 overflow-hidden">
+                            <div className="aspect-video bg-white rounded-lg mb-3 overflow-hidden dark:bg-gray-700">
                               <img 
                                 src={pdf.pdf_url} 
                                 alt={pdf.title}
@@ -1104,7 +1104,7 @@ export default function CourseDetail() {
                                 onDragStart={(e) => e.preventDefault()}
                               />
                             </div>
-                            <h3 className="text-sm font-medium text-black mb-1 truncate dark:text-white">{pdf.title}</h3>
+                            <h3 className="text-sm font-medium text-gray-900 mb-1 truncate dark:text-white">{pdf.title}</h3>
                             {pdf.description && (
                               <p className="text-xs text-gray-700 mb-2 dark:text-gray-300">{pdf.description}</p>
                             )}
@@ -1142,9 +1142,9 @@ export default function CourseDetail() {
                         ))}
                       </>
                     ) : (
-                      <div className="text-center py-8 text-gray-700 dark:text-gray-400 col-span-full">
+                      <div className="text-center py-8 text-gray-800 dark:text-gray-200 col-span-full">
                         <Image className="h-12 w-12 mx-auto text-gray-500 dark:text-gray-500 mb-4" />
-                        <h3 className="text-lg font-medium text-black mb-2 dark:text-white">No Infographics</h3>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-white">No Infographics</h3>
                         <p className="text-gray-700 dark:text-gray-400">No infographics have been assigned to you for this course.</p>
                       </div>
                     );
@@ -1156,7 +1156,7 @@ export default function CourseDetail() {
             {/* Templates Tab */}
             {activeTab === 'templates' && (
               <div className="bg-white/80 backdrop-blur-lg rounded-2xl border border-gray-200 shadow-xl p-6 dark:bg-gray-800/10 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-black mb-4 dark:text-white">Templates & Other Content</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-4 dark:text-white">Templates & Other Content</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(() => {
                     // Filter out quiz documents - they should be invisible to users
@@ -1171,7 +1171,7 @@ export default function CourseDetail() {
                                 <FileText className="h-8 w-8 text-white" />
                               </div>
                               <div className="ml-3 flex-1">
-                                <h3 className="text-sm font-medium text-black mb-1 dark:text-white">{pdf.title}</h3>
+                                <h3 className="text-sm font-medium text-gray-900 mb-1 dark:text-white">{pdf.title}</h3>
                                 {pdf.description && (
                                   <p className="text-xs text-gray-700 mb-2 dark:text-gray-300">{pdf.description}</p>
                                 )}
@@ -1197,9 +1197,9 @@ export default function CourseDetail() {
                         ))}
                       </>
                     ) : (
-                      <div className="text-center py-8 text-gray-700 dark:text-gray-400 col-span-full">
+                      <div className="text-center py-8 text-gray-800 dark:text-gray-200 col-span-full">
                         <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4 dark:text-gray-400" />
-                        <h3 className="text-lg font-medium text-black mb-2 dark:text-white">No Templates</h3>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-white">No Templates</h3>
                         <p className="text-gray-700 dark:text-gray-400">No templates or other content have been assigned to you for this course.</p>
                       </div>
                     );

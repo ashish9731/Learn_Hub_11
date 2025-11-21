@@ -500,7 +500,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
 
         {/* Question Card */}
         <div className="bg-white backdrop-blur-lg rounded-2xl border border-gray-200 shadow-xl p-6 mb-6 dark:bg-gray-800 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-black dark:text-white mb-4">{currentQ.question_text}</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">{currentQ.question_text}</h2>
 
           <div className="space-y-3">
             {currentQ.answers.map((answer) => (
@@ -530,7 +530,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                     disabled={isAnswered[currentQuestion]}
                     className="h-4 w-4 text-purple-600 focus:ring-purple-500"
                   />
-                  <span className="ml-3 text-black dark:text-white">{answer.answer_text}</span>
+                  <span className="ml-3 text-gray-900 dark:text-white">{answer.answer_text}</span>
                 </label>
                 
               </div>
@@ -551,14 +551,14 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
                   <XCircle className="w-5 h-5 text-red-500 mr-2" />
                 )}
                 <span className={`font-medium ${
-                  feedback.isCorrect ? 'text-green-400' : 'text-red-400'
+                  feedback.isCorrect ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {feedback.isCorrect ? 'Correct!' : 'Incorrect'}
                 </span>
               </div>
               {!feedback.isCorrect && (
                 <div className="mb-2">
-                  <p className="text-black dark:text-white">
+                  <p className="text-gray-900 dark:text-white">
                     <span className="font-medium">Correct Answer:</span> {
                       // Find the correct answer text
                       currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.answer_text || 'Unknown'
@@ -569,22 +569,22 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
               <div className="space-y-2">
                 {/* Always show explanation for the correct answer */}
                 {feedback.correctAnswerId && (
-                  <div className="text-black dark:text-white">
+                  <div className="text-gray-900 dark:text-white">
                     <span className="font-medium">
                       {feedback.isCorrect ? 'Explanation:' : 'Explanation for correct answer:'}
                     </span>
                     <div className="ml-2">
-                      {currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation || 'No explanation found.'}
+                      {currentQ.answers.find(a => a.id === feedback.correctAnswerId)?.explanation || 'No explanation provided.'}
                     </div>
                   </div>
                 )}
                 
                 {/* For incorrect answers, also show explanation for the selected answer if it exists and is different */}
                 {!feedback.isCorrect && selectedAnswers[currentQ.id] && selectedAnswers[currentQ.id] !== feedback.correctAnswerId && (
-                  <div className="text-black dark:text-white">
+                  <div className="text-gray-900 dark:text-white">
                     <span className="font-medium">Explanation for your answer:</span>
                     <div className="ml-2">
-                      {currentQ.answers.find(a => a.id === selectedAnswers[currentQ.id])?.explanation || 'No explanation found.'}
+                      {currentQ.answers.find(a => a.id === selectedAnswers[currentQ.id])?.explanation || ''}
                     </div>
                   </div>
                 )}

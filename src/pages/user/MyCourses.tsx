@@ -216,8 +216,8 @@ export default function MyCourses() {
       return (
         <div className="text-center py-12 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
           <Folder className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
-          <h3 className="mt-2 text-sm font-medium text-black dark:text-white">No categories found</h3>
-          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No categories found</h3>
+          <p className="mt-1 text-sm text-gray-800 dark:text-gray-200">
             This course doesn't have any categories yet.
           </p>
         </div>
@@ -233,7 +233,7 @@ export default function MyCourses() {
           >
             ← Back to Courses
           </button>
-          <h2 className="text-xl font-semibold text-black dark:text-white">{selectedCourse.title}</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{selectedCourse.title}</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -246,15 +246,15 @@ export default function MyCourses() {
                   <div className="flex items-center">
                     <Folder className="h-8 w-8 text-white mr-3" />
                     <div>
-                      <h3 className="text-lg font-semibold text-black dark:text-white">{category.name}</h3>
-                      <p className="text-blue-700 dark:text-blue-100 text-sm">{categoryPodcasts.length} podcasts</p>
+                      <h3 className="text-lg font-semibold text-white">{category.name}</h3>
+                      <p className="text-blue-100 text-sm">{categoryPodcasts.length} podcasts</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-4">
                   {category.description && (
-                    <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">{category.description}</p>
+                    <p className="text-gray-800 dark:text-gray-200 text-sm mb-4">{category.description}</p>
                   )}
 
                   <div className="space-y-2">
@@ -269,7 +269,7 @@ export default function MyCourses() {
                         >
                           <div className="flex items-center flex-1">
                             <Play className="h-4 w-4 text-blue-400 mr-2" />
-                            <span className="text-sm font-medium text-black dark:text-white truncate">
+                            <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
                               {podcast.title}
                             </span>
                           </div>
@@ -282,7 +282,7 @@ export default function MyCourses() {
                                   style={{ width: `${progress.progress_percent}%` }}
                                 ></div>
                               </div>
-                              <span className="text-xs text-gray-700 dark:text-gray-300">
+                              <span className="text-xs text-gray-800 dark:text-gray-200">
                                 {progress.progress_percent}%
                               </span>
                             </div>
