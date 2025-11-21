@@ -143,7 +143,7 @@ export default function MyCourses() {
     if (!assignedCourses || assignedCourses.length === 0) {
       return (
         <div className="text-center py-12 bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6">
-          <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+          <BookOpen className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
           <h3 className="mt-2 text-sm font-medium text-black dark:text-white">No courses assigned</h3>
           <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
             Contact your administrator to get access to courses.
@@ -215,9 +215,9 @@ export default function MyCourses() {
     if (courseCategories.length === 0) {
       return (
         <div className="text-center py-12 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
-          <Folder className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-white">No categories found</h3>
-          <p className="mt-1 text-sm text-gray-300">
+          <Folder className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+          <h3 className="mt-2 text-sm font-medium text-black dark:text-white">No categories found</h3>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
             This course doesn't have any categories yet.
           </p>
         </div>
@@ -229,11 +229,11 @@ export default function MyCourses() {
         <div className="flex items-center justify-between">
           <button
             onClick={() => setSelectedCourse(null)}
-            className="text-blue-400 hover:text-blue-300 font-medium flex items-center"
+            className="text-blue-600 hover:text-blue-700 font-medium flex items-center dark:text-blue-400 dark:hover:text-blue-300"
           >
             ← Back to Courses
           </button>
-          <h2 className="text-xl font-semibold text-white">{selectedCourse.title}</h2>
+          <h2 className="text-xl font-semibold text-black dark:text-white">{selectedCourse.title}</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -246,15 +246,15 @@ export default function MyCourses() {
                   <div className="flex items-center">
                     <Folder className="h-8 w-8 text-white mr-3" />
                     <div>
-                      <h3 className="text-lg font-semibold text-white">{category.name}</h3>
-                      <p className="text-blue-100 text-sm">{categoryPodcasts.length} podcasts</p>
+                      <h3 className="text-lg font-semibold text-black dark:text-white">{category.name}</h3>
+                      <p className="text-blue-700 dark:text-blue-100 text-sm">{categoryPodcasts.length} podcasts</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-4">
                   {category.description && (
-                    <p className="text-gray-300 text-sm mb-4">{category.description}</p>
+                    <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">{category.description}</p>
                   )}
 
                   <div className="space-y-2">
@@ -269,7 +269,7 @@ export default function MyCourses() {
                         >
                           <div className="flex items-center flex-1">
                             <Play className="h-4 w-4 text-blue-400 mr-2" />
-                            <span className="text-sm font-medium text-white truncate">
+                            <span className="text-sm font-medium text-black dark:text-white truncate">
                               {podcast.title}
                             </span>
                           </div>
@@ -282,7 +282,7 @@ export default function MyCourses() {
                                   style={{ width: `${progress.progress_percent}%` }}
                                 ></div>
                               </div>
-                              <span className="text-xs text-gray-300">
+                              <span className="text-xs text-gray-700 dark:text-gray-300">
                                 {progress.progress_percent}%
                               </span>
                             </div>

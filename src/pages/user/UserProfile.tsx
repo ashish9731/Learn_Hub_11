@@ -177,7 +177,7 @@ export default function UserProfile({ userEmail = '' }: UserProfileProps) {
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading profile...</p>
+              <p className="mt-4 text-gray-700 dark:text-gray-400">Loading profile...</p>
             </div>
           </div>
         </div>
@@ -281,7 +281,7 @@ export default function UserProfile({ userEmail = '' }: UserProfileProps) {
                   />
                 ) : (
                   <div className="flex items-center">
-                    <User className="h-4 w-4 text-gray-400 mr-2" />
+                    <User className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
                     <span className="text-sm text-gray-900">{profile?.first_name || 'Not set'}</span>
                   </div>
                 )}
@@ -301,7 +301,7 @@ export default function UserProfile({ userEmail = '' }: UserProfileProps) {
                   />
                 ) : (
                   <div className="flex items-center">
-                    <User className="h-4 w-4 text-gray-400 mr-2" />
+                    <User className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
                     <span className="text-sm text-gray-900">{profile?.last_name || 'Not set'}</span>
                   </div>
                 )}
@@ -313,7 +313,7 @@ export default function UserProfile({ userEmail = '' }: UserProfileProps) {
                   Email Address
                 </label>
                 <div className="flex items-center">
-                  <Mail className="h-4 w-4 text-gray-400 mr-2" />
+                  <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
                   <span className="text-sm text-gray-900">{userEmail}</span>
                   <span className="ml-2 text-xs text-gray-500">(Cannot be changed)</span>
                 </div>
@@ -333,7 +333,7 @@ export default function UserProfile({ userEmail = '' }: UserProfileProps) {
                   />
                 ) : (
                   <div className="flex items-center">
-                    <Phone className="h-4 w-4 text-gray-400 mr-2" />
+                    <Phone className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
                     <span className="text-sm text-gray-900">{profile?.phone || currentUser.userPhone}</span>
                   </div>
                 )}
@@ -402,7 +402,7 @@ export default function UserProfile({ userEmail = '' }: UserProfileProps) {
                   Company
                 </label>
                 <div className="flex items-center">
-                  <Building2 className="h-4 w-4 text-gray-400 mr-2" />
+                  <Building2 className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
                   <span className="text-sm text-gray-900">{currentUser.companyName}</span>
                 </div>
               </div>
@@ -413,7 +413,7 @@ export default function UserProfile({ userEmail = '' }: UserProfileProps) {
                   Join Date
                 </label>
                 <div className="flex items-center">
-                  <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+                  <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
                   <span className="text-sm text-gray-900">
                     {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : new Date(currentUser.joiningDate).toLocaleDateString()}
                   </span>

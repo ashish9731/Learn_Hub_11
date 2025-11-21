@@ -27,8 +27,8 @@ interface UserProfile {
 }
 
 export default function AIChat({ userEmail = '' }: AIChatProps) {
-  const [userProfiles, setUserProfiles] = useLocalStorage('userProfiles', {});
-  const [chatSessions, setChatSessions] = useLocalStorage('chatSessions', {});
+  const [userProfiles, setUserProfiles] = useLocalStorage<Record<string, UserProfile>>('userProfiles', {});
+  const [chatSessions, setChatSessions] = useLocalStorage<Record<string, any>>('chatSessions', {});
   const { profile } = useProfile();
   
   const [messages, setMessages] = useState<Message[]>([]);
@@ -43,11 +43,11 @@ export default function AIChat({ userEmail = '' }: AIChatProps) {
     totalInteractions: 0,
     topicsExplored: 0,
     learningStreak: 0,
-    lastInteraction: null
+    lastInteraction: null as null | string
   });
 
   const userId = userEmail;
-  const userProfile = userProfiles[userId];
+  const userProfile = userId ? userProfiles[userId] : undefined;
 
   useEffect(() => {
     // Check if user has a profile
@@ -93,7 +93,10 @@ export default function AIChat({ userEmail = '' }: AIChatProps) {
         learningStreak: Math.floor(Math.random() * 7) + 1,
         lastInteraction: new Date().toISOString()
       };
-      setLearningStats(stats);
+      setLearningStats(prev => ({
+        ...prev,
+        ...stats
+      }));
     }
   }, [userProfile, messages.length]);
 
@@ -104,7 +107,7 @@ export default function AIChat({ userEmail = '' }: AIChatProps) {
       await kaayaAI.initializeSession(userId, userProfile);
       
       // Load existing messages from localStorage
-      const savedSession = chatSessions[userId];
+      const savedSession = userId ? chatSessions[userId] : undefined;
       if (savedSession && savedSession.messages) {
         setMessages(savedSession.messages.map((msg: any) => ({
           ...msg,
@@ -177,7 +180,7 @@ export default function AIChat({ userEmail = '' }: AIChatProps) {
       setChatSessions(prev => ({
         ...prev,
         [userId]: {
-          ...prev[userId],
+          ...(userId ? prev[userId] : {}),
           messages: finalMessages
         }
       }));
@@ -301,7 +304,11 @@ Happy Learning! 🚀📚
     URL.revokeObjectURL(url);
 
     // Show success message
-    alert(`✅ Learning path downloaded successfully!\n\nFile: ${fileName}\n\nYour personalized learning recommendations from Kaaya have been saved to your device.`);
+    alert(`✅ Learning path downloaded successfully!
+
+File: ${fileName}
+
+Your personalized learning recommendations from Kaaya have been saved to your device.`);
   };
 
   const quickSuggestions = [
@@ -316,8 +323,8 @@ Happy Learning! 🚀📚
       <div className="py-6">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">AI Chat Personalized Learning</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="text-2xl font-bold text-black dark:text-white">AI Chat Personalized Learning</h1>
+            <p className="mt-1 text-sm text-gray-700 dark:text-gray-400">
               Complete your profile to start your personalized learning session with Kaaya
             </p>
           </div>
@@ -471,13 +478,13 @@ Happy Learning! 🚀📚
                     </div>
                     <div className="ml-3">
                       <div className="font-medium text-gray-900">{userProfile?.name}</div>
-                      <div className="text-sm text-gray-500">{userProfile?.designation}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{userProfile?.designation}</div>
                     </div>
                   </div>
                   
                   <div className="pt-2 border-t border-gray-100">
                     <div className="text-sm font-medium text-gray-700">Company</div>
-                    <div className="text-sm text-gray-600">{userProfile?.companyName}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{userProfile?.companyName}</div>
                   </div>
                   
                   <div>
@@ -687,7 +694,7 @@ Happy Learning! 🚀📚
                               </span>
                             </div>
                             <div className="mb-3">
-                              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
                                 <span>Progress</span>
                                 <span>{item.progress}%</span>
                               </div>
@@ -703,7 +710,7 @@ Happy Learning! 🚀📚
                               </div>
                             </div>
                             <div className="flex justify-between items-center">
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 {item.progress < 100 ? 'In progress' : 'Completed'}
                               </span>
                               <button className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center">
@@ -719,12 +726,12 @@ Happy Learning! 🚀📚
                   
                   <div className="relative z-10 flex items-start">
                     <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center border-4 border-white shadow-md">
-                      <Sparkles className="h-5 w-5 text-gray-400" />
+                      <Sparkles className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                     </div>
                     <div className="ml-4 flex-1">
                       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm border-dashed">
                         <div className="text-center py-2">
-                          <p className="text-sm text-gray-500">Continue chatting with Kaaya to unlock more personalized learning recommendations</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">Continue chatting with Kaaya to unlock more personalized learning recommendations</p>
                           <button 
                             onClick={() => setActiveTab('chat')}
                             className="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
@@ -780,18 +787,18 @@ Happy Learning! 🚀📚
                           <BookOpen className="h-4 w-4 text-blue-500 mr-2" />
                           <span className="text-sm font-medium text-gray-800">Learning Roadmap</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Personalized career path based on your profile</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Personalized career path based on your profile</p>
                       </div>
                       <div className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                         <div className="flex items-center">
                           <Rocket className="h-4 w-4 text-purple-500 mr-2" />
                           <span className="text-sm font-medium text-gray-800">Skill Development Plan</span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">Top skills to focus on for your role</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Top skills to focus on for your role</p>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-4 text-sm text-gray-500">
+                    <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
                       <p>No saved resources yet</p>
                       <p className="text-xs mt-1">Chat with Kaaya to get personalized recommendations</p>
                     </div>
@@ -856,7 +863,7 @@ Happy Learning! 🚀📚
                   </div>
                   <div className="ml-3">
                     <h4 className="text-sm font-medium text-gray-900">Getting Started</h4>
-                    <p className="text-xs text-gray-500">Completed your learning profile</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Completed your learning profile</p>
                   </div>
                   <div className="ml-auto">
                     <div className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Completed</div>
@@ -870,7 +877,7 @@ Happy Learning! 🚀📚
                     </div>
                     <div className="ml-3">
                       <h4 className="text-sm font-medium text-gray-900">Active Learner</h4>
-                      <p className="text-xs text-gray-500">Had 5+ meaningful learning conversations</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Had 5+ meaningful learning conversations</p>
                     </div>
                     <div className="ml-auto">
                       <div className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Completed</div>
@@ -879,11 +886,11 @@ Happy Learning! 🚀📚
                 ) : (
                   <div className="flex items-center p-3 border border-gray-200 rounded-lg bg-gray-50">
                     <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <MessageCircle className="h-5 w-5 text-gray-400" />
+                      <MessageCircle className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                     </div>
                     <div className="ml-3">
                       <h4 className="text-sm font-medium text-gray-900">Active Learner</h4>
-                      <p className="text-xs text-gray-500">Have 5+ meaningful learning conversations</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Have 5+ meaningful learning conversations</p>
                     </div>
                     <div className="ml-auto">
                       <div className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
@@ -895,11 +902,11 @@ Happy Learning! 🚀📚
                 
                 <div className="flex items-center p-3 border border-gray-200 rounded-lg bg-gray-50">
                   <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <Download className="h-5 w-5 text-gray-400" />
+                    <Download className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <div className="ml-3">
                     <h4 className="text-sm font-medium text-gray-900">Learning Exporter</h4>
-                    <p className="text-xs text-gray-500">Download your first learning path</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Download your first learning path</p>
                   </div>
                   <div className="ml-auto">
                     <div className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Locked</div>
@@ -908,11 +915,11 @@ Happy Learning! 🚀📚
                 
                 <div className="flex items-center p-3 border border-gray-200 rounded-lg bg-gray-50">
                   <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <Award className="h-5 w-5 text-gray-400" />
+                    <Award className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <div className="ml-3">
                     <h4 className="text-sm font-medium text-gray-900">Learning Streak</h4>
-                    <p className="text-xs text-gray-500">Use Kaaya for 7 consecutive days</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Use Kaaya for 7 consecutive days</p>
                   </div>
                   <div className="ml-auto">
                     <div className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">

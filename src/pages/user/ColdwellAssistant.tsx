@@ -8,8 +8,8 @@ export default function ColdwellAssistant() {
         <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">Coldwell Assistant</h1>
-              <p className="text-gray-300 mt-1">Your AI-powered learning assistant</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-black dark:text-white">Coldwell Assistant</h1>
+              <p className="text-gray-700 dark:text-gray-300 mt-1">Your AI-powered learning assistant</p>
             </div>
           </div>
         </div>

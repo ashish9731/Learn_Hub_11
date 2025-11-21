@@ -647,7 +647,7 @@ export default function CourseDetail() {
             </button>
           )}
           {error.includes('not assigned') && (
-            <div className="mt-4 text-gray-300">
+            <div className="mt-4 text-gray-700 dark:text-gray-300">
               <p>Please contact your administrator to be assigned to this course.</p>
             </div>
           )}
@@ -661,7 +661,7 @@ export default function CourseDetail() {
     return (
       <div className="p-6">
         <div className="text-center py-12">
-          <div className="text-gray-400">Course not found</div>
+          <div className="text-gray-700 dark:text-gray-400">Course not found</div>
         </div>
       </div>
     );
@@ -722,7 +722,7 @@ export default function CourseDetail() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <BookOpen className="h-12 w-12 text-gray-500 dark:text-gray-400" />
+                        <BookOpen className="h-12 w-12 text-gray-500 dark:text-gray-500" />
                       </div>
                     )}
                   </div>
@@ -733,7 +733,7 @@ export default function CourseDetail() {
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <div className="flex items-center">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-3 dark:text-white">{course.title}</h1>
+                        <h1 className="text-3xl font-bold text-black mb-3 dark:text-white">{course.title}</h1>
                         {checkFinalQuizPassed() && (
                           <span className="ml-3 px-3 py-1 bg-green-500 text-white text-sm rounded-full flex items-center">
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -767,19 +767,19 @@ export default function CourseDetail() {
                       <div className="text-2xl font-bold text-green-400 mb-1">
                         {getAssignedPodcasts().filter(p => !p.is_youtube_video).length}
                       </div>
-                      <div className="text-sm font-medium text-gray-300">Audio Files</div>
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Audio Files</div>
                     </div>
                     <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-4 text-center shadow-sm border border-gray-300 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700">
                       <div className="text-2xl font-bold text-purple-400 mb-1">
                         {getAssignedPodcasts().filter(p => p.is_youtube_video).length}
                       </div>
-                      <div className="text-sm font-medium text-gray-300">Video Files</div>
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Video Files</div>
                     </div>
                     <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-4 text-center shadow-sm border border-gray-300 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700">
                       <div className="text-2xl font-bold text-yellow-400 mb-1">
                         {getAssignedPDFs('docs').length + getAssignedPDFs('images').length + getAssignedPDFs('infographics').length + getAssignedPDFs('templates').length}
                       </div>
-                      <div className="text-sm font-medium text-gray-300">Documents</div>
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Documents</div>
                     </div>
                   </div>
                 </div>
@@ -856,7 +856,7 @@ export default function CourseDetail() {
                                         <div className="w-16 bg-gray-200 rounded-full h-1.5">
                                           <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
                                         </div>
-                                        <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                                        <span className="text-xs text-gray-700 dark:text-gray-500 ml-1">{completion}%</span>
                                       </div>
                                     )}
                                   </div>
@@ -865,8 +865,8 @@ export default function CourseDetail() {
                               </div>
                             );
                           }) : (
-                            <div className="text-center py-8 text-gray-600 dark:text-gray-400">
-                              <Headphones className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                            <div className="text-center py-8 text-gray-700 dark:text-gray-400">
+                              <Headphones className="h-12 w-12 mx-auto text-gray-500 dark:text-gray-500 mb-4" />
                               <h3 className="text-lg font-medium text-black dark:text-white mb-2">No Audio Content</h3>
                               <p className="text-gray-700 dark:text-gray-400">No audio content has been assigned to you for this course.</p>
                             </div>
@@ -909,9 +909,9 @@ export default function CourseDetail() {
                       </div>
                     ) : (
                       <div className="bg-gray-800 rounded-lg p-8 text-center">
-                        <Headphones className="h-16 w-16 mx-auto text-gray-500 mb-4" />
+                        <Headphones className="h-16 w-16 mx-auto text-gray-500 dark:text-gray-500 mb-4" />
                         <h3 className="text-lg font-medium text-white mb-2">Select an Audio File</h3>
-                        <p className="text-gray-400">Choose an audio file from the list to play it here.</p>
+                        <p className="text-gray-700 dark:text-gray-400">Choose an audio file from the list to play it here.</p>
                       </div>
                     )}
                   </div>
@@ -958,13 +958,13 @@ export default function CourseDetail() {
                                   </div> 
                                   <div className="flex-1 min-w-0">
                                     <h3 className="text-sm font-medium text-white truncate">{podcast.title}</h3>
-                                    <p className="text-xs text-gray-400">Video content</p>
+                                    <p className="text-xs text-gray-700 dark:text-gray-400">Video content</p>
                                     {completion > 0 && completion < 100 && (
                                       <div className="ml-2 flex items-center">
                                         <div className="w-16 bg-gray-200 rounded-full h-1.5">
                                           <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${completion}%` }}></div>
                                         </div>
-                                        <span className="text-xs text-gray-500 ml-1">{completion}%</span>
+                                        <span className="text-xs text-gray-700 dark:text-gray-500 ml-1">{completion}%</span>
                                       </div>
                                     )}
                                   </div>
@@ -973,10 +973,10 @@ export default function CourseDetail() {
                               </div>
                             );
                           }) : (
-                            <div className="text-center py-8 text-gray-400">
-                              <Youtube className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-                              <h3 className="text-lg font-medium text-white mb-2">No Video Content</h3>
-                              <p className="text-gray-400">No video content has been assigned to you for this course.</p>
+                            <div className="text-center py-8 text-gray-700 dark:text-gray-400">
+                              <Youtube className="h-12 w-12 mx-auto text-gray-500 dark:text-gray-500 mb-4" />
+                              <h3 className="text-lg font-medium text-black dark:text-white mb-2">No Video Content</h3>
+                              <p className="text-gray-700 dark:text-gray-400">No video content has been assigned to you for this course.</p>
                             </div>
                           );
                       })()}
@@ -993,9 +993,9 @@ export default function CourseDetail() {
                       </div>
                     ) : (
                       <div className="bg-gray-800 rounded-lg p-8 text-center">
-                        <Youtube className="h-16 w-16 mx-auto text-gray-500 mb-4" />
+                        <Youtube className="h-16 w-16 mx-auto text-gray-500 dark:text-gray-500 mb-4" />
                         <h3 className="text-lg font-medium text-white mb-2">Select a Video</h3>
-                        <p className="text-gray-400">Choose a video from the list to play it here.</p>
+                        <p className="text-gray-700 dark:text-gray-400">Choose a video from the list to play it here.</p>
                       </div>
                     )}
                   </div>
@@ -1025,7 +1025,7 @@ export default function CourseDetail() {
                                 {pdf.description && (
                                   <p className="text-xs text-gray-700 mb-2 dark:text-gray-300">{pdf.description}</p>
                                 )}
-                                <p className="text-xs text-gray-500 mb-3 dark:text-gray-400">
+                                <p className="text-xs text-gray-700 mb-3 dark:text-gray-400">
                                   {(pdf && pdf.content_type === 'docs') ? 'PDF Document' : 'Template/Document'}
                                 </p>
                                 <button
@@ -1057,8 +1057,8 @@ export default function CourseDetail() {
                         ))}
                       </>
                     ) : (
-                      <div className="text-center py-8 text-gray-600 dark:text-gray-400 col-span-full">
-                        <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                      <div className="text-center py-8 text-gray-700 dark:text-gray-400 col-span-full">
+                        <FileText className="h-12 w-12 mx-auto text-gray-500 dark:text-gray-500 mb-4" />
                         <h3 className="text-lg font-medium text-black mb-2 dark:text-white">No Documents</h3>
                         <p className="text-gray-700 dark:text-gray-400">No documents have been assigned to you for this course.</p>
                       </div>
@@ -1108,7 +1108,7 @@ export default function CourseDetail() {
                             {pdf.description && (
                               <p className="text-xs text-gray-700 mb-2 dark:text-gray-300">{pdf.description}</p>
                             )}
-                            <p className="text-xs text-gray-500 mb-2 dark:text-gray-400">Infographic</p>
+                            <p className="text-xs text-gray-700 mb-2 dark:text-gray-400">Infographic</p>
                             <button
                               onClick={() => {
                                 // Open infographic directly in browser tab with proper URL handling
@@ -1142,8 +1142,8 @@ export default function CourseDetail() {
                         ))}
                       </>
                     ) : (
-                      <div className="text-center py-8 text-gray-600 dark:text-gray-400 col-span-full">
-                        <Image className="h-12 w-12 mx-auto text-gray-500 mb-4" />
+                      <div className="text-center py-8 text-gray-700 dark:text-gray-400 col-span-full">
+                        <Image className="h-12 w-12 mx-auto text-gray-500 dark:text-gray-500 mb-4" />
                         <h3 className="text-lg font-medium text-black mb-2 dark:text-white">No Infographics</h3>
                         <p className="text-gray-700 dark:text-gray-400">No infographics have been assigned to you for this course.</p>
                       </div>
@@ -1175,7 +1175,7 @@ export default function CourseDetail() {
                                 {pdf.description && (
                                   <p className="text-xs text-gray-700 mb-2 dark:text-gray-300">{pdf.description}</p>
                                 )}
-                                <p className="text-xs text-gray-500 mb-3 dark:text-gray-400">
+                                <p className="text-xs text-gray-700 mb-3 dark:text-gray-400">
                                   {(pdf && pdf.content_type === 'templates') ? 'Template/Document' : 'PDF Document'}
                                 </p>
                                 <a 
@@ -1197,10 +1197,10 @@ export default function CourseDetail() {
                         ))}
                       </>
                     ) : (
-                      <div className="text-center py-8 text-gray-500 col-span-full dark:text-gray-400">
+                      <div className="text-center py-8 text-gray-700 dark:text-gray-400 col-span-full">
                         <FileText className="h-12 w-12 mx-auto text-gray-500 mb-4 dark:text-gray-400" />
                         <h3 className="text-lg font-medium text-black mb-2 dark:text-white">No Templates</h3>
-                        <p className="text-gray-500 dark:text-gray-400">No templates or other content have been assigned to you for this course.</p>
+                        <p className="text-gray-700 dark:text-gray-400">No templates or other content have been assigned to you for this course.</p>
                       </div>
                     );
                   })()}
@@ -1259,7 +1259,7 @@ export default function CourseDetail() {
                           >
                             Start Final Quiz
                           </button>
-                          <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                          <div className="mt-4 text-sm text-gray-700 dark:text-gray-400">
                             <p>• Questions from your uploaded quiz document</p>
                             <p>• Multiple choice with detailed explanations</p>
                             <p>• Instant feedback on answers</p>
@@ -1290,7 +1290,7 @@ export default function CourseDetail() {
           </>
         ) : (
           <div className="text-center py-12 bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6">
-            <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
+            <BookOpen className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
             <h3 className="mt-2 text-sm font-medium text-black dark:text-white">Course not found</h3>
             <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
               The requested course could not be found.
