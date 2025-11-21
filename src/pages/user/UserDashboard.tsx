@@ -663,9 +663,13 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                   <YAxis stroke="rgba(255,255,255,0.7)" domain={[0, 100]} />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'rgba(0,0,0,0.8)', 
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: '0.5rem'
+                      backgroundColor: 'rgba(255,255,255,0.9)',
+                      border: '1px solid rgba(0,0,0,0.1)',
+                      borderRadius: '0.5rem',
+                      color: 'black'
+                    }}
+                    wrapperStyle={{
+                      color: 'black'
                     }}
                     formatter={(value, name) => {
                       if (name === 'progress') {
@@ -988,9 +992,13 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                         <YAxis stroke="rgba(255,255,255,0.7)" />
                         <Tooltip 
                           contentStyle={{ 
-                            backgroundColor: 'rgba(0,0,0,0.8)', 
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            borderRadius: '0.5rem'
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            border: '1px solid rgba(0,0,0,0.1)',
+                            borderRadius: '0.5rem',
+                            color: 'black'
+                          }}
+                          wrapperStyle={{
+                            color: 'black'
                           }}
                           formatter={(value) => [`${value} min`, 'Time Spent']}
                         />
@@ -1015,9 +1023,13 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                         <YAxis stroke="rgba(255,255,255,0.7)" domain={[0, 100]} />
                         <Tooltip 
                           contentStyle={{ 
-                            backgroundColor: 'rgba(0,0,0,0.8)', 
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            borderRadius: '0.5rem'
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            border: '1px solid rgba(0,0,0,0.1)',
+                            borderRadius: '0.5rem',
+                            color: 'black'
+                          }}
+                          wrapperStyle={{
+                            color: 'black'
                           }}
                           formatter={(value) => [`${value}%`, 'Progress']}
                         />
@@ -1132,9 +1144,13 @@ export default function UserDashboard({ userEmail = '' }: { userEmail?: string }
                         <YAxis stroke="rgba(255,255,255,0.7)" domain={[0, 100]} />
                         <Tooltip 
                           contentStyle={{ 
-                            backgroundColor: 'rgba(0,0,0,0.8)', 
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            borderRadius: '0.5rem'
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            border: '1px solid rgba(0,0,0,0.1)',
+                            borderRadius: '0.5rem',
+                            color: 'black'
+                          }}
+                          wrapperStyle={{
+                            color: 'black'
                           }}
                           formatter={(value) => [`${value}%`, 'Progress']}
                         />

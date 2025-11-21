@@ -142,10 +142,10 @@ export default function MyCourses() {
     
     if (!assignedCourses || assignedCourses.length === 0) {
       return (
-        <div className="text-center py-12 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+        <div className="text-center py-12 bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6">
           <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-white">No courses assigned</h3>
-          <p className="mt-1 text-sm text-gray-300">
+          <h3 className="mt-2 text-sm font-medium text-black dark:text-white">No courses assigned</h3>
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
             Contact your administrator to get access to courses.
           </p>
         </div>
@@ -163,7 +163,7 @@ export default function MyCourses() {
           return (
             <div
               key={course.id}
-              className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 relative"
+              className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-xl border border-gray-200 dark:border-white/20 shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 relative"
               onClick={() => navigate(`/user/courses/${course.id}`)}
             >
               {/* Completed badge - only show when course is actually completed */}
@@ -185,7 +185,7 @@ export default function MyCourses() {
 
               {/* Course Title and Start Button */}
               <div className="p-6">
-                <h3 className="text-xl font-semibold text-white mb-4 line-clamp-2">
+                <h3 className="text-xl font-semibold text-black dark:text-white mb-4 line-clamp-2">
                   {course.title}
                 </h3>
                 
@@ -686,11 +686,11 @@ export default function MyCourses() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4 md:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-300 text-black dark:from-gray-900 dark:to-black dark:text-white p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+          <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6">
             <div className="text-center py-12">
-              <div className="text-red-400 mb-4">Error loading courses: {error}</div>
+              <div className="text-red-600 dark:text-red-400 mb-4">Error loading courses: {error}</div>
               {error.includes('Authentication') && (
                 <button
                   onClick={() => navigate('/login')}
@@ -709,24 +709,24 @@ export default function MyCourses() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-300 text-black dark:from-gray-900 dark:to-black dark:text-white">
       {/* Glassmorphism Header */}
-      <div className="bg-white/10 backdrop-blur-lg rounded-b-2xl border-b border-white/20 shadow-xl p-6 mb-8">
+      <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-b-2xl border-b border-gray-200 dark:border-white/20 shadow-xl p-6 mb-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">My Courses</h1>
-          <p className="text-gray-300">Access your assigned courses and track your learning progress.</p>
+          <h1 className="text-3xl font-bold mb-2 text-black dark:text-white">My Courses</h1>
+          <p className="text-gray-700 dark:text-gray-300">Access your assigned courses and track your learning progress.</p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl p-6">
+          <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-2xl border border-gray-200 dark:border-white/20 shadow-xl p-6">
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
             </div>
           </div>
         ) : error ? (
-          <div className="bg-red-900/30 backdrop-blur-lg rounded-2xl border border-red-500/30 shadow-xl p-6">
+          <div className="bg-red-100 dark:bg-red-900/30 backdrop-blur-lg rounded-2xl border border-red-300 dark:border-red-500/30 shadow-xl p-6">
             <div className="flex">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
@@ -734,8 +734,8 @@ export default function MyCourses() {
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-300">Error loading courses</h3>
-                <div className="mt-2 text-sm text-red-200">
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-300">Error loading courses</h3>
+                <div className="mt-2 text-sm text-red-700 dark:text-red-200">
                   <p>{error}</p>
                 </div>
               </div>
