@@ -118,6 +118,7 @@ import CourseDetail from './pages/user/CourseDetail';
 import PDFViewer from './pages/user/PDFViewer';
 import ImageViewer from './pages/user/ImageViewer';
 import AIChat from './pages/user/AIChat';
+import ColdwellAssistant from './pages/user/ColdwellAssistant';
 import AuthPage from './components/Auth/AuthPage';
 
 // Wrapper components to extract URL parameters
@@ -415,6 +416,7 @@ function AppContent() {
                     <Route path="/pdf-viewer" element={<PDFViewerWrapper />} />
                     <Route path="/image-viewer" element={<ImageViewerWrapper />} />
                     <Route path="/user/ai-chat" element={<AIChat userEmail={userEmail} />} />
+                    <Route path="/user/coldwell-assistant" element={<ColdwellAssistant />} />
                     <Route path="*" element={<Navigate to="/user" replace />} />
                   </Routes>
                 </div>

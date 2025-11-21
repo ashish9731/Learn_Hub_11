@@ -3,12 +3,14 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   BookOpen, 
-  GraduationCap
+  GraduationCap,
+  Bot
 } from 'lucide-react';
 
 const navigation = [
   { name: 'Dashboard', href: '/user', icon: LayoutDashboard },
   { name: 'My Courses', href: '/user/courses', icon: BookOpen },
+  { name: 'Coldwell Assistant', href: '/user/coldwell-assistant', icon: Bot },
 ];
 
 export default function UserSidebar() {
